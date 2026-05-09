@@ -73,6 +73,14 @@ if base_trader then
                         local current_time = minetest.get_timeofday() * 24000
                         local is_night = current_time > 18500 or current_time < 4500
                         
+                        -- Defensive check: verify Deed still exists at home_pos
+                        if self.home_pos then
+                            local deed_node = minetest.get_node(self.home_pos)
+                            if deed_node.name ~= "evergrowth_villages:housing_deed" then
+                                self.home_pos = nil
+                            end
+                        end
+                        
                         -- Schedule: Nighttime return home, Daytime wander
                         if is_night then
                             if self.order ~= "stand" then
@@ -137,10 +145,45 @@ if base_trader then
     base_trader.on_rightclick = function(self, clicker)
         if clicker and clicker:is_player() and clicker:get_player_control().sneak then
             local name = clicker:get_player_name()
-            if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+
+            if self.is_villager then
+                -- Relocation: create a contract item with this NPC's data
+                local contract = ItemStack("evergrowth_villages:contract_villager_relocation")
+                local meta = contract:get_meta()
+                meta:set_string("resident_name", self.nametag or self.game_name or "Villager")
+                meta:set_string("profession", self.evergrowth_profession or "merchant")
+                meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
+                meta:set_int("health", self.health or 20)
+
+                -- Mark old Deed as vacant
+                if self.home_pos then
+                    local deed_node = minetest.get_node(self.home_pos)
+                    if deed_node.name == "evergrowth_villages:housing_deed" then
+                        local deed_meta = minetest.get_meta(self.home_pos)
+                        deed_meta:set_int("occupied", 0)
+                        deed_meta:set_string("resident_name", "")
+                        deed_meta:set_string("infotext", S("Housing Deed (Vacant)"))
+                    end
+                end
+
+                -- Give contract to player
+                local inv = clicker:get_inventory()
+                if inv:room_for_item("main", contract) then
+                    inv:add_item("main", contract)
+                else
+                    minetest.add_item(clicker:get_pos(), contract)
+                end
+
                 self.object:remove()
-                minetest.chat_send_player(name, "[evergrowth_villages] Trader removed safely.")
+                minetest.chat_send_player(name, S("[evergrowth_villages] Villager relocated to contract."))
                 return
+            else
+                -- Admin delete for non-villager NPCs
+                if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+                    self.object:remove()
+                    minetest.chat_send_player(name, "[evergrowth_villages] Trader removed safely.")
+                    return
+                end
             end
         end
         if old_on_rightclick then

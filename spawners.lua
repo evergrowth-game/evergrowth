@@ -63,8 +63,9 @@ function evergrowth_villages.spawn_companion(pos, is_female, owner, override_dat
 end
 
 -- Spawner Logic
-function evergrowth_villages.spawn_trader(pos, profession, is_villager)
+function evergrowth_villages.spawn_trader(pos, profession, is_villager, override_data)
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
+    override_data = override_data or {}
     
     local obj = minetest.add_entity(pos, "mobs_npc:trader")
     if obj then
@@ -73,65 +74,75 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager)
             -- Set custom flag to enable our patched on_step logic
             ent.evergrowth_nametag_mode = true
             ent.is_villager = is_villager
+            ent.evergrowth_profession = profession
             if is_villager then
-                ent.home_pos = {x=pos.x, y=pos.y, z=pos.z}
+                ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
             end
             
             local trade_def = evergrowth_villages.trades_list[profession] or evergrowth_villages.trades_list.merchant
             ent.trades = trade_def
             
-            local is_female = (math.random() < 0.5)
-            local name_list = is_female and evergrowth_villages.female_names or evergrowth_villages.male_names
-            local name = name_list[math.random(#name_list)]
-            
-            ent.nametag = name .. " the " .. (profession:gsub("^%l", string.upper))
+            -- Name generation (allow override)
+            if override_data.nametag and override_data.nametag ~= "" then
+                ent.nametag = override_data.nametag
+            else
+                local is_female = (math.random() < 0.5)
+                local name_list = is_female and evergrowth_villages.female_names or evergrowth_villages.male_names
+                local name = name_list[math.random(#name_list)]
+                ent.nametag = name .. " the " .. (profession:gsub("^%l", string.upper))
+            end
             ent.game_name = ent.nametag
             
-            local profession_textures = {
-                farmer = {
-                    male = {"male_farmer_1.png", "male_farmer_2.png"},
-                    female = {"female_farmer_1.png", "female_farmer_2.png"}
-                },
-                smith = {
-                    male = {"male_smith.png"},
-                    female = {"female_blacksmith.png"}
-                },
-                lumberjack = {
-                    male = {"male_lumberjack.png"},
-                    female = {"female_lumberjack.png"}
-                },
-                miner = {
-                    male = {"male_miner.png"},
-                    female = {"female_miner.png"}
-                },
-                merchant = {
-                    male = {"male_merchant.png"},
-                    female = {"female_merchant.png"}
-                },
-                brewer = {
-                    male = {"male_brewer.png"},
-                    female = {"female_brewer.png"}
-                },
-                librarian = {
-                    male = {"male_librarian.png"},
-                    female = {"female_librarian.png"}
-                },
-                mage = {
-                    male = {"male_mage.png"},
-                    female = {"female_mage.png"}
-                },
-                gunsmith = {
-                    male = {"mobs_trader.png"},
-                    female = {"female_gunsmith.png"}
+            -- Texture selection (allow override)
+            if override_data.texture and override_data.texture ~= "" then
+                ent.base_texture = { override_data.texture }
+            else
+                local is_female = (math.random() < 0.5)
+                local profession_textures = {
+                    farmer = {
+                        male = {"male_farmer_1.png", "male_farmer_2.png"},
+                        female = {"female_farmer_1.png", "female_farmer_2.png"}
+                    },
+                    smith = {
+                        male = {"male_smith.png"},
+                        female = {"female_blacksmith.png"}
+                    },
+                    lumberjack = {
+                        male = {"male_lumberjack.png"},
+                        female = {"female_lumberjack.png"}
+                    },
+                    miner = {
+                        male = {"male_miner.png"},
+                        female = {"female_miner.png"}
+                    },
+                    merchant = {
+                        male = {"male_merchant.png"},
+                        female = {"female_merchant.png"}
+                    },
+                    brewer = {
+                        male = {"male_brewer.png"},
+                        female = {"female_brewer.png"}
+                    },
+                    librarian = {
+                        male = {"male_librarian.png"},
+                        female = {"female_librarian.png"}
+                    },
+                    mage = {
+                        male = {"male_mage.png"},
+                        female = {"female_mage.png"}
+                    },
+                    gunsmith = {
+                        male = {"mobs_trader.png"},
+                        female = {"female_gunsmith.png"}
+                    }
                 }
-            }
-            
-            local texture_pool = profession_textures[profession] and profession_textures[profession][is_female and "female" or "male"]
-            if not texture_pool then
-                texture_pool = is_female and {"mobs_trader4.png"} or {"mobs_trader.png"}
+                
+                local texture_pool = profession_textures[profession] and profession_textures[profession][is_female and "female" or "male"]
+                if not texture_pool then
+                    texture_pool = is_female and {"mobs_trader4.png"} or {"mobs_trader.png"}
+                end
+                ent.base_texture = { texture_pool[math.random(#texture_pool)] }
             end
-            
-            ent.base_texture = { texture_pool[math.random(#texture_pool)] }
             
             ent.textures = ent.base_texture
             obj:set_properties({
@@ -147,13 +158,17 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager)
                 ent._greet_timer = 120 -- Allow immediate greeting
             end
             
-            ent.health = 20
-            obj:set_hp(20)
+            local hp = (override_data.health and override_data.health > 0) and override_data.health or 20
+            ent.health = hp
+            obj:set_hp(hp)
             
-            minetest.log("action", "[evergrowth_villages] SPAWNED " .. (is_female and "Female" or "Male") .. " " .. profession .. " at " .. minetest.pos_to_string(pos))
+            minetest.log("action", "[evergrowth_villages] SPAWNED " .. profession .. " at " .. minetest.pos_to_string(pos))
+            
+            return ent.nametag
         end
     end
 end
+
 
 local function register_spawner(name, profession)
     minetest.register_node("evergrowth_villages:spawn_" .. name, {

@@ -14,22 +14,38 @@ local function register_contract(name, profession, recipe_item, description, cus
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then return itemstack end
             
-            local pos = pointed_thing.above
-            local node = minetest.get_node(pos)
+            local under_pos = pointed_thing.under
+            local under_node = minetest.get_node(under_pos)
             
-            -- Check if space is clear (air or buildable_to)
-            local def = minetest.registered_nodes[node.name]
-            if not def or not (node.name == "air" or def.buildable_to) then
-                return
+            if under_node.name == "evergrowth_villages:housing_deed" then
+                -- Deed-based: spawn as tethered villager
+                local deed_meta = minetest.get_meta(under_pos)
+                if deed_meta:get_int("occupied") == 1 then
+                    minetest.chat_send_player(placer:get_player_name(),
+                        S("This house already has a resident."))
+                    return itemstack
+                end
+                
+                local spawn_pos = pointed_thing.above
+                local npc_name = evergrowth_villages.spawn_trader(
+                    spawn_pos, profession, true, {home_pos = under_pos})
+                
+                deed_meta:set_int("occupied", 1)
+                deed_meta:set_string("resident_name", npc_name or profession)
+                deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or profession))
+            else
+                -- Free-standing: spawn without tethering (original behavior)
+                local pos = pointed_thing.above
+                local node = minetest.get_node(pos)
+                local def = minetest.registered_nodes[node.name]
+                if not def or not (node.name == "air" or def.buildable_to) then
+                    return
+                end
+                evergrowth_villages.spawn_trader(pos, profession)
             end
             
-            -- Spawn the trader
-            evergrowth_villages.spawn_trader(pos, profession)
+            minetest.sound_play("default_place_node_hard", {pos = pointed_thing.above, gain = 1.0}, true)
             
-            -- Play sound
-            minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
-            
-            -- Consume item if not in creative
             if not minetest.settings:get_bool("creative_mode") then
                 itemstack:take_item()
             end
@@ -162,4 +178,56 @@ minetest.register_craft({
         {"", "default:stick", ""},
         {"default:stick", "", ""},
     }
+})
+
+-- Villager Relocation Contract
+-- Created when a player sneak+right-clicks a tethered villager NPC.
+-- Stores the NPC's name, profession, texture, and health in item metadata.
+minetest.register_craftitem("evergrowth_villages:contract_villager_relocation", {
+    description = S("Villager Relocation Contract"),
+    inventory_image = "default_paper.png^[colorize:#8B4513:80",
+    groups = {not_in_creative_inventory = 1},
+    on_place = function(itemstack, placer, pointed_thing)
+        if pointed_thing.type ~= "node" then return itemstack end
+
+        local under_pos = pointed_thing.under
+        local under_node = minetest.get_node(under_pos)
+
+        if under_node.name ~= "evergrowth_villages:housing_deed" then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("Use this on a Housing Deed to place the villager."))
+            return itemstack
+        end
+
+        local deed_meta = minetest.get_meta(under_pos)
+        if deed_meta:get_int("occupied") == 1 then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("This house already has a resident."))
+            return itemstack
+        end
+
+        local meta = itemstack:get_meta()
+        local override_data = {
+            nametag = meta:get_string("resident_name"),
+            texture = meta:get_string("texture"),
+            health = meta:get_int("health"),
+            home_pos = under_pos,
+        }
+        local profession = meta:get_string("profession")
+        if profession == "" then profession = "merchant" end
+
+        local spawn_pos = pointed_thing.above
+        local npc_name = evergrowth_villages.spawn_trader(spawn_pos, profession, true, override_data)
+
+        deed_meta:set_int("occupied", 1)
+        deed_meta:set_string("resident_name", npc_name or "Villager")
+        deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or "Villager"))
+
+        minetest.sound_play("default_place_node_hard", {pos = spawn_pos, gain = 1.0}, true)
+
+        if not minetest.settings:get_bool("creative_mode") then
+            itemstack:take_item()
+        end
+        return itemstack
+    end,
 })
