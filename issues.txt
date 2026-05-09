@@ -1,0 +1,4 @@
+1. Villagers should not be removable by right-click, and should be renewable (reproduction or manual placement?).
+    - Consider that a player may want to expand an existing village (new buildings and more villagers), or start a new one.
+2. Find a better method of generation building elevation placement.
+3. Villages need a protector to kill monsters, like a golem.
