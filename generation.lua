@@ -8,7 +8,7 @@
 local modpath = minetest.get_modpath("evergrowth_villages")
 local structures = dofile(modpath .. "/structures.lua")
 
-local ENABLE_GENERATION = minetest.settings:get_bool("evergrowth_villages_natural_generation", true)
+local ENABLE_GENERATION = minetest.settings:get_bool("evergrowth_villages_natural_generation", false)
 local VILLAGE_CHANCE = tonumber(minetest.settings:get("evergrowth_villages_chance")) or 1
 local GRID_SIZE = 180 
 
