@@ -50,6 +50,6 @@ minetest.register_node("evergrowth_villages:housing_deed", {
 minetest.register_craft({
     output = "evergrowth_villages:housing_deed",
     recipe = {
-        {"default:paper", "default:stick"},
+        {"default:paper", "dye:black"},
     }
 })
