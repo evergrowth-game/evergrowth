@@ -162,7 +162,7 @@ if base_trader then
                         local deed_meta = minetest.get_meta(self.home_pos)
                         deed_meta:set_int("occupied", 0)
                         deed_meta:set_string("resident_name", "")
-                        deed_meta:set_string("infotext", S("Housing Deed (Vacant)"))
+                        deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
                     end
                 end
 
