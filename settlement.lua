@@ -31,7 +31,7 @@ minetest.register_node("evergrowth_villages:housing_deed", {
         local meta = minetest.get_meta(pos)
         meta:set_int("occupied", 0)
         meta:set_string("resident_name", "")
-        meta:set_string("infotext", S("Housing Deed (Vacant)"))
+        meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
     end,
 
     can_dig = function(pos, player)
