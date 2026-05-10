@@ -1,16 +1,11 @@
 local S = minetest.get_translator("evergrowth_villages")
 
-local function register_contract(name, profession, recipe_item, description, custom_texture)
+local function register_contract(name, profession, recipe_item, description)
     local item_name = "evergrowth_villages:contract_" .. name
-    
-    local tex_name = custom_texture
-    if not tex_name then
-        tex_name = recipe_item:gsub(":", "_"):gsub(" ", "_") .. ".png"
-    end
 
     minetest.register_craftitem(item_name, {
         description = S(description) .. "\n" .. S("Use on a Housing Deed to assign a resident"),
-        inventory_image = "default_paper.png^(" .. tex_name .. "^[resize:16x16)",
+        inventory_image = "contract_" .. name .. ".png",
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then return itemstack end
             
@@ -67,14 +62,14 @@ register_contract("farmer", "farmer", "farming:wheat", "Farmer's Contract")
 register_contract("smith", "smith", "default:steel_ingot", "Blacksmith's Contract")
 register_contract("merchant", "merchant", "default:glass", "Merchant's Contract")
 register_contract("brewer", "brewer", "farming:bread", "Brewer's Contract")
-register_contract("lumberjack", "lumberjack", "default:wood", "Lumberjack's Contract", "default_tool_woodaxe.png")
+register_contract("lumberjack", "lumberjack", "default:wood", "Lumberjack's Contract")
 register_contract("miner", "miner", "default:coal_lump", "Miner's Contract")
 register_contract("librarian", "librarian", "default:book", "Librarian's Contract")
 register_contract("mage", "mage", "default:mese_crystal", "Mage's Contract")
-register_contract("technologist", "technologist", "techage:electric_cable", "Technologist's Contract", "basic_materials_copper_wire.png")
-register_contract("gunsmith", "gunsmith", "tnt:gunpowder", "Gunsmith's Contract", "bweapons_firearms_pack_pistol.png")
-register_contract("carpenter", "carpenter", "xdecor:workbench", "Carpenter's Contract", "xdecor_hammer.png")
-register_contract("mechanic", "mechanic", "automobiles_lib:engine", "Mechanic's Contract", "automobiles_wheel_icon.png")
+register_contract("technologist", "technologist", "techage:electric_cable", "Technologist's Contract")
+register_contract("gunsmith", "gunsmith", "tnt:gunpowder", "Gunsmith's Contract")
+register_contract("carpenter", "carpenter", "xdecor:workbench", "Carpenter's Contract")
+register_contract("mechanic", "mechanic", "automobiles_lib:engine", "Mechanic's Contract")
 
 -- Companion Contracts
 minetest.register_craftitem("evergrowth_villages:contract_companion_male", {
@@ -185,7 +180,7 @@ minetest.register_craft({
 -- Stores the NPC's name, profession, texture, and health in item metadata.
 minetest.register_craftitem("evergrowth_villages:contract_villager_relocation", {
     description = S("Villager Relocation Contract"),
-    inventory_image = "default_paper.png^[colorize:#8B4513:80",
+    inventory_image = "contract_relocation.png",
     groups = {not_in_creative_inventory = 1},
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return itemstack end

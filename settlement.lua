@@ -15,9 +15,9 @@ local S = minetest.get_translator("evergrowth_villages")
 minetest.register_node("evergrowth_villages:housing_deed", {
     description = S("Housing Deed"),
     drawtype = "signlike",
-    tiles = {"default_paper.png^[colorize:#8B4513:80"},
-    inventory_image = "default_paper.png^[colorize:#8B4513:80",
-    wield_image = "default_paper.png^[colorize:#8B4513:80",
+    tiles = {"housing_deed.png"},
+    inventory_image = "housing_deed.png",
+    wield_image = "housing_deed.png",
     paramtype = "light",
     paramtype2 = "wallmounted",
     sunlight_propagates = true,
