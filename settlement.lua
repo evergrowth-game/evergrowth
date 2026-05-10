@@ -14,14 +14,21 @@ local S = minetest.get_translator("evergrowth_villages")
 -- Housing Deed Node
 minetest.register_node("evergrowth_villages:housing_deed", {
     description = S("Housing Deed"),
-    drawtype = "signlike",
-    tiles = {"default_paper.png^[colorize:#8B4513:80"},
+    drawtype = "nodebox",
+    tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
     inventory_image = "default_paper.png^[colorize:#8B4513:80",
     wield_image = "default_paper.png^[colorize:#8B4513:80",
     paramtype = "light",
     paramtype2 = "wallmounted",
     sunlight_propagates = true,
     walkable = false,
+    use_texture_alpha = "opaque",
+    node_box = {
+        type = "wallmounted",
+        wall_top    = {-0.4375, 0.4375, -0.3125, 0.4375, 0.5, 0.3125},
+        wall_bottom = {-0.4375, -0.5, -0.3125, 0.4375, -0.4375, 0.3125},
+        wall_side   = {-0.5, -0.3125, -0.4375, -0.4375, 0.3125, 0.4375},
+    },
     selection_box = {
         type = "wallmounted",
     },
