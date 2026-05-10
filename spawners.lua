@@ -82,11 +82,13 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             local trade_def = evergrowth_villages.trades_list[profession] or evergrowth_villages.trades_list.merchant
             ent.trades = trade_def
             
+            -- Roll gender once for both name and texture
+            local is_female = (math.random() < 0.5)
+            
             -- Name generation (allow override)
             if override_data.nametag and override_data.nametag ~= "" then
                 ent.nametag = override_data.nametag
             else
-                local is_female = (math.random() < 0.5)
                 local name_list = is_female and evergrowth_villages.female_names or evergrowth_villages.male_names
                 local name = name_list[math.random(#name_list)]
                 ent.nametag = name .. " the " .. (profession:gsub("^%l", string.upper))
@@ -97,7 +99,6 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             if override_data.texture and override_data.texture ~= "" then
                 ent.base_texture = { override_data.texture }
             else
-                local is_female = (math.random() < 0.5)
                 local profession_textures = {
                     farmer = {
                         male = {"male_farmer_1.png", "male_farmer_2.png"},
@@ -143,6 +144,7 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
                 end
                 ent.base_texture = { texture_pool[math.random(#texture_pool)] }
             end
+
             
             ent.textures = ent.base_texture
             obj:set_properties({
