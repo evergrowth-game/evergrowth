@@ -11,6 +11,21 @@
     - companions.lua (for companion skin lists)
 ]]--
 
+-- NAMES LIST
+local female_names = {
+    "Alice", "Beth", "Catherine", "Diana", "Elena", "Fiona", "Grace", "Hannah",
+    "Isabel", "Julia", "Kara", "Lily", "Maria", "Nora", "Olivia", "Penny",
+    "Quinn", "Rachel", "Sarah", "Tara", "Uma", "Violet", "Wendy", "Yara", "Zoe",
+    "Agatha", "Beatrice", "Clara", "Dorothy", "Edith", "Flora", "Gertrude"
+}
+
+local male_names = {
+    "Arthur", "Ben", "Charles", "David", "Edward", "Frank", "George", "Henry",
+    "Isaac", "Jack", "Kevin", "Leo", "Michael", "Nathan", "Oscar", "Peter",
+    "Quincy", "Robert", "Sam", "Thomas", "Ulysses", "Victor", "William", "Xavier", 
+    "Alfred", "Barnaby", "Cecil", "Desmond", "Edwin", "Fletcher", "Gerald"
+}
+
 function evergrowth_villages.spawn_companion(pos, is_female, owner, override_data)
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
     
@@ -29,7 +44,7 @@ function evergrowth_villages.spawn_companion(pos, is_female, owner, override_dat
             ent.base_texture = { skins[ent.companion_skin_index] or skins[1] }
             ent.textures = ent.base_texture
             
-            local name_list = is_female and evergrowth_villages.female_names or evergrowth_villages.male_names
+            local name_list = is_female and female_names or male_names
             local name = name_list[math.random(#name_list)]
             
             local ntag
@@ -99,7 +114,7 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             if override_data.nametag and override_data.nametag ~= "" then
                 ent.nametag = override_data.nametag
             else
-                local name_list = is_female and evergrowth_villages.female_names or evergrowth_villages.male_names
+                local name_list = is_female and female_names or male_names
                 local name = name_list[math.random(#name_list)]
                 ent.nametag = name .. " the " .. (profession:gsub("^%l", string.upper))
             end
@@ -186,6 +201,7 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
 end
 
 
+--[[
 local function register_spawner(name, profession)
     minetest.register_node("evergrowth_villages:spawn_" .. name, {
         description = profession .. " Spawner",
@@ -312,3 +328,5 @@ minetest.register_abm({
         end
     end,
 })
+]]
+
