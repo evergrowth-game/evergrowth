@@ -167,17 +167,3 @@ evergrowth_villages.trades_list = {
     },
 }
 
--- NAMES LIST
-evergrowth_villages.female_names = {
-    "Alice", "Beth", "Catherine", "Diana", "Elena", "Fiona", "Grace", "Hannah",
-    "Isabel", "Julia", "Kara", "Lily", "Maria", "Nora", "Olivia", "Penny",
-    "Quinn", "Rachel", "Sarah", "Tara", "Uma", "Violet", "Wendy", "Yara", "Zoe",
-    "Agatha", "Beatrice", "Clara", "Dorothy", "Edith", "Flora", "Gertrude"
-}
-
-evergrowth_villages.male_names = {
-    "Arthur", "Ben", "Charles", "David", "Edward", "Frank", "George", "Henry",
-    "Isaac", "Jack", "Kevin", "Leo", "Michael", "Nathan", "Oscar", "Peter",
-    "Quincy", "Robert", "Sam", "Thomas", "Ulysses", "Victor", "William", "Xavier", 
-    "Alfred", "Barnaby", "Cecil", "Desmond", "Edwin", "Fletcher", "Gerald"
-}
