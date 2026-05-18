@@ -67,7 +67,8 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
     override_data = override_data or {}
     
-    local obj = minetest.add_entity(pos, "mobs_npc:trader")
+    local entity_name = profession == "guard" and "mobs_npc:npc" or "mobs_npc:trader"
+    local obj = minetest.add_entity(pos, entity_name)
     if obj then
         local ent = obj:get_luaentity()
         if ent then
@@ -75,6 +76,15 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             ent.evergrowth_nametag_mode = true
             ent.is_villager = is_villager
             ent.evergrowth_profession = profession
+            if profession == "guard" then
+                ent.attack_monsters = true
+                ent.damage = 10
+                ent.hp_max = 50
+                ent.health = 50
+                ent.view_range = 30
+                obj:set_properties({hp_max = 50})
+                obj:set_hp(50)
+            end
             if is_villager then
                 ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
             end
@@ -100,6 +110,10 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
                 ent.base_texture = { override_data.texture }
             else
                 local profession_textures = {
+                    guard = {
+                        male = {"mobs_npc.png", "mobs_npc3.png"},
+                        female = {"mobs_npc2.png", "mobs_npc4.png"}
+                    },
                     farmer = {
                         male = {"male_farmer_1.png", "male_farmer_2.png"},
                         female = {"female_farmer_1.png", "female_farmer_2.png"}

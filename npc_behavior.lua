@@ -14,10 +14,12 @@
 
 local S = minetest.get_translator("evergrowth_villages")
 
-local base_trader = minetest.registered_entities["mobs_npc:trader"]
-if base_trader then
-    local old_on_step = base_trader.on_step
-    base_trader.on_step = function(self, dtime)
+local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
+for _, entity_name in ipairs(target_entities) do
+    local base_entity = minetest.registered_entities[entity_name]
+    if base_entity then
+        local old_on_step = base_entity.on_step
+        base_entity.on_step = function(self, dtime)
         -- Call original logic
         if old_on_step then old_on_step(self, dtime) end
 
@@ -68,50 +70,71 @@ if base_trader then
                          self.object:set_properties({nametag = ""})
                     end
                     
-                    -- 2. Engagement Logic (Villagers Only)
-                    if self.is_villager and visible then
+                    -- 2. Schedule & Engagement Logic (Villagers Only)
+                    if self.is_villager then
                         local current_time = minetest.get_timeofday() * 24000
-                        local is_night = current_time > 18500 or current_time < 4500
+                        local is_night = (current_time > 18500 or current_time < 4500) and self.evergrowth_profession ~= "guard"
                         
                         -- Defensive check: verify Deed still exists at home_pos
                         if self.home_pos then
                             local deed_node = minetest.get_node(self.home_pos)
-                            if deed_node.name ~= "evergrowth_villages:housing_deed" then
+                            if deed_node.name ~= "ignore" and deed_node.name ~= "evergrowth_villages:housing_deed" then
                                 self.home_pos = nil
                             end
                         end
                         
                         -- Schedule: Nighttime return home, Daytime wander
                         if is_night then
-                            if self.order ~= "stand" then
-                                -- We need to go home
-                                if self.home_pos then
-                                    local dist_home = vector.distance(pos, self.home_pos)
-                                    if dist_home > 3 then
-                                        self.order = "stand" -- Interrupt wander
-                                        self:go_to(self.home_pos)
-                                    else
-                                        -- Arrived
+                            if self.home_pos then
+                                local dist_home = vector.distance(pos, self.home_pos)
+                                if dist_home > 3 then
+                                    -- Teleport directly in front of deed to avoid geometry issues
+                                    local dest = {x = self.home_pos.x, y = self.home_pos.y, z = self.home_pos.z}
+                                    local face = 0
+                                    
+                                    local node = minetest.get_node(self.home_pos)
+                                    if node and node.param2 then face = node.param2 end
+                                    
+                                    if face == 0 then dest.z = dest.z - 1
+                                    elseif face == 1 then dest.x = dest.x - 1
+                                    elseif face == 2 then dest.z = dest.z + 1
+                                    elseif face == 3 then dest.x = dest.x + 1
+                                    else dest.z = dest.z - 1 end
+                                    
+                                    self.object:set_pos(dest)
+                                    self.order = "stand"
+                                    if self.stop_attack then self:stop_attack() end
+                                    self:set_animation("stand")
+                                    self:set_velocity(0)
+                                else
+                                    -- Arrived
+                                    if self.order ~= "stand" then
                                         self.order = "stand"
+                                        if self.stop_attack then self:stop_attack() end
                                         self:set_animation("stand")
                                         self:set_velocity(0)
                                     end
-                                else
-                                    -- Fallback if home_pos is missing
-                                    self.order = "stand"
                                 end
+                            else
+                                -- Fallback if home_pos is missing
+                                self.order = "stand"
                             end
                         else
                             -- Daytime
-                            if self.order == "stand" then
+                            if self.order == "stand" or self.order == "go_home" then
                                 self.order = "wander"
                             end
                             
                             -- Anti-Wander check (Tether)
                             if self.home_pos then
-                                if vector.distance(pos, self.home_pos) > 22 then
-                                    self.order = "stand" -- Interrupt wander to go back
-                                    self:go_to(self.home_pos)
+                                local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
+                                if vector.distance(pos, self.home_pos) > tether_radius then
+                                    -- Force walk directly back to tether (bypassing limits)
+                                    self.order = "go_home"
+                                    self.state = "walk"
+                                    self:yaw_to_pos(self.home_pos)
+                                    self:set_velocity(self.walk_velocity)
+                                    self:set_animation("walk")
                                 end
                             end
                         end
@@ -141,8 +164,8 @@ if base_trader then
         end
     end
 
-    local old_on_rightclick = base_trader.on_rightclick
-    base_trader.on_rightclick = function(self, clicker)
+    local old_on_rightclick = base_entity.on_rightclick
+    base_entity.on_rightclick = function(self, clicker)
         if clicker and clicker:is_player() and clicker:get_player_control().sneak then
             local name = clicker:get_player_name()
 
@@ -189,5 +212,6 @@ if base_trader then
         if old_on_rightclick then
             return old_on_rightclick(self, clicker)
         end
+    end
     end
 end

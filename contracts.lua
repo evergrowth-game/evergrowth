@@ -63,6 +63,7 @@ local function register_contract(name, profession, recipe_item, description, cus
 end
 
 -- Register all contracts
+register_contract("guard", "guard", "default:sword_steel", "Guard's Contract", "default_tool_steelsword.png")
 register_contract("farmer", "farmer", "farming:wheat", "Farmer's Contract")
 register_contract("smith", "smith", "default:steel_ingot", "Blacksmith's Contract")
 register_contract("merchant", "merchant", "default:glass", "Merchant's Contract")
