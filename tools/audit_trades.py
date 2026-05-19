@@ -111,7 +111,7 @@ def find_arbitrage(edges):
     return arbitrage_cycles
 
 def audit():
-    init_lua_path = "/Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/evergrowth_villages/trades.lua"
+    init_lua_path = os.path.join(os.path.dirname(__file__), "../trades.lua")
     edges = parse_trades(init_lua_path)
     if not edges:
         print("No trades returned by parser.")
