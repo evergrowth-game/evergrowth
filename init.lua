@@ -6,12 +6,10 @@
     in the correct dependency order.
 
     Sub-Modules:
-    - structures.lua: Defines the schematic layouts for the village buildings.
     - trades.lua: Contains the trade definitions and name lists for all NPCs.
     - companions.lua: Handles companion NPC skins, states, and wardrobe interactions.
     - nametags.lua: Contains distance-based rendering logic for NPC nametags.
     - spawners.lua: Contains the mobs_npc entity spawning logic and LBM nodes.
-    - generation.lua: Contains the village world generation algorithm.
     - contracts.lua: Registers the craftable spawner contracts for players.
 ]]--
 
