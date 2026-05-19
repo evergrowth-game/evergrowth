@@ -76,6 +76,8 @@ register_contract("technologist", "technologist", "techage:electric_cable", "Tec
 register_contract("gunsmith", "gunsmith", "tnt:gunpowder", "Gunsmith's Contract", "bweapons_firearms_pack_pistol.png")
 register_contract("carpenter", "carpenter", "xdecor:workbench", "Carpenter's Contract", "xdecor_hammer.png")
 register_contract("mechanic", "mechanic", "automobiles_lib:engine", "Mechanic's Contract", "automobiles_wheel_icon.png")
+register_contract("fisher", "fisher", "ethereal:fishing_rod", "Fisher's Contract")
+
 
 -- Companion Contracts
 minetest.register_craftitem("evergrowth_villages:contract_companion_male", {
