@@ -164,6 +164,11 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
                     gunsmith = {
                         male = {"mobs_trader.png"},
                         female = {"female_gunsmith.png"}
+                    },
+                    fisher = {
+                        -- Fallback to merchant textures until male_fisher.png and female_fisher.png are added
+                        male = {"male_merchant.png"},
+                        female = {"female_merchant.png"}
                     }
                 }
                 

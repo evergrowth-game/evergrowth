@@ -19,12 +19,10 @@ local modpath = minetest.get_modpath("evergrowth_villages")
 
 evergrowth_villages = {}
 
-dofile(modpath .. "/structures.lua")
 dofile(modpath .. "/trades.lua")
 dofile(modpath .. "/companions.lua")
 dofile(modpath .. "/npc_behavior.lua")
 dofile(modpath .. "/spawners.lua")
-dofile(modpath .. "/generation.lua")
 dofile(modpath .. "/settlement.lua")
 dofile(modpath .. "/contracts.lua")
 dofile(modpath .. "/ward_stone.lua")

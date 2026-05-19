@@ -165,5 +165,26 @@ evergrowth_villages.trades_list = {
         {"default:gold_lump 36", "default:steelblock 5", 100},
         {"default:gold_lump 10", "techage:ta3_barrel_oil 1", 100},
     },
+    fisher = {
+        -- NPC Sells (Trader Sells, Player Buys)
+        {"ethereal:fish_salmon 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_cod 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_tuna 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_trout 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_bluefin 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_mackerel 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_shrimp 5", "default:gold_lump 2", 100},
+        {"ethereal:fish_squid 2", "default:gold_lump 2", 100},
+        {"ethereal:fish_pufferfish 1", "default:gold_lump 2", 100},
+        {"ethereal:fish_clownfish 1", "default:gold_lump 2", 100},
+        {"ethereal:fish_jellyfish 1", "default:gold_lump 1", 100},
+        -- NPC Buys (Trader Buys, Player Sells)
+        {"default:gold_lump 1", "farming:string 20", 100},
+        {"default:gold_lump 1", "default:stick 30", 100},
+        {"default:gold_lump 1", "default:clay_lump 20", 100},
+        {"default:gold_lump 1", "default:sand 30", 100},
+        {"default:gold_lump 1", "default:coral_brown 10", 100},
+        {"default:gold_lump 1", "default:coral_orange 10", 100},
+    },
 }
 
