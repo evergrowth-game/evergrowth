@@ -164,6 +164,29 @@ for _, entity_name in ipairs(target_entities) do
         end
     end
 
+    -- Override on_activate to fix guard HP persistence.
+    -- The mobs framework treats hp_max as an object property (via set_properties)
+    -- but doesn't write it back to self.*, so it vanishes from staticdata on the
+    -- next save. We re-apply it here after every activation.
+    local old_on_activate = base_entity.on_activate
+    base_entity.on_activate = function(self, staticdata, dtime)
+        if old_on_activate then old_on_activate(self, staticdata, dtime) end
+
+        if self.evergrowth_profession == "guard" then
+            self.hp_max = 50
+            self.object:set_properties({hp_max = 50})
+
+            -- Clamp health to valid range and sync engine HP
+            if self.health and self.health > 0 then
+                if self.health > 50 then self.health = 50 end
+            else
+                self.health = 50
+            end
+            self.object:set_hp(self.health)
+            self.old_health = self.health
+        end
+    end
+
     local old_on_rightclick = base_entity.on_rightclick
     base_entity.on_rightclick = function(self, clicker)
         if clicker and clicker:is_player() and clicker:get_player_control().sneak then

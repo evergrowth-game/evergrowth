@@ -1,0 +1,181 @@
+Skins Attribution & Licenses
+
+This document registers the origin, author, and license information for all NPC skins used in the `evergrowth_villages` mod to ensure compliance for ContentDB publishing.
+
+---
+
+1. Target Filename: female_fisher.png
+   Source: Minetest SkinsDB (ID: 467)
+   Name: Pirate girl
+   Author: Misty
+   License: CC BY-SA 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+2. Target Filename: male_fisher.png
+   Source: Minetest SkinsDB (ID: 1841)
+   Name: PirateMan
+   Author: unknown
+   License: CC BY-SA 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+3. Target Filename: male_mage.png
+   Source: Minetest SkinsDB (ID: 1435)
+   Name: The Green Wizard
+   Author: Extex
+   License: CC BY-SA 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+4. Target Filename: male_lumberjack.png
+   Source: Minetest SkinsDB (ID: 732)
+   Name: Woodcutter
+   Author: Watola
+   License: CC BY-SA 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+5. Target Filename: male_farmer_1.png
+   Source: skinsdb (character_farmer_male.png)
+   Author: TenPlus1 / skinsdb contributors
+   License: CC BY-SA 3.0
+
+6. Target Filename: female_farmer_1.png
+   Source: skinsdb (character_farmer_female.png)
+   Author: TenPlus1 / skinsdb contributors
+   License: CC BY-SA 3.0
+
+7. Target Filename: male_farmer_2.png
+   Source: mobf_trader (tomatenhaendler.png)
+   Author: Jordach
+   License: CC BY-SA 3.0
+
+8. Target Filename: female_farmer_2.png
+   Source: mobf_trader (baeuerin.png)
+   Author: Jordach
+   License: CC BY-SA 3.0
+
+9. Target Filename: male_smith.png
+   Source: Minetest SkinsDB (ID: 390)
+   Name: Builder
+   Author: Jyrgenf
+   License: CC BY 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+10. Target Filename: female_blacksmith.png
+    Source: Minetest SkinsDB (ID: 1961)
+    Name: woman_lott
+    Author: catninja
+    License: CC BY-SA 3.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+11. Target Filename: female_lumberjack.png
+    Source: Minetest SkinsDB (ID: 369)
+    Name: Adventer girl
+    Author: lovehart
+    License: CC BY-SA 3.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+12. Target Filename: male_miner.png
+    Source: skinsdb (character_rogue_male.png)
+    Author: TenPlus1 / skinsdb contributors
+    License: CC BY-SA 3.0
+
+13. Target Filename: female_miner.png
+    Source: skinsdb (character_rogue_female.png)
+    Author: TenPlus1 / skinsdb contributors
+    License: CC BY-SA 3.0
+
+14. Target Filename: male_merchant.png
+    Source: skinsdb (character_prince.png)
+    Author: TenPlus1 / skinsdb contributors
+    License: CC BY-SA 3.0
+
+15. Target Filename: female_merchant.png
+    Source: skinsdb (character_princess.png)
+    Author: TenPlus1 / skinsdb contributors
+    License: CC BY-SA 3.0
+
+16. Target Filename: male_brewer.png
+    Source: mobf_trader (bauer_in_sonntagskleidung.png)
+    Author: Jordach
+    License: CC BY-SA 3.0
+
+17. Target Filename: female_brewer.png
+    Source: mobs_npc (mobs_npc4.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+18. Target Filename: male_librarian.png
+    Source: mobs_npc (mobs_trader3.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+19. Target Filename: female_librarian.png
+    Source: mobs_npc (mobs_trader4.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+20. Target Filename: female_mage.png
+    Source: mobs_npc (mobs_npc6.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+21. Target Filename: male_gunsmith.png
+    Source: mobs_npc (mobs_npc.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+22. Target Filename: female_gunsmith.png
+    Source: mobs_npc (mobs_npc2.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+23. Target Filename: male_guard.png
+    Source: Minetest SkinsDB (ID: 1166)
+    Name: Knight
+    Author: me
+    License: CC BY-SA 3.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+24. Target Filename: female_guard.png
+    Source: Minetest SkinsDB (ID: 2335)
+    Name: Knighted Girl
+    Author: Celtina
+    License: CC 0 (1.0)
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+25. Target Filename: male_technologist.png
+    Source: Minetest SkinsDB (ID: 1798)
+    Name: Scientist 1
+    Author: duckduck
+    License: CC 0 (1.0)
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+26. Target Filename: female_technologist.png
+    Source: Minetest SkinsDB (ID: 2165)
+    Name: blue_maid
+    Author: IFRFSX
+    License: CC BY-SA 4.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+27. Target Filename: male_carpenter.png
+    Source: mobs_npc (mobs_npc3.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+28. Target Filename: female_carpenter.png
+    Source: Minetest SkinsDB (ID: 466)
+    Name: farmer girl pink and green
+    Author: Misty
+    License: CC BY-SA 3.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+29. Target Filename: male_mechanic.png
+    Source: mobs_npc (mobs_npc5.png)
+    Author: TenPlus1
+    License: CC BY-SA 3.0
+
+30. Target Filename: female_mechanic.png
+    Source: Minetest SkinsDB (ID: 815)
+    Name: Female Train Driver
+    Author: Glory!
+    License: CC 0 (1.0)
+    Origin URL: https://skinsdb.terraqueststudios.net/
