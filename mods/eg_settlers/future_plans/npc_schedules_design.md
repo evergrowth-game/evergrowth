@@ -14,7 +14,7 @@ The existing mobs_redo pathfinding (`smart_mobs` in `api.lua:1440`) only fires d
 
 ### Architecture
 
-A new function, `evergrowth_villages.navigate_to(self, target_pos)`, is called **once** when an NPC transitions between schedule phases (e.g., wander → work). It is NOT called every tick.
+A new function, `eg_settlers.navigate_to(self, target_pos)`, is called **once** when an NPC transitions between schedule phases (e.g., wander → work). It is NOT called every tick.
 
 ```
 navigate_to(self, target_pos)
@@ -153,7 +153,7 @@ When a villager NPC is assigned a workplace (via a contract-on-deed interaction,
 ### Node Registration
 
 ```lua
-minetest.register_node("evergrowth_villages:workplace_deed", {
+minetest.register_node("eg_settlers:workplace_deed", {
     description = S("Workplace Deed"),
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#4A90D9"},  -- Blue tint
@@ -258,7 +258,7 @@ A new field `self._current_phase` tracks which schedule phase the NPC is in. On 
 1. Look up the new phase from the schedule table.
 2. If the new phase has a `target` field:
    a. Resolve the target position (e.g., `self[entry.target]`).
-   b. Call `evergrowth_villages.navigate_to(self, target_pos)`.
+   b. Call `eg_settlers.navigate_to(self, target_pos)`.
 3. If the new phase is `"wander"`, set `self.order = "wander"` and clear navigation.
 4. Update `self._current_phase`.
 
@@ -276,7 +276,7 @@ if not target_pos then
     -- No destination assigned for this phase, just wander
     self.order = "wander"
 else
-    evergrowth_villages.navigate_to(self, target_pos)
+    eg_settlers.navigate_to(self, target_pos)
 end
 ```
 
@@ -297,7 +297,7 @@ Each NPC discovers their `social_pos` using a periodic scan (not every tick — 
 local social_nodes = minetest.find_nodes_in_area(
     vector.subtract(home_pos, {x=50, y=10, z=50}),
     vector.add(home_pos, {x=50, y=10, z=50}),
-    {"evergrowth_villages:workplace_deed"}  -- filter for brewer's workplace
+    {"eg_settlers:workplace_deed"}  -- filter for brewer's workplace
 )
 ```
 
@@ -316,7 +316,7 @@ if phase == "social" then
             z = math.random(-3, 3)
         }
         local gather_pos = vector.add(self.social_pos, offset)
-        evergrowth_villages.navigate_to(self, gather_pos)
+        eg_settlers.navigate_to(self, gather_pos)
     else
         self.order = "wander"  -- Stay home tonight
     end

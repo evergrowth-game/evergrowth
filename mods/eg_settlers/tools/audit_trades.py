@@ -12,7 +12,7 @@ def parse_trades(init_lua_path):
     in_trades_list = False
 
     for line in lines:
-        if 'evergrowth_villages.trades_list =' in line:
+        if 'eg_settlers.trades_list =' in line:
             in_trades_list = True
             continue
             

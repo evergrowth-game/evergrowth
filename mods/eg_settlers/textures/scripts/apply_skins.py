@@ -17,7 +17,7 @@ def get_png_dimensions(file_path):
         return None
 
 def main():
-    dest_dir = "/Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/evergrowth_villages/textures"
+    dest_dir = "/Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/eg_settlers/textures"
     
     mapping = [
         # Farmer 1

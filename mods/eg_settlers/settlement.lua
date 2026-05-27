@@ -9,10 +9,10 @@
     The player must relocate the resident first (sneak+right-click the NPC).
 ]]--
 
-local S = minetest.get_translator("evergrowth_villages")
+local S = minetest.get_translator("eg_settlers")
 
 -- Housing Deed Node
-minetest.register_node("evergrowth_villages:housing_deed", {
+minetest.register_node("eg_settlers:housing_deed", {
     description = S("Housing Deed"),
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
@@ -77,11 +77,11 @@ minetest.register_node("evergrowth_villages:housing_deed", {
                 meta:set_int("occupied", 0)
                 meta:set_string("resident_name", "")
                 meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
-                minetest.chat_send_player(clicker:get_player_name(), S("[evergrowth_villages] Resident is missing. The Deed has been safely vacated."))
+                minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is missing. The Deed has been safely vacated."))
             else
                 -- If hand is empty, explicitly inform the player the resident is alive
                 if itemstack:is_empty() then
-                    minetest.chat_send_player(clicker:get_player_name(), S("[evergrowth_villages] Resident is alive. Use a Relocation Contract to move them."))
+                    minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is alive. Use a Relocation Contract to move them."))
                 end
             end
         end
@@ -90,7 +90,7 @@ minetest.register_node("evergrowth_villages:housing_deed", {
         if not itemstack:is_empty() then
             local item_name = itemstack:get_name()
             -- Only manually trigger on_place for our specific contracts
-            if string.match(item_name, "^evergrowth_villages:contract_") then
+            if string.match(item_name, "^eg_settlers:contract_") then
                 local def = itemstack:get_definition()
                 if def and def.on_place then
                     return def.on_place(itemstack, clicker, pointed_thing)
@@ -107,7 +107,7 @@ minetest.register_node("evergrowth_villages:housing_deed", {
 })
 
 minetest.register_craft({
-    output = "evergrowth_villages:housing_deed",
+    output = "eg_settlers:housing_deed",
     recipe = {
         {"default:paper", "dye:black"},
     }

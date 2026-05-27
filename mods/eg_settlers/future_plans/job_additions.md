@@ -1,6 +1,6 @@
 # Job Additions Log
 
-This document serves as the master record for new NPC jobs added to the `evergrowth_villages` mod. It details the required trade tables, visual assets, and contract logic for each new profession.
+This document serves as the master record for new NPC jobs added to the `eg_settlers` mod. It details the required trade tables, visual assets, and contract logic for each new profession.
 
 ## Roboticist
 
@@ -14,7 +14,7 @@ The Roboticist serves as a high-tier cybernetics engineer, trading in automated 
     *   Male: `male_roboticist.png`
     *   Female: `female_roboticist.png`
 *   **Files Required for Implementation:**
-    *   `trades.lua`: Add the Trade Table to `evergrowth_villages.trades_list`
+    *   `trades.lua`: Add the Trade Table to `eg_settlers.trades_list`
     *   `spawners.lua`: Add texture definitions to `profession_textures` inside `spawn_trader()`
     *   `contracts.lua`: Call `register_contract("roboticist", "roboticist", "maidroid_tool:capture_rod", "Roboticist's Contract")`
 

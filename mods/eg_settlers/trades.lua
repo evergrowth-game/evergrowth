@@ -10,7 +10,7 @@
 ]]--
 
 -- DEFINE TRADES (mobs_npc format: { "goods_item count", "price_item count", chance })
-evergrowth_villages.trades_list = {
+eg_settlers.trades_list = {
     farmer = {
         -- Buys
         {"farming:wheat 10", "default:gold_lump 1", 100},

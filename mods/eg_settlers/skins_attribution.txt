@@ -1,6 +1,6 @@
 Skins Attribution & Licenses
 
-This document registers the origin, author, and license information for all NPC skins used in the `evergrowth_villages` mod to ensure compliance for ContentDB publishing.
+This document registers the origin, author, and license information for all NPC skins used in the `eg_settlers` mod to ensure compliance for ContentDB publishing.
 
 ---
 
