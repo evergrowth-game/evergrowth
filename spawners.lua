@@ -126,8 +126,8 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             else
                 local profession_textures = {
                     guard = {
-                        male = {"mobs_npc.png", "mobs_npc3.png"},
-                        female = {"mobs_npc2.png", "mobs_npc4.png"}
+                        male = {"male_guard.png"},
+                        female = {"female_guard.png"}
                     },
                     farmer = {
                         male = {"male_farmer_1.png", "male_farmer_2.png"},
@@ -162,13 +162,24 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
                         female = {"female_mage.png"}
                     },
                     gunsmith = {
-                        male = {"mobs_trader.png"},
+                        male = {"male_gunsmith.png"},
                         female = {"female_gunsmith.png"}
                     },
                     fisher = {
-                        -- Fallback to merchant textures until male_fisher.png and female_fisher.png are added
-                        male = {"male_merchant.png"},
-                        female = {"female_merchant.png"}
+                        male = {"male_fisher.png"},
+                        female = {"female_fisher.png"}
+                    },
+                    technologist = {
+                        male = {"male_technologist.png"},
+                        female = {"female_technologist.png"}
+                    },
+                    carpenter = {
+                        male = {"male_carpenter.png"},
+                        female = {"female_carpenter.png"}
+                    },
+                    mechanic = {
+                        male = {"male_mechanic.png"},
+                        female = {"female_mechanic.png"}
                     }
                 }
                 
