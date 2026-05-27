@@ -4,7 +4,7 @@ This document outlines the technical implementation for the **Town Ledger** and 
 
 ---
 
-## 1. The Town Ledger Node (`evergrowth_villages:town_ledger`)
+## 1. The Town Ledger Node (`eg_settlers:town_ledger`)
 
 The Ledger acts as the heart of a settlement. It tracks the local population and manages the food supply for all villagers within its radius using a centralized world-file database instead of node metadata or high-overhead spatial searches.
 

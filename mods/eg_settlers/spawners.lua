@@ -26,7 +26,7 @@ local male_names = {
     "Alfred", "Barnaby", "Cecil", "Desmond", "Edwin", "Fletcher", "Gerald"
 }
 
-function evergrowth_villages.spawn_companion(pos, is_female, owner, override_data)
+function eg_settlers.spawn_companion(pos, is_female, owner, override_data)
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
     
     local obj = minetest.add_entity(pos, "mobs_npc:npc")
@@ -40,7 +40,7 @@ function evergrowth_villages.spawn_companion(pos, is_female, owner, override_dat
                 ent.owner = owner
             end
             
-            local skins = is_female and evergrowth_villages.companion_female_skins or evergrowth_villages.companion_male_skins
+            local skins = is_female and eg_settlers.companion_female_skins or eg_settlers.companion_male_skins
             ent.base_texture = { skins[ent.companion_skin_index] or skins[1] }
             ent.textures = ent.base_texture
             
@@ -72,13 +72,13 @@ function evergrowth_villages.spawn_companion(pos, is_female, owner, override_dat
                 obj:set_hp(ent.health)
             end
             
-            minetest.log("action", "[evergrowth_villages] SPAWNED " .. (is_female and "Female" or "Male") .. " Companion at " .. minetest.pos_to_string(pos))
+            minetest.log("action", "[eg_settlers] SPAWNED " .. (is_female and "Female" or "Male") .. " Companion at " .. minetest.pos_to_string(pos))
         end
     end
 end
 
 -- Spawner Logic
-function evergrowth_villages.spawn_trader(pos, profession, is_villager, override_data)
+function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
     override_data = override_data or {}
     
@@ -104,7 +104,7 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
                 ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
             end
             
-            local trade_def = evergrowth_villages.trades_list[profession] or evergrowth_villages.trades_list.merchant
+            local trade_def = eg_settlers.trades_list[profession] or eg_settlers.trades_list.merchant
             ent.trades = trade_def
             
             -- Roll gender once for both name and texture
@@ -209,7 +209,7 @@ function evergrowth_villages.spawn_trader(pos, profession, is_villager, override
             ent.health = hp
             obj:set_hp(hp)
             
-            minetest.log("action", "[evergrowth_villages] SPAWNED " .. profession .. " at " .. minetest.pos_to_string(pos))
+            minetest.log("action", "[eg_settlers] SPAWNED " .. profession .. " at " .. minetest.pos_to_string(pos))
             
             return ent.nametag
         end
@@ -219,7 +219,7 @@ end
 
 --[[
 local function register_spawner(name, profession)
-    minetest.register_node("evergrowth_villages:spawn_" .. name, {
+    minetest.register_node("eg_settlers:spawn_" .. name, {
         description = profession .. " Spawner",
         drawtype = "airlike", 
         paramtype = "light",
@@ -230,12 +230,12 @@ local function register_spawner(name, profession)
     })
 
     minetest.register_lbm({
-        name = "evergrowth_villages:spawn_" .. name,
-        nodenames = {"evergrowth_villages:spawn_" .. name},
+        name = "eg_settlers:spawn_" .. name,
+        nodenames = {"eg_settlers:spawn_" .. name},
         run_at_every_load = true, -- Reverted: Optimization caused spawners to fail on schematic placement
         action = function(pos, node)
             minetest.remove_node(pos)
-            evergrowth_villages.spawn_trader(pos, profession, true)
+            eg_settlers.spawn_trader(pos, profession, true)
         end,
     })
 end
@@ -253,7 +253,7 @@ register_spawner("gunsmith", "gunsmith")
 register_spawner("carpenter", "carpenter")
 register_spawner("mechanic", "mechanic")
 
-minetest.register_node("evergrowth_villages:build_anchor", {
+minetest.register_node("eg_settlers:build_anchor", {
     description = "Village Building Anchor",
     drawtype = "airlike",
     paramtype = "light",
@@ -265,7 +265,7 @@ minetest.register_node("evergrowth_villages:build_anchor", {
 
 minetest.register_abm({
     label = "Village Schematic ABM",
-    nodenames = {"evergrowth_villages:build_anchor"},
+    nodenames = {"eg_settlers:build_anchor"},
     interval = 1,
     chance = 1,
     action = function(pos, node)
@@ -291,7 +291,7 @@ minetest.register_abm({
                 for dz = -math.floor(sz_size/2), math.ceil(sz_size/2), 3 do
                     local node = minetest.get_node({x = pos.x + dx, y = pos.y, z = pos.z + dz})
                     if node and node.name and minetest.get_item_group(node.name, "water") ~= 0 then
-                        minetest.log("action", "[evergrowth_villages] Cancelled building " .. schem_file .. " at " .. minetest.pos_to_string(pos) .. " due to water in footprint.")
+                        minetest.log("action", "[eg_settlers] Cancelled building " .. schem_file .. " at " .. minetest.pos_to_string(pos) .. " due to water in footprint.")
                         footprint_valid = false
                         break
                     end
@@ -338,9 +338,9 @@ minetest.register_abm({
                     y = pos.y + 1.0 + spawn_y_offset, 
                     z = pos.z + rz
                 }
-                evergrowth_villages.spawn_trader(spawn_pos, spawn_profession, true)
+                eg_settlers.spawn_trader(spawn_pos, spawn_profession, true)
             end
-            minetest.log("action", "[evergrowth_villages] Placed building from: " .. schem_file .. " at " .. minetest.pos_to_string(pos))
+            minetest.log("action", "[eg_settlers] Placed building from: " .. schem_file .. " at " .. minetest.pos_to_string(pos))
         end
     end,
 })

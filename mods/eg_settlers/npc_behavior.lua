@@ -12,7 +12,7 @@
     - Atmospheric greetings
 ]]--
 
-local S = minetest.get_translator("evergrowth_villages")
+local S = minetest.get_translator("eg_settlers")
 
 local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
 for _, entity_name in ipairs(target_entities) do
@@ -78,7 +78,7 @@ for _, entity_name in ipairs(target_entities) do
                         -- Defensive check: verify Deed still exists at home_pos
                         if self.home_pos then
                             local deed_node = minetest.get_node(self.home_pos)
-                            if deed_node.name ~= "ignore" and deed_node.name ~= "evergrowth_villages:housing_deed" then
+                            if deed_node.name ~= "ignore" and deed_node.name ~= "eg_settlers:housing_deed" then
                                 self.home_pos = nil
                             end
                         end
@@ -194,7 +194,7 @@ for _, entity_name in ipairs(target_entities) do
 
             if self.is_villager then
                 -- Relocation: create a contract item with this NPC's data
-                local contract = ItemStack("evergrowth_villages:contract_villager_relocation")
+                local contract = ItemStack("eg_settlers:contract_villager_relocation")
                 local meta = contract:get_meta()
                 meta:set_string("resident_name", self.nametag or self.game_name or "Villager")
                 meta:set_string("profession", self.evergrowth_profession or "merchant")
@@ -204,7 +204,7 @@ for _, entity_name in ipairs(target_entities) do
                 -- Mark old Deed as vacant
                 if self.home_pos then
                     local deed_node = minetest.get_node(self.home_pos)
-                    if deed_node.name == "evergrowth_villages:housing_deed" then
+                    if deed_node.name == "eg_settlers:housing_deed" then
                         local deed_meta = minetest.get_meta(self.home_pos)
                         deed_meta:set_int("occupied", 0)
                         deed_meta:set_string("resident_name", "")
@@ -221,13 +221,13 @@ for _, entity_name in ipairs(target_entities) do
                 end
 
                 self.object:remove()
-                minetest.chat_send_player(name, S("[evergrowth_villages] Villager relocated to contract."))
+                minetest.chat_send_player(name, S("[eg_settlers] Villager relocated to contract."))
                 return
             else
                 -- Admin delete for non-villager NPCs
                 if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
                     self.object:remove()
-                    minetest.chat_send_player(name, "[evergrowth_villages] Trader removed safely.")
+                    minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")
                     return
                 end
             end

@@ -5,7 +5,7 @@ This document acts as the active roadmap and master task checklist for developme
 ---
 
 ## 🟩 Priority 1: Town Ledger & Satiation (`town_management_design.md`)
-*   [ ] **Establish Town Center:** Register the `evergrowth_villages:town_ledger` node.
+*   [ ] **Establish Town Center:** Register the `eg_settlers:town_ledger` node.
 *   [ ] **Granary Inventory:** Design a 4x4 food-only container slot within the Ledger.
 *   [ ] **Registration Registry (Anti-Lag):** Code a coordinate registration system where Housing Deeds register themselves to their parent Ledger metadata instead of scanning the world.
 *   [ ] **Satiation Consumption Logic:** Set up a 1200-second timer using `minetest.get_gametime()` timestamp catch-up to calculate missed days and consume granary food when chunks unload.
@@ -16,7 +16,7 @@ This document acts as the active roadmap and master task checklist for developme
 ---
 
 ## 🟨 Priority 2: Job Board Depot & Quests (`job_board_design.md`)
-*   [ ] **Register Job Board:** Create the interactive `evergrowth_villages:job_board` node.
+*   [ ] **Register Job Board:** Create the interactive `eg_settlers:job_board` node.
 *   [ ] **Passive Income Depot:** Code daily scans of `Housing Deeds` to deposit resources based on resident professions (e.g., Farmer yields wheat, Miner yields coal).
 *   [ ] **Daily Quest Generator:** Design the Bounty Board input/output system with daily item requests matching the town's population.
 *   [ ] **Seeker Contracts:** Set up the centralized contract shop to recruit random NPCs.

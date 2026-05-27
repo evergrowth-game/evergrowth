@@ -1,7 +1,7 @@
-local S = minetest.get_translator("evergrowth_villages")
+local S = minetest.get_translator("eg_settlers")
 
 local function register_contract(name, profession, recipe_item, description, custom_texture)
-    local item_name = "evergrowth_villages:contract_" .. name
+    local item_name = "eg_settlers:contract_" .. name
     
     local tex_name = custom_texture
     if not tex_name then
@@ -17,7 +17,7 @@ local function register_contract(name, profession, recipe_item, description, cus
             local under_pos = pointed_thing.under
             local under_node = minetest.get_node(under_pos)
             
-            if under_node.name == "evergrowth_villages:housing_deed" then
+            if under_node.name == "eg_settlers:housing_deed" then
                 -- Deed-based: spawn as tethered villager
                 local deed_meta = minetest.get_meta(under_pos)
                 if deed_meta:get_int("occupied") == 1 then
@@ -27,7 +27,7 @@ local function register_contract(name, profession, recipe_item, description, cus
                 end
                 
                 local spawn_pos = pointed_thing.above
-                local npc_name = evergrowth_villages.spawn_trader(
+                local npc_name = eg_settlers.spawn_trader(
                     spawn_pos, profession, true, {home_pos = under_pos})
                 
                 deed_meta:set_int("occupied", 1)
@@ -41,7 +41,7 @@ local function register_contract(name, profession, recipe_item, description, cus
                 if not def or not (node.name == "air" or def.buildable_to) then
                     return
                 end
-                evergrowth_villages.spawn_trader(pos, profession)
+                eg_settlers.spawn_trader(pos, profession)
             end
             
             minetest.sound_play("default_place_node_hard", {pos = pointed_thing.above, gain = 1.0}, true)
@@ -80,7 +80,7 @@ register_contract("fisher", "fisher", "ethereal:fishing_rod", "Fisher's Contract
 
 
 -- Companion Contracts
-minetest.register_craftitem("evergrowth_villages:contract_companion_male", {
+minetest.register_craftitem("eg_settlers:contract_companion_male", {
     description = S("Male Companion's Contract"),
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
@@ -90,7 +90,7 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_male", {
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
         local owner_name = placer and placer:get_player_name() or ""
-        evergrowth_villages.spawn_companion(pos, false, owner_name)
+        eg_settlers.spawn_companion(pos, false, owner_name)
         minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
         
         if not minetest.settings:get_bool("creative_mode") then
@@ -101,13 +101,13 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_male", {
 })
 
 minetest.register_craft({
-    output = "evergrowth_villages:contract_companion_male",
+    output = "eg_settlers:contract_companion_male",
     recipe = {
         {"default:paper", "default:stick"},
     }
 })
 
-minetest.register_craftitem("evergrowth_villages:contract_companion_female", {
+minetest.register_craftitem("eg_settlers:contract_companion_female", {
     description = S("Female Companion's Contract"),
     inventory_image = "default_paper.png^(default_apple.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
@@ -117,7 +117,7 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_female", {
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
         local owner_name = placer and placer:get_player_name() or ""
-        evergrowth_villages.spawn_companion(pos, true, owner_name)
+        eg_settlers.spawn_companion(pos, true, owner_name)
         minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
         
         if not minetest.settings:get_bool("creative_mode") then
@@ -128,13 +128,13 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_female", {
 })
 
 minetest.register_craft({
-    output = "evergrowth_villages:contract_companion_female",
+    output = "eg_settlers:contract_companion_female",
     recipe = {
         {"default:paper", "default:apple"},
     }
 })
 
-minetest.register_craftitem("evergrowth_villages:contract_companion_relocation", {
+minetest.register_craftitem("eg_settlers:contract_companion_relocation", {
     description = S("Companion Relocation Contract"),
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     groups = {not_in_creative_inventory = 1},
@@ -158,7 +158,7 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_relocation",
             owner_name = placer:get_player_name()
         end
         
-        evergrowth_villages.spawn_companion(pos, is_female, owner_name, override_data)
+        eg_settlers.spawn_companion(pos, is_female, owner_name, override_data)
         minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
         
         if not minetest.settings:get_bool("creative_mode") then
@@ -169,13 +169,13 @@ minetest.register_craftitem("evergrowth_villages:contract_companion_relocation",
 })
 
 -- Wardrobe Wand
-minetest.register_craftitem("evergrowth_villages:wardrobe_wand", {
+minetest.register_craftitem("eg_settlers:wardrobe_wand", {
     description = S("Wardrobe Wand (Punch Companion to Change Clothes)"),
     inventory_image = "default_stick.png^[colorize:#FF00FF:128",
 })
 
 minetest.register_craft({
-    output = "evergrowth_villages:wardrobe_wand",
+    output = "eg_settlers:wardrobe_wand",
     recipe = {
         {"", "", "dye:magenta"},
         {"", "default:stick", ""},
@@ -186,7 +186,7 @@ minetest.register_craft({
 -- Villager Relocation Contract
 -- Created when a player sneak+right-clicks a tethered villager NPC.
 -- Stores the NPC's name, profession, texture, and health in item metadata.
-minetest.register_craftitem("evergrowth_villages:contract_villager_relocation", {
+minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
     description = S("Villager Relocation Contract"),
     inventory_image = "default_paper.png^[colorize:#8B4513:80",
     groups = {not_in_creative_inventory = 1},
@@ -196,7 +196,7 @@ minetest.register_craftitem("evergrowth_villages:contract_villager_relocation", 
         local under_pos = pointed_thing.under
         local under_node = minetest.get_node(under_pos)
 
-        if under_node.name ~= "evergrowth_villages:housing_deed" then
+        if under_node.name ~= "eg_settlers:housing_deed" then
             minetest.chat_send_player(placer:get_player_name(),
                 S("Use this on a Housing Deed to place the villager."))
             return itemstack
@@ -220,7 +220,7 @@ minetest.register_craftitem("evergrowth_villages:contract_villager_relocation", 
         if profession == "" then profession = "merchant" end
 
         local spawn_pos = pointed_thing.above
-        local npc_name = evergrowth_villages.spawn_trader(spawn_pos, profession, true, override_data)
+        local npc_name = eg_settlers.spawn_trader(spawn_pos, profession, true, override_data)
 
         deed_meta:set_int("occupied", 1)
         deed_meta:set_string("resident_name", npc_name or "Villager")

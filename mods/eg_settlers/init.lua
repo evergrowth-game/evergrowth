@@ -1,8 +1,8 @@
 --[[
     Evergrowth Villages - Main Entry Point
     ======================================
-    This is the master file for the `evergrowth_villages` mod. It initializes the
-    global `evergrowth_villages` table and loads all of the specialized sub-modules
+    This is the master file for the `eg_settlers` mod. It initializes the
+    global `eg_settlers` table and loads all of the specialized sub-modules
     in the correct dependency order.
 
     Sub-Modules:
@@ -13,10 +13,11 @@
     - contracts.lua: Registers the craftable spawner contracts for players.
 ]]--
 
-local modpath = minetest.get_modpath("evergrowth_villages")
+local modpath = minetest.get_modpath("eg_settlers")
 
-evergrowth_villages = {}
+eg_settlers = {}
 
+dofile(modpath .. "/aliases.lua")
 dofile(modpath .. "/trades.lua")
 dofile(modpath .. "/companions.lua")
 dofile(modpath .. "/npc_behavior.lua")

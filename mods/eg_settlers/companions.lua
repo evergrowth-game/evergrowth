@@ -10,8 +10,8 @@ local companion_male_skins = {"mobs_npc.png", "mobs_npc3.png", "mobs_npc5.png", 
 local companion_female_skins = {"mobs_npc2.png", "mobs_npc4.png", "mobs_npc6.png", "mobs_trader4.png"}
 
 -- Export for spawners.lua
-evergrowth_villages.companion_male_skins = companion_male_skins
-evergrowth_villages.companion_female_skins = companion_female_skins
+eg_settlers.companion_male_skins = companion_male_skins
+eg_settlers.companion_female_skins = companion_female_skins
 
 local base_npc = minetest.registered_entities["mobs_npc:npc"]
 if base_npc then
@@ -52,7 +52,7 @@ if base_npc then
     base_npc.on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
         if puncher and puncher:is_player() then
             local wielded = puncher:get_wielded_item()
-            if wielded and wielded:get_name() == "evergrowth_villages:wardrobe_wand" then
+            if wielded and wielded:get_name() == "eg_settlers:wardrobe_wand" then
                 if self.is_evergrowth_companion then
                     local skins = self.companion_is_female and companion_female_skins or companion_male_skins
                     self.companion_skin_index = (self.companion_skin_index or 1) + 1
@@ -80,7 +80,7 @@ if base_npc then
             if self.is_evergrowth_companion then
                 local name = clicker:get_player_name()
                 if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
-                    local stack = ItemStack("evergrowth_villages:contract_companion_relocation")
+                    local stack = ItemStack("eg_settlers:contract_companion_relocation")
                     local meta = stack:get_meta()
                     meta:set_string("companion_nametag", self.game_name or self.nametag or "")
                     meta:set_int("companion_skin_index", self.companion_skin_index or 1)
@@ -102,7 +102,7 @@ if base_npc then
                     end
                     
                     self.object:remove()
-                    minetest.chat_send_player(name, "[evergrowth_villages] Companion returned to a Relocation Contract.")
+                    minetest.chat_send_player(name, "[eg_settlers] Companion returned to a Relocation Contract.")
                     return
                 end
             end

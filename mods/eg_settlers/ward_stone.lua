@@ -1,10 +1,10 @@
-local S = minetest.get_translator("evergrowth_villages")
+local S = minetest.get_translator("eg_settlers")
 
 local WARD_RADIUS = 15
 local WARD_DAMAGE = 10
 local WARD_INTERVAL = 1.0
 
-minetest.register_node("evergrowth_villages:ward_stone", {
+minetest.register_node("eg_settlers:ward_stone", {
     description = S("Sentinel Ward Stone"),
     tiles = {
         "default_obsidian.png^magic_materials_light_rune.png",
@@ -68,7 +68,7 @@ minetest.register_node("evergrowth_villages:ward_stone", {
 })
 
 minetest.register_craft({
-    output = "evergrowth_villages:ward_stone",
+    output = "eg_settlers:ward_stone",
     recipe = {
         {"magic_materials:enchanted_rune"},
         {"default:obsidian"}

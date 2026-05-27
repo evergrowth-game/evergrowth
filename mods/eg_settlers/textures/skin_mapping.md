@@ -1,6 +1,6 @@
 # NPC Skin Mapping
 
-This document outlines the final mapping of standard human skins from local mod assets (`skinsdb`, `mobs_npc`, and `mobf_trader`) to the 10 professions in the `evergrowth_villages` mod.
+This document outlines the final mapping of standard human skins from local mod assets (`skinsdb`, `mobs_npc`, and `mobf_trader`) to the 10 professions in the `eg_settlers` mod.
 
 There is **zero overlap** in this mapping, and **no monster or raider skins** are used. Every profession and gender uses a distinct and distinctive standard human skin.
 
