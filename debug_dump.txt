@@ -1,0 +1,1000 @@
+2026-03-06 16:30:43: WARNING[ServerStart]: Mod music_default at /Users/Aresh/Library/Application Support/minetest/mods/music_modpack/music_default:
+2026-03-06 16:30:43: WARNING[ServerStart]: 	description.txt is deprecated, please use mod[pack].conf instead.
+2026-03-06 16:30:43: WARNING[ServerStart]: 	depends.txt is deprecated, please use mod.conf instead.
+2026-03-06 16:30:43: WARNING[ServerStart]: Calling this function during script init is disallowed. (at /Users/Aresh/Library/Application Support/minetest/mods/dfcaverns/chasms/init.lua:172)
+2026-03-06 16:30:43: WARNING[ServerStart]: Calling this function during script init is disallowed. (at /Users/Aresh/Library/Application Support/minetest/mods/dfcaverns/chasms/init.lua:173)
+2026-03-06 16:30:43: ACTION[ServerStart]: MOD: Biofuel loading...
+2026-03-06 16:30:43: ACTION[ServerStart]: MOD: Biofuel version 0.9 loaded.
+2026-03-06 16:30:43: ACTION[ServerStart]: [techage_tweaks] Wine integration loaded.
+2026-03-06 16:30:43: WARNING[ServerStart]: Undeclared global variable "mod_mcl_tools" accessed at ...lication Support/minetest/mods/farmtools/lib/scythes.lua:5
+2026-03-06 16:30:43: WARNING[ServerStart]: No craft recipe known for output 'farming:scythe_mithril'
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Liquid Pool
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Bare Floor
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Bare Ceiling
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Wall Torches
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Library
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Garden
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Chandelier
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Forge
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Alchemy Lab
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Jail
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Storeroom
+2026-03-06 16:30:43: ACTION[ServerStart]: [dungeonsplus] registered feature Bare Walls
+2026-03-06 16:30:43: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/cheese/milk_cauldron.lua:720)
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type haste registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type snailing registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type impetus registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type burden registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type breeze registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type regen registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type regenm registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type manaregen registered!
+2026-03-06 16:30:43: ACTION[ServerStart]: [playereffects] Effect type miasma registered!
+2026-03-06 16:30:43: WARNING[ServerStart]: Mod lootchests_default at /Users/Aresh/Library/Application Support/minetest/mods/lootchest_modpack/lootchests_default:
+2026-03-06 16:30:43: WARNING[ServerStart]: 	description.txt is deprecated, please use mod[pack].conf instead.
+2026-03-06 16:30:43: WARNING[ServerStart]: 	depends.txt is deprecated, please use mod.conf instead.
+2026-03-06 16:30:43: WARNING[ServerStart]: Mod shipwrecks at /Users/Aresh/Library/Application Support/minetest/mods/shipwrecks:
+2026-03-06 16:30:43: WARNING[ServerStart]: 	depends.txt is deprecated, please use mod.conf instead.
+2026-03-06 16:30:43: WARNING[ServerStart]: [df_achievements] the df_achievements mod was installed but the [awards] mod was not. df_achievements depends on awards, but it is listed as an optional dependency so that installing the dfcaverns modpack won't automatically enable it. If you want df_achievements to function please install awards as well, otherwise you should disable df_achievements.
+2026-03-06 16:30:44: ACTION[ServerStart]: [Regional Weather] Added frost resistance to 74 crop nodes.
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "alpha" on node oil:oil_source is obsolete, only limited compatibility provided; replaced by "use_texture_alpha". (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "image" on TileDef is deprecated, use "name" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "alpha" on node df_farming:dwarven_syrup_flowing is obsolete, only limited compatibility provided; replaced by "use_texture_alpha". (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "alpha" on node df_farming:dwarven_syrup_source is obsolete, only limited compatibility provided; replaced by "use_texture_alpha". (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: WARNING[ServerStart]: Field "alpha" on node oil:oil_flowing is obsolete, only limited compatibility provided; replaced by "use_texture_alpha". (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/networks/hidden.lua:170)
+2026-03-06 16:30:44: ACTION[ServerStart]: [aircraft_tweaks] Applied lateral drag fix to supercub:supercub
+2026-03-06 16:30:44: ACTION[ServerStart]: [aircraft_tweaks] Applied lateral drag fix to hidroplane:hidro
+2026-03-06 16:30:44: ACTION[ServerStart]: [aircraft_tweaks] Applied lateral drag fix to pa28:pa28
+2026-03-06 16:30:44: WARNING[ServerStart]: Server: ignoring file as it has disallowed characters: "puzzle inscriptions.xcf"
+2026-03-06 16:30:44: WARNING[ServerStart]: Server: ignoring file as it has disallowed characters: "puzzle dial.xcf"
+2026-03-06 16:30:44: ACTION[ServerStart]: World at [/Users/Aresh/Library/Application Support/minetest/worlds/fklsafh]
+2026-03-06 16:30:44: ACTION[ServerStart]: Server for gameid="evergrowth" listening on 127.0.0.1:50130.
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for blacksmith.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for holzfaeller.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for male_farmer_2.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for male_lumberjack.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for male_smith.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for stamina_hud_poison.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:pick_bronze after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:pick_steel after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:shovel_bronze after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:shovel_steel after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:axe_bronze after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:axe_steel after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:sword_bronze after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Server]: Overriding item default:sword_steel after server startup. This is unsupported and can cause problems related to data inconsistency.
+2026-03-06 16:30:45: WARNING[Main]: Irrlicht: PNG warning for tomatenhaendler.png: iCCP: known incorrect sRGB profile
+2026-03-06 16:30:45: WARNING[Main]: TextureSource::getPalette(): the specified palette image "techage_palette256.png" is larger than 256 pixels, using the first 256.
+2026-03-06 16:30:46: WARNING[Main]: Ignoring configured auto exposure since it's not supported by the current video driver.
+2026-03-06 16:30:46: WARNING[Main]: Ignoring configured FSAA since it's not supported in combination with post-processing by the current video driver.
+2026-03-06 16:30:46: ACTION[Server]: singleplayer [127.0.0.1] joins game. List of players: singleplayer
+2026-03-06 16:30:46: WARNING[Server]: Invalid vector coordinate x (value is nil). (at /Users/Aresh/Library/Application Support/minetest/mods/3d_armor_flyswim/init.lua:100)
+2026-03-06 16:30:46: WARNING[Server]: Invalid vector coordinate y (value is nil). (at /Users/Aresh/Library/Application Support/minetest/mods/3d_armor_flyswim/init.lua:100)
+2026-03-06 16:30:46: WARNING[Server]: Deprecated "hud_elem_type" field, use "type" instead. (at /Users/Aresh/Library/Application Support/minetest/mods/techage_modpack/stamina/init.lua:518)
+2026-03-06 16:30:46: WARNING[Server]: Deprecated call to set_bone_position, use set_bone_override instead (at /Users/Aresh/Library/Application Support/minetest/mods/3d_armor_flyswim/init.lua:380)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (98,-22,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (98,-22,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (98,-22,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (109,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (109,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (109,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (106,-22,202)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (106,-22,202)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (114,-28,188)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (114,-28,188)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (114,-28,188)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (54,-23,192)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (54,-23,192)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (54,-23,192)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (41,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (41,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (41,-22,191)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (51,-23,199)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (51,-23,199)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (51,-23,199)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (31,-23,196)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (31,-23,196)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (31,-23,196)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (37,-25,183)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (37,-25,183)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (37,-25,183)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (32,-28,211)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (32,-28,211)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (32,-28,211)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (5,-65,190)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (5,-65,190)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (5,-65,190)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (24,-62,200)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (24,-62,200)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (24,-62,200)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (28,-65,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (28,-65,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (28,-65,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (17,-56,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (17,-56,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (17,-56,195)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (5,-54,199)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (5,-54,199)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (14,-59,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (14,-59,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (14,-59,205)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (22,-56,182)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (22,-56,182)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (19,-55,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (19,-55,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (19,-55,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Library at (17,-61,187)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (8,-55,189)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (8,-55,189)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (8,-55,189)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Library at (10,-55,174)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (-1,-55,174)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (-1,-55,174)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (-1,-55,174)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (2,-55,166)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (2,-55,166)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (2,-55,166)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (83,-109,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (83,-109,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (83,-109,204)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (85,-109,200)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (85,-109,200)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (77,-109,201)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (77,-109,201)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (91,-108,203)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (91,-108,203)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (91,-108,203)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (98,-108,209)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (98,-108,209)
+2026-03-06 16:30:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (98,-108,209)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (139,-20,203)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (139,-20,203)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (139,-20,203)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (131,-20,206)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (131,-20,206)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (131,-20,206)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (124,-20,201)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (124,-20,201)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (124,-20,201)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (131,-18,193)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (131,-18,193)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (131,-18,193)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (137,-18,192)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (137,-18,192)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (137,-18,192)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (128,-18,188)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (128,-18,188)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (128,-18,188)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (125,-18,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (125,-18,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (125,-18,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (118,-16,191)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (118,-16,191)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (118,-16,191)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Library at (116,-19,205)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (117,-19,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (117,-19,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (117,-19,194)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (131,-18,183)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (131,-18,183)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (131,-18,183)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (129,-15,176)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (129,-15,176)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (129,-15,176)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (114,-20,172)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (114,-20,172)
+2026-03-06 16:30:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (114,-20,172)
+2026-03-06 16:30:51: ACTION[Server]: singleplayer granted (ban, basic_privs, bring, creative, debug, fast, fly, give, home, hyperloop, ihh_global, interact, kick, lumberjack, maidroid, minecart, mob_basics_spawn, mob_pickup, monoid_master, moonphase, noclip, password, peaceful_player, powerline, privs, protection_bypass, rollback, server, settime, shout, teleport, travelnet_attach, travelnet_remove, ui_full, valet_parking, weather, worldedit) privileges to singleplayer
+2026-03-06 16:30:51: ACTION[Main]: CHAT: You gained privilege: administer any maidroid
+2026-03-06 16:30:51: ACTION[Main]: CHAT: You gained privilege: administer any maidroid
+2026-03-06 16:30:51: ACTION[Main]: CHAT: Privileges of singleplayer: ban, basic_privs, bring, creative, debug, fast, fly, give, home, hyperloop, ihh_global, interact, kick, lumberjack, maidroid, minecart, mob_basics_spawn, mob_pickup, monoid_master, moonphase, noclip, password, peaceful_pla
+2026-03-06 16:30:51: ACTION[Main]: yer, powerline, privs, protection_bypass, rollback, server, settime, shout, teleport, travelnet_attach, travelnet_remove, ui_full, valet_parking, weather, worldedit
+2026-03-06 16:30:55: ACTION[Main]: CHAT: -!- Invalid command: locate_village
+2026-03-06 16:30:58: ACTION[Main]: CHAT: -!- Invalid command: locate_villages
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (161,-28,105)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (161,-28,105)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (161,-28,105)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (181,-31,108)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (181,-31,108)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (181,-31,108)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (150,-28,103)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (150,-28,103)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (150,-28,103)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (157,-28,98)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (157,-28,98)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (167,-28,118)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (167,-28,118)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (167,-28,118)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (157,-27,111)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (157,-27,111)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (157,-27,111)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (168,-23,120)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (168,-23,120)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (168,-23,120)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Library at (134,-31,129)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (134,-27,140)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (134,-27,140)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (134,-27,140)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (124,-30,131)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (124,-30,131)
+2026-03-06 16:31:05: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (124,-30,131)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (251,-22,203)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (251,-22,203)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (251,-22,203)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (240,-22,207)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (240,-22,207)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (240,-22,207)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (254,-25,213)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (254,-25,213)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (254,-25,213)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (267,-23,219)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (267,-23,219)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (267,-23,219)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (245,-27,216)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (245,-27,216)
+2026-03-06 16:31:17: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (245,-27,216)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (276,-29,119)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (276,-29,119)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (276,-29,119)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (292,-27,117)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (292,-27,117)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (292,-27,117)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (282,-29,112)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (282,-29,112)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (282,-29,112)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (279,-29,104)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (279,-29,104)
+2026-03-06 16:31:19: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (279,-29,104)
+2026-03-06 16:31:19: ACTION[Server]: singleplayer uses gadgets_consumables:potion_speed_02, pointing at [nothing]
+2026-03-06 16:31:19: WARNING[Server]: ItemStack:get_metadata is deprecated (at /Users/Aresh/Library/Application Support/minetest/mods/gadgets_modpack/gadgets_api/api.lua:69)
+2026-03-06 16:31:19: WARNING[Server]: Call to deprecated function 'getpos', use 'get_pos' instead at ...upport/minetest/mods/gadgets_modpack/gadgets_api/api.lua:124
+2026-03-06 16:31:19: WARNING[Server]: Deprecated "hud_elem_type" field, use "type" instead. (at /Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/playereffects/init.lua:499)
+2026-03-06 16:31:19: WARNING[Server]: Deprecated "hud_elem_type" field, use "type" instead. (at /Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/playereffects/init.lua:511)
+2026-03-06 16:31:20: WARNING[Server]: Call to deprecated function 'add_player_velocity', use 'add_velocity' instead at ...lication Support/minetest/mods/3d_armor_flyswim/init.lua:153
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (358,-14,60)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (358,-14,60)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (358,-14,60)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (353,-14,71)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (353,-14,71)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (353,-14,71)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (351,-14,55)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (351,-14,55)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (351,-14,55)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Walls at (358,-5,52)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (358,-5,52)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (358,-5,52)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (357,-20,45)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (357,-20,45)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (357,-20,45)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (352,-20,201)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (352,-20,201)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (352,-20,201)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (345,-20,208)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (345,-20,208)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (345,-20,208)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (338,-18,202)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (338,-18,202)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (338,-18,202)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Library at (345,-20,190)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (335,-18,179)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (335,-18,179)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (354,-19,188)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (354,-19,188)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (354,-19,188)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Library at (360,-19,205)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (366,-17,195)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (366,-17,195)
+2026-03-06 16:31:21: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (366,-17,195)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (440,-20,168)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (440,-20,168)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (440,-20,168)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (439,-30,85)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (439,-30,85)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (439,-30,85)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (443,-27,94)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (443,-27,94)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (443,-27,94)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (435,-25,71)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (435,-25,71)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (435,-25,71)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (428,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (428,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (428,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (420,-25,58)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (420,-25,58)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (420,-25,58)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (415,-25,51)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (415,-25,51)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (415,-25,51)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (427,-26,55)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (427,-26,55)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (435,-24,58)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (435,-24,58)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (418,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (418,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (418,-25,65)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (430,-24,48)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (430,-24,48)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (430,-24,48)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (447,-19,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (447,-19,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (447,-19,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (441,-24,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (441,-24,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (441,-24,50)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (406,-24,55)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (406,-24,55)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (422,-25,75)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (422,-25,75)
+2026-03-06 16:31:22: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (422,-25,75)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (477,-17,130)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (477,-17,130)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (477,-17,130)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (474,-16,134)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (474,-16,134)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (474,-16,134)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (479,-17,133)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (479,-17,133)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (470,-17,134)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (470,-17,134)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (464,-16,128)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (464,-16,128)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (464,-16,128)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (480,-13,129)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (480,-13,129)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (480,-13,129)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (512,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (512,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (512,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (509,-20,268)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (509,-20,268)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (509,-20,268)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (493,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (493,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (493,-20,256)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (456,-12,85)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (456,-12,85)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (456,-12,85)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (468,-15,86)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (468,-15,86)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (468,-15,86)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (468,-12,93)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (468,-12,93)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (468,-12,93)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (465,-14,79)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (465,-14,79)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (465,-14,79)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (446,-12,82)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (446,-12,82)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (446,-12,82)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (458,-12,104)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (458,-12,104)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (458,-12,104)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (449,-15,77)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (449,-15,77)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (449,-15,77)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (441,-21,65)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (441,-21,65)
+2026-03-06 16:31:24: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (441,-21,65)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (563,-21,116)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (563,-21,116)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (563,-21,116)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (568,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (568,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (568,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (579,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (579,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (579,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (585,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (585,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (585,-21,104)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Library at (570,-21,91)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (584,-24,103)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (584,-24,103)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (584,-24,103)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (591,-24,106)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (591,-24,106)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (591,-24,106)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (571,-27,107)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (571,-27,107)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (571,-27,107)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Library at (579,-16,118)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Library at (585,-31,103)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (577,-21,177)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (577,-21,177)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (577,-21,177)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Library at (589,-21,177)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (584,-31,198)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (584,-31,198)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (584,-31,198)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (577,-26,160)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (577,-26,160)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (577,-26,160)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (584,-23,221)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (584,-23,221)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (580,-26,208)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (580,-26,208)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (580,-26,208)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (575,-23,206)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (575,-23,206)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (575,-23,206)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (597,-23,220)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (597,-23,220)
+2026-03-06 16:31:26: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (597,-23,220)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (677,-23,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (677,-23,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (677,-23,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (673,-23,260)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (673,-23,260)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (686,-22,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (686,-22,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (686,-22,265)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Library at (677,-26,271)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Library at (681,-26,286)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (682,-21,259)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (682,-21,259)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (682,-21,259)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (675,-25,278)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (675,-25,278)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (685,-19,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (685,-19,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (685,-19,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (665,-21,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (665,-21,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (665,-21,253)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Library at (683,-11,243)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (674,-16,273)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (674,-16,273)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (674,-16,273)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (674,-16,277)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (674,-16,277)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (674,-16,277)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (680,-16,269)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (680,-16,269)
+2026-03-06 16:31:28: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (680,-16,269)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (253,-15,1001)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (253,-15,1001)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (253,-15,1001)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (253,-15,1010)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (253,-15,1010)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (262,-13,994)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (262,-13,994)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (262,-13,994)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (248,-15,1009)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (248,-15,1009)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (346,-22,996)
+2026-03-06 16:31:54: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (346,-22,996)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (349,-27,1008)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (349,-27,1008)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (349,-27,1008)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (338,-20,986)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (338,-20,986)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (338,-20,986)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (345,-12,1010)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (345,-12,1010)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (345,-12,1010)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (341,-22,994)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (341,-22,994)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (341,-22,994)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (354,-22,978)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (354,-22,978)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (354,-22,978)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (346,-22,1011)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (346,-22,1011)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (346,-22,1011)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (356,-16,996)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (356,-16,996)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (356,-16,996)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (346,-16,998)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (346,-16,998)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (346,-16,998)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (428,-27,851)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (428,-27,851)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (428,-27,851)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (437,-31,840)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (437,-31,840)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (437,-31,840)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (446,-36,837)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (446,-36,837)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (443,-31,848)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (443,-31,848)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (442,-31,857)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (442,-31,857)
+2026-03-06 16:31:55: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (442,-31,857)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (227,7,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (227,7,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (227,7,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (227,7,1022)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (227,7,1022)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (227,7,1022)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (231,7,1025)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (231,7,1025)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (226,9,1031)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (226,9,1031)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (226,9,1031)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (236,9,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (236,9,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (236,9,1015)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (218,7,1017)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (218,7,1017)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (218,7,1017)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (221,4,1033)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (221,4,1033)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (221,4,1033)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (227,5,1034)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (227,5,1034)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (227,5,1034)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (236,1,1028)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (236,1,1028)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (236,1,1028)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (312,-22,1047)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (312,-22,1047)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (312,-22,1047)
+2026-03-06 16:31:56: ACTION[Emerge-0]: [dungeonsplus] skipping submerged dungeon room at (316,-17,1060)
+2026-03-06 16:32:04: ACTION[Emerge-0]: [dungeonsplus] generated Library at (437,-28,1174)
+2026-03-06 16:32:04: ACTION[Emerge-0]: [dungeonsplus] generated Library at (447,-28,1169)
+2026-03-06 16:32:04: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (447,-27,1161)
+2026-03-06 16:32:04: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (447,-27,1161)
+2026-03-06 16:32:04: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (447,-27,1161)
+2026-03-06 16:32:04: ACTION[Server]: singleplayer uses gadgets_consumables:potion_speed_02, pointing at [nothing]
+2026-03-06 16:32:16: ACTION[Server]: [Music_api]: Starting playblack for: singleplayer windswept Available tracks for user: 5 Random delay: 27
+2026-03-06 16:32:23: ACTION[Emerge-0]: [evergrowth_villages] Master Plan Locked: -125_1625
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (541,-26,1931)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (541,-26,1931)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (541,-26,1931)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (534,-26,1938)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (534,-26,1938)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Library at (546,-26,1941)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (538,-31,1933)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (538,-31,1933)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (538,-31,1933)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (553,-24,1928)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (553,-24,1928)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (553,-24,1928)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (533,2,2017)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (533,2,2017)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (533,2,2017)
+2026-03-06 16:32:39: ACTION[Emerge-0]: [evergrowth_villages] Master Plan Locked: 375_2125
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:40: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (586,-31,2072)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (586,-31,2072)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (586,-31,2072)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (595,-31,2071)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (595,-31,2071)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (595,-31,2071)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Library at (594,-33,2054)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Library at (594,-31,2085)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Library at (574,-31,2087)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (604,-31,2075)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (604,-31,2075)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (604,-31,2075)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (587,-31,2062)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (587,-31,2062)
+2026-03-06 16:32:40: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (587,-31,2062)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (643,-6,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (643,-6,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (643,-6,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (642,-6,2023)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (642,-6,2023)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (638,-6,2012)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (638,-6,2012)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (649,-6,2021)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (649,-6,2021)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (626,57,2019)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (626,57,2019)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (626,57,2019)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (625,57,2024)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Floor at (625,57,2024)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (625,57,2024)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (636,57,2027)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (636,57,2027)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (636,57,2027)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (640,61,2017)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (640,61,2017)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (640,61,2017)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (644,57,2021)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (644,57,2021)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (644,57,2021)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (639,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (639,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (639,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (629,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (629,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (629,57,2040)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] skipping exposed dungeon room at (622,57,2013)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (621,57,2030)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (621,57,2030)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (621,57,2030)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (620,57,2045)
+2026-03-06 16:32:42: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (620,57,2045)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (667,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (667,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (667,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (674,-59,2012)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (674,-59,2012)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (674,-59,2012)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Library at (662,-54,2019)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (650,-54,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (650,-54,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (650,-54,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Library at (673,-54,2012)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (641,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (641,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (641,-54,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (658,-58,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (658,-58,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (658,-58,2007)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (635,-62,1998)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (635,-62,1998)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (635,-62,1998)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (713,-8,1990)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (713,-8,1990)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (713,-8,1990)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Library at (726,-3,1981)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (709,-8,1993)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (709,-8,1993)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (705,-8,1999)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (705,-8,1999)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (705,-8,1999)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (700,-14,1992)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (700,-14,1992)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (700,-14,1992)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (711,-9,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (711,-9,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (711,-9,2011)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (716,-9,2003)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (716,-9,2003)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (716,-9,2003)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (724,-25,2065)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (724,-25,2065)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (724,-25,2065)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (742,-25,2062)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (742,-25,2062)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (714,-25,2084)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (714,-25,2084)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (714,-25,2084)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (726,-31,2080)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (726,-31,2080)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (726,-31,2080)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (716,-25,2063)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (716,-25,2063)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (716,-25,2063)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (725,-20,2067)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (725,-20,2067)
+2026-03-06 16:32:44: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (725,-20,2067)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (655,-12,2094)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (655,-12,2094)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (655,-12,2094)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (661,-12,2101)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (661,-12,2101)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (648,-12,2096)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (648,-12,2096)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (648,-12,2096)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (830,-2,2113)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (830,-2,2113)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (830,-2,2113)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (840,-2,2118)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (840,-2,2118)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (840,-2,2118)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (834,2,2112)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (834,2,2112)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (834,2,2112)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (837,-13,2100)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (837,-13,2100)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (837,-13,2100)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (828,-16,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (828,-16,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (828,-16,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (841,-17,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (841,-17,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (841,-17,2104)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (828,-8,2092)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (828,-8,2092)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (828,-8,2092)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Library at (829,-13,2112)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Library at (825,-14,2090)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (690,73,2094)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (690,73,2094)
+2026-03-06 16:32:45: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (690,73,2094)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Alchemy Lab at (696,73,2095)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (696,73,2095)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (696,73,2095)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] skipping exposed dungeon room at (707,73,2101)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (704,73,2110)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (704,73,2110)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (704,73,2110)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] skipping exposed dungeon room at (696,73,2116)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (668,49,2055)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (668,49,2055)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (668,49,2055)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (669,49,2048)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (669,49,2048)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (669,49,2048)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (658,47,2059)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (658,47,2059)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (658,47,2059)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (663,51,2047)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (663,51,2047)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (663,51,2047)
+2026-03-06 16:32:46: ACTION[Emerge-0]: [dungeonsplus] skipping exposed dungeon room at (674,55,2056)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Chandelier at (761,-13,2201)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (761,-13,2201)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (761,-13,2201)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Jail at (739,60,2136)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (739,60,2136)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (733,60,2134)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (733,60,2134)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (733,60,2134)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (734,60,2124)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (734,60,2124)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (734,60,2124)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] skipping exposed dungeon room at (726,57,2120)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (744,-54,2095)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Forge at (744,-54,2095)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (748,-54,2108)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (748,-54,2108)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (748,-54,2108)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (742,-48,2105)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (742,-48,2105)
+2026-03-06 16:32:47: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (742,-48,2105)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Library at (624,-17,2154)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (610,-7,2147)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (610,-7,2147)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (610,-7,2147)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Library at (636,-18,2150)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (631,-17,2162)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (631,-17,2162)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (631,-17,2162)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (638,-19,2158)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Liquid Pool at (638,-19,2158)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (638,-19,2158)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Wall Torches at (631,-16,2166)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Storeroom at (631,-16,2166)
+2026-03-06 16:32:48: ACTION[Emerge-0]: [dungeonsplus] generated Bare Ceiling at (631,-16,2166)
+2026-03-06 16:32:49: ACTION[Emerge-0]: [evergrowth_villages] Master Plan Locked: 875_2125
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:49: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::getNodeMetadata(): Block not found
+2026-03-06 16:32:53: WARNING[Emerge-0]: Map::setNodeMetadata(): Block not found
