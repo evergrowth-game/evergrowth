@@ -1,0 +1,179 @@
+-- Bweapons Tweaks for Evergrowth
+-- This mod preserves custom recipes and durability logic while allowing the use of the official bweapons modpack.
+
+local players = {}
+
+minetest.register_on_joinplayer(function(player)
+    local name = player:get_player_name()
+    players[name] = {reloading=false}
+end)
+
+minetest.register_on_leaveplayer(function(player)
+    local name = player:get_player_name()
+    players[name] = nil
+end)
+
+local function reset_player_cooldown(user)
+    if user ~= nil then
+        local name = user:get_player_name()
+        if players[name] then
+            players[name] = {reloading=false}
+        end
+    end
+end
+
+-- Custom recipes table
+local custom_recipes = {
+    -- Firearms
+    ["bweapons_firearms_pack:pistol"] = {
+        {{'', 'default:steel_ingot', ''}, {'', 'basic_materials:plastic_sheet', 'default:steel_ingot'}, {'', '', 'group:wood'}}
+    },
+    ["bweapons_firearms_pack:shotgun"] = {
+        {{'default:steel_ingot', 'default:steel_ingot', ''}, {'group:wood', 'basic_materials:plastic_sheet', 'default:steel_ingot'}, {'', 'group:wood', 'group:wood'}}
+    },
+    ["bweapons_firearms_pack:double_barrel"] = {
+        {{'default:steel_ingot', 'default:steel_ingot', 'group:wood'}, {'default:steel_ingot', 'default:steel_ingot', 'techage:steelmat'}, {'', 'group:wood', 'group:wood'}}
+    },
+    ["bweapons_firearms_pack:rifle"] = {
+        {{'default:steel_ingot', 'default:steel_ingot', ''}, {'techage:steelmat', 'group:wood', 'default:steel_ingot'}, {'', 'group:wood', 'group:wood'}}
+    },
+    ["bweapons_firearms_pack:grenade_launcher"] = {
+        {{'default:steel_ingot', 'default:steel_ingot', 'techage:steelmat'}, {'default:steel_ingot', 'default:steel_ingot', 'techage:steelmat'}, {'default:coal_lump', 'group:wood', 'group:wood'}}
+    },
+    -- Hi-Tech
+    ["bweapons_hitech_pack:missile_launcher"] = {
+        {{'techage:aluminum', 'techage:aluminum', 'techage:ta4_carbon_fiber'}, {'techage:aluminum', 'techage:aluminum', 'techage:ta4_carbon_fiber'}, {'', '', 'techage:ta4_carbon_fiber'}}
+    },
+    ["bweapons_hitech_pack:particle_gun"] = {
+        {{'default:diamond', 'techage:ta4_silicon_wafer', 'basic_materials:energy_crystal_simple'}, {'basic_materials:motor', 'basic_materials:motor', 'techage:aluminum'}, {'', '', 'techage:aluminum'}}
+    },
+    ["bweapons_hitech_pack:laser_gun"] = {
+        {{'default:diamond', 'techage:ta4_carbon_fiber', 'basic_materials:energy_crystal_simple'}, {'basic_materials:motor', 'basic_materials:copper_wire', 'techage:aluminum'}, {'', '', 'techage:aluminum'}}
+    },
+    ["bweapons_hitech_pack:plasma_gun"] = {
+        {{'default:diamondblock', 'default:obsidian_glass', 'techage:ta4_battery'}, {'techage:ta4_transformer', 'techage:ta4_transformer', 'techage:ta4_carbon_fiber'}, {'', '', 'techage:aluminum'}}
+    },
+    ["bweapons_hitech_pack:rail_gun"] = {
+        {{'basic_materials:copper_wire', 'basic_materials:copper_wire', 'techage:ta4_carbon_fiber'}, {'techage:ta4_transformer', 'techage:ta4_transformer', 'techage:ta4_battery'}, {'basic_materials:copper_wire', 'basic_materials:copper_wire', 'techage:ta4_carbon_fiber'}}
+    },
+    -- Ammo
+    ["bweapons_firearms_pack:pistol_round"] = {
+        {{'', 'default:copper_ingot', ''}, {'', 'tnt:gunpowder', ''}, {'', 'basic_materials:brass_ingot', ''}}
+    },
+    ["bweapons_firearms_pack:rifle_round"] = {
+        {{'', 'default:copper_ingot', ''}, {'default:steel_ingot', 'tnt:gunpowder', 'default:steel_ingot'}, {'', 'basic_materials:brass_ingot', ''}}
+    },
+    ["bweapons_firearms_pack:shotgun_shell"] = {
+        {{'', 'default:copper_lump', ''}, {'basic_materials:plastic_sheet', 'tnt:gunpowder', 'basic_materials:plastic_sheet'}, {'', 'basic_materials:brass_ingot', ''}}
+    },
+    ["bweapons_firearms_pack:grenade"] = {
+        {{'default:coal_lump', 'default:steel_ingot', 'default:coal_lump'}, {'tnt:gunpowder', 'tnt:gunpowder', 'tnt:gunpowder'}, {'basic_materials:brass_ingot', 'basic_materials:brass_ingot', 'basic_materials:brass_ingot'}}
+    },
+    ["bweapons_hitech_pack:rail_slug"] = {
+        {{'', 'techage:baborium_ingot', ''}, {'', 'techage:baborium_ingot', ''}, {'', 'default:steel_ingot', ''}}
+    },
+    ["bweapons_hitech_pack:missile"] = {
+        {{'techage:ta4_carbon_fiber', 'techage:ta4_silicon_wafer', 'techage:ta4_carbon_fiber'}, {'tnt:gunpowder', 'tnt:gunpowder', 'tnt:gunpowder'}, {'techage:aluminum', 'techage:graphite_powder', 'techage:aluminum'}}
+    },
+}
+
+-- Re-implement bweapons hi-tech weapons to bypass Technic completely
+-- We wait for the existing items to load, then redefine them using minetest.register_tool with the ":" prefix
+minetest.register_on_mods_loaded(function()
+    for name, _ in pairs(minetest.registered_tools) do
+        if string.find(name, "bweapons_hitech_pack:") then
+            -- Copy the existing definition
+            local def = table.copy(minetest.registered_tools[name])
+            
+            -- Strip Technic requirements and set our custom durability
+            def.requires_technic = false
+            def.has_durability = true
+            def.custom_charge = true
+            def.on_refill = nil
+            def.wear_represents = "mechanical_wear"
+            
+            -- We need some original parameters to rebuild the firing logic
+            -- Unfortunately, those were lost inside the closure of bweapons.register_weapon.
+            -- However, for bweapons, the essential firing logic parameters match the defaults or the name.
+            -- We will inject our custom on_use to handle durability, then call the ORIGINAL on_use
+            -- and trick it into thinking it HAS charge (since it checks the meta).
+            
+            local original_on_use = minetest.registered_tools[name].on_use
+            
+            def.on_use = function(itemstack, user, pointed_thing)
+                if not user then return end
+                local playername = user:get_player_name()
+                local inv = user:get_inventory()
+
+                if players[playername] and players[playername].reloading then
+                    return
+                end
+
+                -- To bypass the original on_use's Technic block, we temporarily feed it a fake itemstack
+                -- that has infinite Technic charge, let it perform the shot, and then apply OUR durability
+                -- to the REAL itemstack.
+                
+                -- Check our custom durability first
+                local wear = itemstack:get_wear()
+                local uses = 64
+                if (65535 - wear) < (65535 / uses) then
+                    return -- Broken
+                end
+                
+                -- Create a spoofed itemstack for the original on_use
+                local fake_stack = ItemStack(itemstack)
+                local meta = minetest.deserialize(fake_stack:get_metadata()) or {}
+                meta.charge = 1000000 -- Infinite charge for the original logic
+                fake_stack:set_metadata(minetest.serialize(meta))
+                
+                -- Call original on_use (handles firing, ammo, sounds, effects)
+                local returned_fake_stack = original_on_use(fake_stack, user, pointed_thing)
+                
+                if returned_fake_stack then
+                    -- If the original function successfully fired, it would have returned a stack.
+                    -- We apply the custom non-Technic wear to the REAL itemstack.
+                    wear = wear + (65535 / uses)
+                    if wear > 65535 then wear = 65535 end
+                    itemstack:set_wear(wear)
+                end
+
+                return itemstack
+            end
+
+            -- Redefine entirely
+            minetest.register_tool(":"..name, def)
+        end
+    end
+end)
+-- Override bweapons.register_ammo to apply recipes
+local old_register_ammo = bweapons.register_ammo
+bweapons.register_ammo = function(def)
+    if custom_recipes[def.name] then
+        def.recipe = custom_recipes[def.name]
+    end
+    old_register_ammo(def)
+end
+
+-- Re-register specific recipes for existing weapons if they were already registered
+-- This handles the case where tweaks mod loads AFTER some packs but BEFORE others
+for name, recipes in pairs(custom_recipes) do
+    if minetest.registered_items[name] then
+        minetest.clear_craft({output = name})
+        local amount = 1
+        if string.find(name, "_round") or string.find(name, "_shell") then
+            amount = 8
+        elseif string.find(name, "grenade") then
+            amount = 4
+        elseif string.find(name, "missile") or string.find(name, "slug") then
+            amount = 1 -- missiles/slugs are 1 as per custom ammo.lua
+        end
+        
+        for _, recipe in pairs(recipes) do
+            minetest.register_craft({
+                type = "shaped",
+                output = name .. " " .. amount,
+                recipe = recipe,
+            })
+        end
+    end
+end
