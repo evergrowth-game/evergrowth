@@ -11,9 +11,9 @@ chmod -R 777 "$tmpdir" # container uses unprivileged user inside
 vol=(
 	-v "$PWD/utils/test/minetest.conf":/etc/minetest/minetest.conf
 	-v "$tmpdir":/var/lib/minetest/.minetest
-	-v "$PWD":/var/lib/minetest/.minetest/games/minetest_game
+	-v "$PWD":/var/lib/minetest/.minetest/games/evergrowth
 )
-docker run --rm -i "${vol[@]}" "$DOCKER_IMAGE" --config /etc/minetest/minetest.conf --gameid minetest
+docker run --rm -i "${vol[@]}" "$DOCKER_IMAGE" --config /etc/minetest/minetest.conf --gameid evergrowth
 
 test -f "$tmpdir/world/map.sqlite" || exit 1
 exit 0
