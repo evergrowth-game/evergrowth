@@ -1,0 +1,666 @@
+# Modpack Tech Age [techage]
+
+This modpack covers all necessary and useful mods to be able to use techage.
+All mods have their own README.txt. For further information please consult these files.
+
+This modpack contains:
+- techage: The main mod
+- ta4_jetpack: A Jetpack for techage with hydrogen as fuel and TA4 recipe
+- ta4_paraglider: A Paraglider for techage with TA4 recipe
+- ta4_addons: A Touchscreen like the TA4 display, but with additional commands and features
+- autobahn: Street blocks and slopes with stripes for faster traveling (the only need of bitumen from techage)
+- compost: The garden soil is needed for the TA4 LED Grow Light based flower bed
+- signs_bot: For many automation tasks in TA3/TA4 like farming, mining, and item transportation
+- hyperloop: Used as passenger transportation system in TA4
+- techpack_stairway: Ladders, stairways, and bridges for your machines
+- minecart: Techage transportation system for oil and other items
+- towercrane: Simplifies the building of large techage plants
+- basic_materials: Needed items for many recipes
+- stamina: The "hunger" mod from "minetest-mods"
+- unified_inventory: Player's inventory with crafting guide, bags, and more.
+- tubelib2: Necessary library
+- networks: Necessary library
+- safer_lua: Necessary library
+- lcdlib: Necessary library
+- doclib: Necessary library
+- nanobasic: Optional library with support for the BASIC programming language (TA3 terminal)
+
+
+### Techage Manual
+
+All techage manuals (EN/DE) are available ingame (craft the 'TA Construction Board')
+or use the manual on [GitHub](https://github.com/joe7575/techage/wiki).
+
+
+### Licenses
+
+All mods have their own licenses. See the license files in the subfoldes.
+The modpack itself has the same license as the Mod Techage.
+
+
+### Further Dependencies  
+
+Required: Minetest Game
+
+ta4_jetpack requires the modpack 3d_armor. 3d_armor is itself a modpack and can't be integrated into the techage modpack.
+
+
+### History
+
+#### 2026-03-27
+
+Updated Mods:
+
+- techage:
+  - Bump version to V1.24
+  - Add TA5 Digitizer and TA5 Control Unit with Lua/Beduino command interface
+  - Add TA5 Cordless Screwdriver with preserve/restore feature
+  - Add TA5 SSD as intermediate Digitizer ingredient
+  - Add per-player active quarry limit (#65)
+  - Add binary AND, OR, and XOR operators for NanoBasic
+  - Add support for the mod too_many_stones
+  - Add configurable basalt gravel sieving (Evgeniy)
+  - Add Smartshop mod compatibility (Evgeniy)
+  - Add no_silktouch group to burning lighters (Niklp09)
+  - Display names for connected TA5 Teleport Blocks
+  - Allow to take all items from a chest
+  - Settable volumes for oven (acmgit)
+  - Changed capacity of oven (acmgit)
+  - Ensure generators are oriented correctly (Thomas--S)
+  - Add missing valid sides registrations (Thomas--S)
+  - Fix flywheel texture (Thomas--S)
+  - Avoid unnecessary texture alpha blend for reactor shell (Thomas--S)
+  - Fix injector issues (Thomas--S)
+  - Replace square brackets with parenthesis for formspec image (Thomas--S)
+  - Update translation script for stable sort order (Thomas--S)
+  - Translation maintenance: add missing German translations (Thomas--S)
+  - doorcontroller2: check node inventory before use (standmit)
+  - Fix smartshop compatibility (standmit)
+  - Restore French manual files (François Delpierre)
+  - Improve TA5 fusion reactor error messages, manuals, and pump wrench menu
+  - Thermal Storage: improve validation error messages
+  - Controller: show error on insufficient experience points, add /help descriptions
+  - Improve shell shape error message: show number of magnets with complete shell
+  - Fix #215 (ta4_movecontroller stuck)
+  - Fix #232 (Displays unable to write to row 10+ with string-type payload)
+  - Fix #233 (Unable to read state of buttons 1 or 2 of 4x button using Beduino)
+  - Fix #234 (Digging a pole-mounted yellow traffic light drops a black one)
+  - Fix #242 (Nitrogencylinder = Hydrogencylinder)
+  - Fix #245 (Pipe and pump water to boiler for TA3 Coal Power Station)
+  - Fix #246 (TA4 Fuel Cell loses H2 charge when moved)
+  - Fix #247 (TA2 Quarry sound keeps playing after turned off)
+  - Fix #248 (TA4 Manual typos about Hydrogen)
+  - Fix #249 (TA3 Chest + Injector + Furnace items lost)
+  - Fix #250 (TA3 Booster name missing in Power Terminal)
+  - Fix #157 (Admin Forceload Block Overview)
+  - Fix #264 (Document ability to change radius of ta4 player detector)
+  - Fix #267 (Crash: remove dofile of .test/ files not present in repo)
+  - Fix everness bug (#27)
+  - Fix growlight bug
+  - Fix: re-register node number after cordless screwdriver placement
+  - Fix: remove semicolons from textarea formspec strings in TA5 manuals
+
+- signs_bot:
+  - Fix farming crop grow bug
+  - Fix compatibility with everness mod hammer functionality (François Delpierre)
+  - Bugfix
+
+- minecart:
+  - Add Russian translation (randomei)
+
+- hyperloop:
+  - Prevent deprecation warning (use initial_properties)
+
+- ta4_jetpack:
+  - Fix bug with almost empty fuel tank
+
+- ta4_addons:
+  - Use \[png for matrix screen (Thomas--S)
+
+- towercrane:
+  - Add support for non-default games using xcompat (maplemedley)
+
+- unified_inventory:
+  - Support multiple craft outputs
+  - Preserve metadata when using "Give me:"
+  - Fix accessibility of the first and second inventory categories (z-op)
+  - Include implicit tools in tools category (The4codeblocks)
+  - Multiple bug fixes and improvements
+  - Extend and improve the API documentation
+  - Log warning for recipes that were registered too late
+  - Update translation files
+  - Add Danish translation (jeppebundsgaard)
+
+#### 2025-07-25
+
+Updated Mods:
+
+- techage:
+  - Fix misspelled words (ghost)
+  - Fix the recipe output name for aluminum handrail recipe (jfanjoy)
+  - Add CRT monitor
+  - TA4 Furnace Heater listed wrong on TA3 Power Terminal
+  - Add TA4 displays
+  - Update spelling of German manuals (mineplayer)
+  - Revise Lua controller
+  - Fixes gravel ore probability when using the everness mod (acarrico)
+  - Add a recipe to convert iron ingot to steel using the industrial furnace (jfanjoy)
+  - Add move2 command from move controller to fly controller (jfanjoy)
+  - Add new movecontroller2
+  - Fix bug with values and junctions behind the ta4_reactor
+  - Add ta1 iron block recipes and texture (jfanjoy)
+  - Improve Lua controller formspec
+  - Add NanoBasic daytime functions
+  - Add reset command to fly controller (jfanjoy)
+  - Improve movecontroller2
+  - Improve doorcontroller2
+  - Fix #199 (Everness gravel sieve not working)
+  - Add observation window block
+  - Adds nitrogen, ammonia, tnt chemistry (Evgeniy)
+  - Add French translation (François Delpierre)
+  - TA4 Doser: Fix farming:salt recipe
+
+- safer_lua:
+  - Add feature to control runtime via credits
+
+- signs_bot:
+  - Fix command crash when running "print <num>" (Niklp09)
+  - Add support for shop mod
+  - Fix bot command and status bugs
+  - Add support for shop mod
+  - Filling of bot slots improved
+  - Prevent the AND gate from accepting a signal while the bot is running
+  - Falling nodes don't fall when placed by signs bot
+
+- stamina:
+  - Fix Deprecated 'hud_elem_type' field warning
+  - Merge changes from minetest-mods/stamina
+
+- nanobasic:
+  - Chance trace mode
+  - Improve compiler
+  - Add SGN function
+  - Add ELSEIF statement
+
+- lcdlib:
+  - Fix bug when placeing wallmounted displays
+
+#### 2025-01-27
+
+Updated Mods:
+
+- nanobasic:
+  - Allow to run techage without proper installation of nanobasic
+
+#### 2025-01-24
+
+Updated Mods:
+
+- techage:
+  - Add Traffic Lights and accessories
+  - Add TA4 water remover device
+  - Improve door and fly controller
+  - Fix several issues
+  - Add Everness support #187 (ore sieving)
+  - Add BASIC mode to TA3 terminal (requires to install nanobasic. See: mods/techage_modpack/nanobasic/README.md)
+  - Improve russian translation (z-op)
+  - Many bug fixes by Niklp09, joe7575, and others
+  - Add pre-assignment menu to the furnace
+  - Improve recording for move/fly/turn controllers
+  - Allow to move the TA4 terminal with the assembly tool
+  - Add aluminum recipes for techpack_stairway items (jfanjoy)
+  - Change forceload block menu
+- signs_bot:
+  - Support `ethereal` and `moretrees` saplings (Niklp09)
+- minecart:
+  - Try to fix rare carts sound playing to all users (Niklp09)
+- unified_inventory:
+  - See: https://github.com/minetest-mods/unified_inventory/commits/master/
+- nanobasic:
+  - Newly added
+
+#### 2024-08-25
+
+Updated Mods:
+
+- techage:
+  - Fix bug 'TA2 boiler work without requiring boiler'
+  - Improve move/fly controller
+  - Add replacement to electricmeter recipe (Eternal-Study)
+  - Fix injector bug
+  - Fix flowers detection when using ethereal (Niklp09)
+  - Fix issue #175 (TA3 Furnace Does not implement replacements in recipes)
+  - Water to Salt + River Water Recipe, add Salt.lua (Eternal-Study)
+  - Add new button commands
+  - Fix bug with injector with a full 8x2000 chest
+  - Fix forceload block formspec list (Niklp09)
+  - Improve techage:ta4_power_box node_box (Niklp09)
+  - Allow to move the TA4 terminal with the assembly tool (#165)
+  - add aluminum recipes for techpack_stairway items (jfanjoy)
+  - Replace techage_invisible.png w/ engine provided blank.png (Niklp09)
+  - adds a new chat command and column to forceload formspec (jfanjoy)
+  - Fix bug #24 (Energy Storage respawn red gravel infinit)
+  - Allow TA3 screwdriver to get repaired by anvil (Niklp09)
+  - Add translations and fix bug with growlight
+  - Add manual for pt-BR language (hephaestus-br)
+  - Add reverse mode for ta5 pump
+  - Fix assembly tool bug with non-empty chests
+- hyperloop:
+  - add luacheck workflow
+  - Change code so that no luacheck warnings are issued
+  - Fix set_look_horizontal bug
+  - Prevent 'deprecated warnings'
+- signs_bot:
+  - Fix to Fall_Down when non-walkable nodes are in path (Eternal-Study)
+  - Fix to fall_down (Eternal-Study)
+  - hold aux1 to invert signal (blaboing)
+  - Fix flowers detection when using ethereal (Niklp09)
+  - Fix bug #38 (Colon in print command breaks jumps)
+- tubelib2:
+  - Replace deprecated meta:set_string(*, nil) calls (Niklp09)
+- lcdlib:
+  - Use initial_properties for text entity (Niklp09)
+- safer_lua:
+  - Add safe variants for string.rep() and string.find()
+
+#### 2023-11-26
+
+Updated Mods:
+
+- tubelib2:
+  - Improve pipe/tube placement
+- doclib:
+  - Add a NIL check to prevent crashes
+- minecart:
+  - Replace some global_exists by get_modpath
+  - Fix crash when using techage (Niklp09)
+- techage:
+  - Fix crash with collider magnets
+- basic_materials:
+  - Update to current version
+
+#### 2023-11-05
+
+Updated Mods:
+
+- techage v1.18:
+  - see readme.md
+- ta4_jetpack:
+  -  Fix translation issue
+- minecart:
+  - Fix bug with missing techage mod 
+- signs_bot:
+  - Fix bug #36 (pattern/copy 5x3 is off center)
+  - Adapt bot box for techage assembly tool
+  - Escape equal sign in german translation (Niklp09)
+- autobahn:
+  - Add support for player_monoids (Niklp09)
+- compost:
+  - User proper player creative check (Niklp09)
+  - Fix drop bug
+- techpack_stairway:
+  - Add stairways without handrails
+- networks:
+  - Add support for colored nodes by unifieddyes
+  - Improve debugging tool
+
+#### 2023-08-25
+
+**The mod doclib is a new hard dependency !**
+
+Updated Mods:
+
+- techage v1.17:
+  - see readme.md
+- autobahn:
+  - Make motor sound mono (Niklp09)
+- lcdlib v1.02:
+  - see readme.md
+- signs_bot v1.13:
+  - see readme.md
+- minecart v2.05:
+  - see readme.md
+- mod 'doc' removed
+- mod 'doclib' v1.00 added
+- mod 'datastorage' removed
+
+#### 2023-05-09
+
+Updated Mods:
+
+- techage v1.15:
+  - see readme.md
+- hyperloop:
+  - Remove intlib support
+
+#### 2023-03-05
+
+Updated Mods:
+- techage v1.11:
+  - see readme.md
+- signs_bot v1.12:
+  - Add bot command 'set_param2'
+- minecart v2.04:
+  - New API functions added
+  - EOL blanks removed
+- hyperloop:
+  - Fix some bugs
+- networks v0.13:
+  - New API function networks.power.get_storage_percent added
+- autobahn:
+  -  fix reset_player_privs bug
+- basic_materials:
+  - Switched back to tag "2021-01-30"
+
+#### 2023-02-04
+
+Updated Mods:
+- techage:
+  - V1.10 (see readme.md)
+- signs_bot:
+  - Fix fall_down on rail bug
+- minecart:
+- hyperloop:
+  - Fix some bugs
+
+#### 2022-12-31
+
+Updated Mods:
+- techage:
+  - Add wafer recipe with 'mesecons_materials:silicon'
+  - Add TA5 AI Chip II to the manual
+  - Fix movecontroller wrench menu bug
+  - Improve chemical reactor description
+  - Improve player detector wrench menu
+  - Fix 'count' command bug: default value is 0 again
+  - Movecontroller: Allow moving blocks through unloaded areas
+  - Player detector: Add wrench menu to configure search radius
+  - Movecontroller: Place unloaded flying blocks to dest pos
+  - Furnace: Don't use items filled from the top as fuel
+  - Manual improvements for the move controller
+  - Make a use for cotton seeds #104
+  - Merge pull request #102 from Niklp09/mvps2
+  - Fix broken mesecons detection
+  - Fix bug with TA1 hammer used by pipeworks nodebreaker
+  - Merge pull request #99 from Niklp09/mvps
+  - Register mvps stopper for complex techage nodes
+  - Merge pull request #98 from Niklp09/glow_gravel
+  - Fix hammer bauxite bug
+  - Fix mesecons_materials bug
+  - Add cracking recipe for isobutane
+  - Merge pull request #96 from Niklp09/ethereal
+  - Grind ethereal leaves to leave powder
+  - Improve manual, fix bug in electrolyzer menu description
+- networks (Add API function used by the techage tool)
+- safer_lua (Limit code execution time for recursive function calls (#3 by Thomas--S))
+- tubelib2:
+  - Merge pull request #18 from IFRFSX/cn
+  - Add chinese translation
+  - Merge pull request #17 from Niklp09/master
+  - Fix minor translation issue
+- signs_bot:
+  - Fix stop command bug
+  - Fix #23 (Water is moved up when a bot builds upward from under water)
+  - Fix bug remove foot after move_up command
+- hyperloop (Fix elevator area protection bug)
+
+#### 2022-09-24
+
+Updated Mods:
+- techage (fix database backend bug, further bugfixes and improvements)
+- lcdlib (fix MT5.5+ "deprecated" warnings)
+- signs_bot (add new commands)
+- networks (add 'networks.liquid.get_liquids')
+- ta4_paraglider (Fix bug "Add nil player check in paraglider")
+- unified_inventory (Add support for colored items (#213))
+
+#### 2022-08-17
+
+Updated Mods:
+- techage (fix "Invalid field use_texture_alpha" errors)
+
+
+#### 2022-08-06
+
+Updated Mods:
+- autobahn (fix MT5.5+ "deprecated" warnings)
+- compost (fix MT5.5+ "deprecated" warnings)
+- hyperloop (fix MT5.5+ "deprecated" warnings, add french translation)
+- tubelib2 (fix MT5.5+ "deprecated" warnings)
+- networks (Add improvement for liquid handling)
+- signs_bot (fix MT5.5+ "deprecated" warnings)
+- minecart (fix MT5.5+ "deprecated" warnings)
+- safer_lua (fix MT5.5+ "deprecated" warnings)
+- techpack_stairway (fix MT5.5+ "deprecated" warnings)
+- techage (many improvements, see: https://github.com/joe7575/techage/commits/master)
+- ta4_jetpack (Fix the 3d_armor _material issue)
+- datastorage (fix MT5.5+ "deprecated" warnings)
+- stamina (fix MT5.5+ "deprecated" warnings)
+
+
+#### 2022-07-11
+
+Updated Mods:
+- techage V1.08 with improvements and bug fixes
+- signs_bot
+- tubelib2
+- unified_inventory
+- lcdlib
+
+#### 2022-01-28
+
+Updated Mods:
+- techage (fusion reactor added)
+
+
+#### 2022-01-04
+
+Updated Mods:
+- techage (bugfixes)
+
+
+#### 2022-01-03
+
+Updated Mods:
+- techage (see readme)
+- hyperloop (see readme)
+- minecart (bugfix)
+- unified_inventory (see readme)
+- ta4_addons (see readme)
+
+
+#### 2021-10-30
+
+Updated Mods:
+- techage (see readme)
+- signs_bot (see readme)
+- minecart (bugfix)
+- lcdlib (improvement)
+
+
+#### 2021-09-18
+
+Updated Mods:
+- techage (see readme)
+- signs_bot (see readme)
+- networks (see readme)
+- ta4_addons (add matrix screen)
+
+
+#### 2021-09-04
+
+Updated Mods:
+- minecart (bugfix)
+
+
+#### 2021-09-03
+
+Updated Mods:
+- techage (bugfixes)
+- minecart (see readme)
+- signs_bot (see readme)
+
+
+#### 2021-08-19
+
+Changed Mods:
+- techage (see readme and constuction board)
+
+Updated Mods:
+- minecart
+
+
+#### 2021-08-01
+
+Newly added mods (must be activated!):
+- networks
+- ta4_addons (Touchscreen)
+
+Changed Mods:
+- techage (see readme and constuction board)
+- minecart (see readme "Migration to v2")
+
+Updated Mods:
+- autobahn
+- signs_bot
+- hyperloop
+- ta4_jetpack
+
+
+#### 2021-05-14
+
+Updated Mods:
+- compost
+- minecart
+- signs_bot
+- techage
+- towercrane
+- unified_inventory
+
+
+#### 2021-02-07
+
+Updated Mods:
+- basic_materials
+- compost
+- hyperloop
+- minecart
+- signs_bot
+- ta4_paraglider
+- techage
+- towercrane
+- tubelib2
+- unified_inventory
+
+
+#### 2020-12-11
+
+Updated Mods:
+- autobahn
+- basic_materials
+- minecart
+- techage v0.25
+- ta4_jetpack
+- tubelib2
+
+
+#### 2020-10-25
+
+Updated Mods:
+- techage v0.24
+- signs_bot
+- minecart
+- techpack_stairway
+- stamina
+
+ta4_paraglider newly added
+
+
+#### 2020-09-13
+
+Updated Mods:
+
+- techage v0.23
+- signs_bot
+- minecart
+
+
+#### 2020-08-08
+
+Updated Mods:
+- autobahn
+- compost
+- hyperloop
+- lcdlib
+- minecart
+- safer_lua
+- signs_bot
+- techage v0.21
+
+
+#### 2020-07-21
+
+Updated Mods:
+- signs_bot
+- techage v0.18
+- towercrane
+- unified_inventory
+- basic_materials
+
+#### 2020-07-02
+Updates (see local readme files):
+- mod 3d_armor removed again (please install separately) 
+- techage v0.15 improvements and bugfixes
+- autobahn v0.04 improvements
+
+#### 2020-06-29
+
+Updates (see local readme files):
+- autobahn, towercrane, ta4_jetpack, 3d_armor, and stamina now use a common player physics lockout mechanism
+- the new mod ta4_jetpack added
+- mod stamina added (adapted to the player physics lockout mechanism)
+- mod 3d_armor added (needed for ta4_jetpack, adapted to the player physics lockout mechanism) 
+- minecart v1.07 with many improvements
+- techage v0.14 with many improvements
+- hyperloop v2.06 update
+- autobahn update
+
+
+#### 2020-06-21
+
+Updates (see local readme files):
+- signs_bot v1.03
+- techage v0.13
+- hyperloop v2.06
+
+
+#### 2020-06-18
+
+- techage v0.12 
+  - cart commands added for both controllers
+  - support for moreores added
+  - Ethereal support added, manual correction
+  - tin ingot recipe bugfix
+  
+- minecart v1.06 
+  
+  - API changed and chat command added
+  
+- signs_bot v1.02
+  - some bugfixes
+  
+  
+
+#### 2020-06-04
+
+- techage v0.10
+  - minor changes and bugfixes
+  - stone hammer added
+  - quarry 'depth' command added
+  - manuals adapted
+  - QSG added
+
+#### 2020-05-31
+
+- first commit
+

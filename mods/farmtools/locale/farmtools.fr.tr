@@ -1,0 +1,64 @@
+# textdomain: farmtools
+Flower Petals=Pétales de fleurs
+Rake=Râteau
+Scythe=Faux
+Sickle=Faucille
+Copper Sickle=Faucille en cuivre
+Copper Scythe=Faux en cuivre
+Copper Rake=Râteau en cuivre
+Emerald Sickle=Faucille en émeraude
+Emerald Scythe=Faux en émeraude
+Emerald Rake=Râteau en émeraude
+Iron Scythe=Faux en fer
+Diamond Scythe=Faux en diamant
+Iron Rake=Râteau en fer
+Diamond Rake=Râteau en diamant
+Iron Sickle=Faucille en fer
+Golden Sickle=Faucille en or
+Diamond Sickle=Faucille en diamant
+Cut complete grains (e.g., wheat) down to growth level 3 immediately when harvesting.=Coupe les céréales mûres (par ex. blé) directement au niveau 3 de croissance après la récolte.
+Iron sickle=Faucille en fer
+Gold sickle=Faucille en or
+Diamond sickle=Faucille en diamant
+Netherite sickle=Faucille en netherite
+Prepares ground for farming, in a larger radius than a hoe.=Prépare le sol pour l''agriculture, dans un rayon plus large qu''une houe.
+Iron rake=Râteau en fer
+Diamond rake=Râteau en diamant
+Netherite rake=Râteau en netherite
+Works only on completely grown crops, or as a weapon.=Fonctionne uniquement sur les plantes totalement matures, ou bien comme une arme.
+Iron scythe=Faux en fer
+Diamond scythe=Faux en diamant
+Netherite scythe=Faux en netherite
+Copper scythe=Faux en cuivre
+Steel Scythe=Faux en acier
+Steel Rake=Râteau en acier
+Bronze Rake=Râteau en bronze
+Bronze Sickle=Faucille en bronze
+Steel Sickle=Faucille en acier
+Mithril Scythe=Faux en mithril
+Mithril Rake=Râteau en mithril
+Mithril Sickle=Faucille en mithril
+
+
+##### not used anymore #####
+
+# textdomain: farmtools
+Farm Tools=Outils Agricoles
+Based on Scythes & Sickles, it adds various tools to make farming more convenient.=Basé sur le mode Scythes & Sickles, il ajoute divers outils qui rendent l'agriculture plus pratique.
+Bronze Scythe=Faux en bronze
+Moss=Mousse
+Purple Moss=Mousse violette
+Blue Moss=Mousse bleue
+Yellow Moss=Mousse jaune
+Moss Block=Bloc de mousse
+Purple Moss Block=Bloc de mousse violette
+Blue Moss Block=Bloc de mousse bleue
+Yellow Moss Block=Bloc de mousse jaune
+Moss Stair=Escalier en mousse
+Purple Moss Stair=Escalier en mousse violette
+Blue Moss Stair=Escalier en mousse bleue
+Yellow Moss Stair=Escalier en mousse jaune
+Moss Slab=Dalle de mousse
+Purple Moss Slab=Dalle de mousse violette
+Blue Moss Slab=Dalle de mousse bleue
+Yellow Moss Slab=Dalle de mousse jaune

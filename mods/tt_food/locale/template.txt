@@ -1,0 +1,4 @@
+# textdomain: tt_food
+
+Food item=
+@1 food points=

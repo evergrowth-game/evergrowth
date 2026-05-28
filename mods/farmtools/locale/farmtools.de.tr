@@ -1,0 +1,64 @@
+# textdomain: farmtools
+Flower Petals=Blüten
+Rake=Rechen
+Scythe=Sense
+Sickle=Sichel
+Copper Sickle=Kupfersichel
+Copper Scythe=Kupfersense
+Copper Rake=Kupferrechen
+Emerald Sickle=
+Emerald Scythe=
+Emerald Rake=
+Iron Scythe=Eisensense
+Diamond Scythe=Diamantsense
+Iron Rake=Eisenrechen
+Diamond Rake=Diamantrechen
+Iron Sickle=Eisensichel
+Golden Sickle=Goldsichel
+Diamond Sickle=Diamantsichel
+Cut complete grains (e.g., wheat) down to growth level 3 immediately when harvesting.=Schneidet bei der Ernte ganze Kornpflanzen (z.B. Weizen) sofort bis zu Stufe 3 runter.
+Iron sickle=Eisensichel
+Gold sickle=Goldsichel
+Diamond sickle=Diamantsichel
+Netherite sickle=
+Prepares ground for farming, in a larger radius than a hoe.=Bereitet den Boden für die Landwirtschaft vor, mit einem größeren Radius als eine Hacke.
+Iron rake=Eisenrechen
+Diamond rake=Diamantrechen
+Netherite rake=
+Works only on completely grown crops, or as a weapon.=Funktioniert nur mit voll ausgewachsenen Nutzpflanzen, oder als Waffe.
+Iron scythe=Eisensense
+Diamond scythe=Diamantsense
+Netherite scythe=
+Copper scythe=Kupfersense
+Steel Scythe=Stahlsense
+Steel Rake=Stahlrechen
+Bronze Rake=Bronzerechen
+Bronze Sickle=Bronzesichel
+Steel Sickle=Stahlsichel
+Mithril Scythe=Mithrilsense
+Mithril Rake=Mithrilrechen
+Mithril Sickle=Mithrilsichel
+
+
+##### not used anymore #####
+
+# textdomain: farmtools
+Farm Tools=Bauernhofwerkzeuge
+Based on Scythes & Sickles, it adds various tools to make farming more convenient.=Auf der Basis von Scythes & Sickles fügt es diverse Werkzeuge für eine vereinfachte Landwirtschaft hinzu.
+Bronze Scythe=Bronzesense
+Moss=Moos
+Purple Moss=Violettes Moos
+Blue Moss=Blaues Moos
+Yellow Moss=Gelbes Moos
+Moss Block=Moosblock
+Purple Moss Block=Violetter Moosblock
+Blue Moss Block=Blauer Moosblock
+Yellow Moss Block=Gelber Moosblock
+Moss Stair=Moostreppe
+Purple Moss Stair=Violette Moostreppe
+Blue Moss Stair=Blaue Moostreppe
+Yellow Moss Stair=Gelbe Moostreppe
+Moss Slab=Moosplatte
+Purple Moss Slab=Violette Moosplatte
+Blue Moss Slab=Blaue Moosplatte
+Yellow Moss Slab=Gelbe Moosplatte

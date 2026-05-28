@@ -1,0 +1,5 @@
+ambience_music_interval (Ambience music interval [0 to disable]) int 1200
+
+ambience_water_move (Ambience water movement) bool true
+
+ambience_water_splash (Big splash when jumping in water) bool false

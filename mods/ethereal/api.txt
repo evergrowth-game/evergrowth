@@ -1,0 +1,68 @@
+Ethereal Fishing Rod API
+
+Usage:
+
+	ethereal.add_item(fish, junk, bonus)
+
+
+Example:
+
+The fish, junk and bonus entries can all be entered or used seperately e.g.
+
+..add fish:
+
+	ethereal.add_item("mymod:myfish", "", "")
+
+..add fish and junk:
+
+	ethereal.add_item("mymod:myfish", "mymod:myjunk", "")
+
+
+You may also use a table that not only adds an item but the biome it can be found in:
+
+..add fish only found in 'grassy_ocean' biome:
+
+	ethereal.add_item({"mymod:myfish", "grassy_ocean"}, "", "")
+
+..add special item only found in 'frost' biome waters:
+
+	ethereal.add_item("", "", {"ethereal:crystal_spike", "frost"})
+
+.. add special item with wear level:
+
+	ethereal.add_item("", "", "default:sword_steel 15000")
+
+
+Please note that only Ethereal biome names can be used for specific finds, unless mod
+ adds ethereal as an optional dependency.
+
+
+Crystal Shovel has silk touch ability for digging blocks and returning the actual block
+intact.  The {no_silktouch=1} group can be used to override this.
+
+
+ethereal.add_eatable(item, hp, food_type[1=other,2=food,3=drink])
+
+
+Plants with the {flora=1} group are able to spread on group:soil, but with Ethereal
+they have an additional check for flora_substrate so they can only grow on specific
+node types.  Both strings and tables can be used e.g.
+
+core.register_node("ethereal:spore_grass", {
+	description = Spore Grass",
+	drawtype = "plantlike",
+	tiles = {"ethereal_spore_grass.png"},
+	inventory_image = "ethereal_spore_grass.png",
+	wield_image = "ethereal_spore_grass.png",
+	paramtype = "light",
+	sunlight_propagates = true,
+	waving = 1,
+	walkable = false,
+	buildable_to = true,
+flora_substrate = {"ethereal:mushroom_dirt"},
+	groups = {snappy = 3, flora = 1, attached_node = 1},
+	sounds = default.node_sound_leaves_defaults(),
+	selection_box = {
+		type = "fixed", fixed = {-5 / 16, -0.5, -5 / 16, 5 / 16, 4 / 16, 5 / 16}
+	}
+})

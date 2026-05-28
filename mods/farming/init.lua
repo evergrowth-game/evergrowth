@@ -1,0 +1,827 @@
+--[[
+	Farming Redo Mod by TenPlus1
+	NEW growing routine by prestidigitator
+	auto-refill by crabman77
+]]
+
+-- Translation support
+
+local S = core.get_translator("farming")
+
+-- global
+
+farming = {
+	mod = "redo",
+	version = "20260515",
+	path = core.get_modpath("farming"),
+	select = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
+	select_final = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -2.5/16, 0.5}},
+	registered_plants = {},
+	min_light = 12, max_light = 15,
+	mapgen = core.get_mapgen_setting("mg_name"),
+	use_utensils = core.settings:get_bool("farming_use_utensils") ~= false,
+	mtg = core.get_modpath("default"),
+	eth = core.get_modpath("ethereal"),
+	mcl = core.get_modpath("mcl_core"),
+	mcl_hardness = 0.01,
+	translate = S
+}
+
+-- determine which sounds to use, default or mcl_sounds
+
+local function sound_helper(snd)
+
+	farming[snd] = (farming.mtg and default[snd]) or (farming.mcl and mcl_sounds[snd])
+			or function() return {} end
+end
+
+sound_helper("node_sound_defaults")
+sound_helper("node_sound_stone_defaults")
+sound_helper("node_sound_dirt_defaults")
+sound_helper("node_sound_sand_defaults")
+sound_helper("node_sound_gravel_defaults")
+sound_helper("node_sound_wood_defaults")
+sound_helper("node_sound_leaves_defaults")
+sound_helper("node_sound_ice_defaults")
+sound_helper("node_sound_metal_defaults")
+sound_helper("node_sound_water_defaults")
+sound_helper("node_sound_snow_defaults")
+sound_helper("node_sound_glass_defaults")
+
+-- check for creative mode or priv
+
+local creative_mode_cache = core.settings:get_bool("creative_mode")
+
+function farming.is_creative(name)
+	return creative_mode_cache or core.check_player_privs(name, {creative = true})
+end
+
+-- stats, locals, settings, function helper
+
+local statistics = dofile(farming.path .. "/statistics.lua")
+local random, floor = math.random, math.floor
+local time_speed = tonumber(core.settings:get("time_speed")) or 72
+local SECS_PER_CYCLE = (time_speed > 0 and (24 * 60 * 60) / time_speed) or 0
+local function clamp(x, min, max) return (x < min and min) or (x > max and max) or x end
+
+-- return amount of day or night that has elapsed
+-- dt is time elapsed, count_day if true counts day, otherwise night
+
+local function day_or_night_time(dt, count_day)
+
+	local t_day = core.get_timeofday()
+	local t1_day = t_day - dt / SECS_PER_CYCLE
+	local t1_c, t2_c  -- t1_c < t2_c and t2_c always in [0, 1)
+
+	if count_day then
+
+		if t_day < 0.25 then
+			t1_c = t1_day + 0.75  -- Relative to sunup, yesterday
+			t2_c = t_day  + 0.75
+		else
+			t1_c = t1_day - 0.25  -- Relative to sunup, today
+			t2_c = t_day  - 0.25
+		end
+	else
+		if t_day < 0.75 then
+			t1_c = t1_day + 0.25  -- Relative to sundown, yesterday
+			t2_c = t_day  + 0.25
+		else
+			t1_c = t1_day - 0.75  -- Relative to sundown, today
+			t2_c = t_day  - 0.75
+		end
+	end
+
+	local dt_c = clamp(t2_c, 0, 0.5) - clamp(t1_c, 0, 0.5)  -- this cycle
+
+	if t1_c < -0.5 then
+
+		local nc = floor(-t1_c)
+
+		t1_c = t1_c + nc
+		dt_c = dt_c + 0.5 * nc + clamp(-t1_c - 0.5, 0, 0.5)
+	end
+
+	return dt_c * SECS_PER_CYCLE
+end
+
+-- Growth Logic
+
+local STAGE_LENGTH_AVG = tonumber(core.settings:get("farming_stage_length")) or 200
+local STAGE_LENGTH_DEV = STAGE_LENGTH_AVG / 6
+
+-- quick start seed timer
+
+function farming.start_seed_timer(pos)
+
+	local timer = core.get_node_timer(pos)
+	local grow_time = floor(random(STAGE_LENGTH_DEV, STAGE_LENGTH_AVG))
+
+	timer:start(grow_time)
+end
+
+-- return plant name and stage from node provided
+
+local function plant_name_stage(node)
+
+	local name
+
+	if type(node) == "table" then
+
+		if node.name then name = node.name
+		elseif node.x and node.y and node.z then
+			node = core.get_node_or_nil(node)
+			name = node and node.name
+		end
+	else
+		name = tostring(node)
+	end
+
+	if not name or name == "ignore" then return nil end
+
+	local sep_pos = name:find("_[^_]+$")
+
+	if sep_pos and sep_pos > 1 then
+
+		local stage = tonumber(name:sub(sep_pos + 1))
+
+		if stage and stage >= 0 then
+			return name:sub(1, sep_pos - 1), stage
+		end
+	end
+
+	return name, 0
+end
+
+-- Map from node name to
+-- { plant_name = ..., name = ..., stage = n, stages_left = { node_name, ... } }
+
+local plant_stages = {}
+
+farming.plant_stages = plant_stages
+
+--- Registers the stages of growth of a (possible plant) node.
+ -- @param node - Node or position table, or node name.
+ -- @return - The (possibly zero) number of stages of growth the plant will go through
+ --           before being fully grown, or nil if not a plant.
+
+-- Recursive helper
+
+local function reg_plant_stages(plant_name, stage, force_last)
+
+	local node_name = plant_name and plant_name .. "_" .. stage
+	local node_def = node_name and core.registered_nodes[node_name]
+
+	if not node_def or plant_stages[node_name] then
+		return plant_stages[node_name] -- no node or already in table
+	end
+
+	local is_growing = core.get_item_group(node_name, "growing") > 0
+
+	if not is_growing and not force_last then return nil end
+
+	local ns = is_growing and reg_plant_stages(plant_name, stage + 1, true)
+	local stages_left = (ns and { ns.name, unpack(ns.stages_left) }) or {}
+
+	local stages = {
+		plant_name = plant_name,
+		name = node_name,
+		stage = stage,
+		stages_left = stages_left
+	}
+
+	if #stages_left > 0 then
+
+		local next_name = plant_name .. "_" .. (stage + 1) -- next plant name
+
+		local old_constr = node_def.on_construct
+		local old_destr  = node_def.on_destruct
+
+		core.override_item(node_name, {
+
+			next_plant = core.registered_nodes[next_name] and next_name,
+
+			on_construct = function(pos)
+
+				if old_constr then old_constr(pos) end
+
+				farming.handle_growth(pos)
+			end,
+
+			on_destruct = function(pos)
+
+				core.get_node_timer(pos):stop()
+
+				if old_destr then old_destr(pos) end
+			end,
+
+			on_timer = function(pos, elapsed)
+				return farming.plant_growth_timer(pos, elapsed, node_name)
+			end,
+		})
+	end
+
+	plant_stages[node_name] = stages
+
+	return stages
+end
+
+-- split name and stage and register crop
+
+local function register_plant_node(node)
+
+	local plant_name, stage = plant_name_stage(node)
+
+	if plant_name then
+
+		local stages = reg_plant_stages(plant_name, stage, false)
+
+		return stages and #stages.stages_left
+	end
+end
+
+-- check for further growth and set or stop timer
+
+local function set_growing(pos, stages_left)
+
+	if not stages_left then return end
+
+	local timer = core.get_node_timer(pos)
+
+	if stages_left > 0 then
+
+		if not timer:is_started() then
+
+			local stage_length = statistics.normal(STAGE_LENGTH_AVG, STAGE_LENGTH_DEV)
+
+			stage_length = clamp(
+					stage_length, 0.5 * STAGE_LENGTH_AVG, 3.0 * STAGE_LENGTH_AVG)
+
+			timer:set(stage_length, -0.5 * random() * STAGE_LENGTH_AVG)
+		end
+
+	elseif timer:is_started() then
+		timer:stop()
+	end
+end
+
+-- detects a crop at given position, starting or stopping growth timer when needed
+
+function farming.handle_growth(pos, node)
+
+	if not pos then return end
+
+	local stages_left = register_plant_node(node or pos)
+
+	if stages_left then set_growing(pos, stages_left) end
+end
+
+-- are crops floodable?
+
+local floodable = core.settings:get_bool("farming_floodable_crops")
+
+-- register crops nodes, add timer functions and drop when flooded
+
+core.after(0, function()
+
+	for node, node_def in pairs(core.registered_nodes) do
+
+		register_plant_node(node_def)
+
+		if floodable then
+
+			if core.get_item_group(node, "plant") >= 1
+			or core.get_item_group(node, "seed") >= 1 and not node_def.on_flood then
+
+				minetest.override_item(node, {
+					floodable = true,
+					on_flood = function(pos, oldnode, newnode)
+						core.dig_node(pos)
+					end
+				})
+			end
+		end
+	end
+end)
+
+-- Just in case a growing type or added node is missed (also catches existing
+-- nodes added to map before timers were incorporated).
+
+core.register_lbm({
+	label = "Start crop timer",
+	name = "farming:start_crop_timer",
+	nodenames = {"group:growing"},
+	run_at_every_load = false,
+
+	action = function(pos, node, dtime_s)
+
+		if core.get_node_timer(pos):is_started() then return end
+
+		farming.start_seed_timer(pos)
+	end
+})
+
+-- default check crop is on wet soil
+
+farming.can_grow = function(pos)
+
+	local below = core.get_node({x = pos.x, y = pos.y -1, z = pos.z})
+
+	return core.get_item_group(below.name, "soil") >= 3
+end
+
+-- Plant timer function that grows plants under the right conditions.
+
+function farming.plant_growth_timer(pos, elapsed, node_name)
+
+	local stages = plant_stages[node_name]
+
+	if not stages then return false end
+
+	local max_growth = #stages.stages_left
+
+	if max_growth <= 0 then return false end
+
+	local chk1 = core.registered_nodes[node_name].growth_check -- old
+	local chk2 = core.registered_nodes[node_name].can_grow -- new
+
+	if chk1 then -- custom farming redo growth_check function
+
+		if not chk1(pos, node_name) then return true end
+
+	elseif chk2 then -- custom mt 5.9x farming can_grow function
+
+		if not chk2(pos) then return true end
+
+	-- default mt 5.9x farming.can_grow function
+	elseif not farming.can_grow(pos) then return true end
+
+	local growth
+	local light_pos = {x = pos.x, y = pos.y, z = pos.z}
+	local lambda = elapsed / STAGE_LENGTH_AVG
+
+	if lambda < 0.1 then return true end
+
+	local MIN_LIGHT = core.registered_nodes[node_name].minlight or farming.min_light
+	local MAX_LIGHT = core.registered_nodes[node_name].maxlight or farming.max_light
+
+	if max_growth == 1 or lambda < 2.0 then
+
+		local light = (core.get_node_light(light_pos) or 0)
+
+		if light < MIN_LIGHT or light > MAX_LIGHT then return true end
+
+		growth = 1
+	else
+		local night_light = core.get_node_light(light_pos, 0) or 0
+		local day_light = core.get_node_light(light_pos, 0.5) or 0
+		local night_growth = night_light >= MIN_LIGHT and night_light <= MAX_LIGHT
+		local day_growth = day_light >= MIN_LIGHT and day_light <= MAX_LIGHT
+
+		if not night_growth then
+
+			if not day_growth then return true end
+
+			lambda = day_or_night_time(elapsed, true) / STAGE_LENGTH_AVG
+
+		elseif not day_growth then
+
+			lambda = day_or_night_time(elapsed, false) / STAGE_LENGTH_AVG
+		end
+
+		growth = statistics.poisson(lambda, max_growth)
+
+		if growth < 1 then return true end
+	end
+
+	if core.registered_nodes[stages.stages_left[growth]] then
+
+		local p2 = core.registered_nodes[stages.stages_left[growth] ].place_param2 or 1
+
+		core.set_node(pos, {name = stages.stages_left[growth], param2 = p2})
+	else
+		return true
+	end
+
+	return growth ~= max_growth
+end
+
+-- Compatibility function for default farming mod, forces a growth step
+
+function farming.grow_plant(pos, elapsed)
+
+	local node = core.get_node(pos)
+	local def = core.registered_nodes[node.name]
+
+	elapsed = elapsed or STAGE_LENGTH_AVG
+
+	farming.plant_growth_timer(pos, elapsed, node.name)
+end
+
+-- refill placed plant by crabman (26/08/2015) updated by TenPlus1
+
+function farming.refill_plant(player, plantname, index)
+
+	local inv = player and player:get_inventory() ; if not inv then return end
+
+	local old_stack = inv:get_stack("main", index)
+
+	if old_stack:get_name() ~= "" then return end
+
+	for i, stack in ipairs(inv:get_list("main")) do
+
+		if stack:get_name() == plantname and i ~= index then
+
+			inv:set_stack("main", index, stack)
+			stack:clear()
+			inv:set_stack("main", i, stack)
+
+			return
+		end
+	end
+end
+
+-- Place Seeds on Soil
+
+function farming.place_seed(itemstack, placer, pointed_thing, plantname)
+
+	local pt = pointed_thing
+
+	-- check if pointing at a node
+	if not itemstack or not pt or pt.type ~= "node" then return end
+
+	local under = core.get_node(pt.under)
+	local under_def = core.registered_nodes[under.name]
+
+	-- am I right-clicking on something that has a custom on_place set?
+	-- thanks to Krock for helping with this issue :)
+	if placer and itemstack and under_def and under_def.on_rightclick then
+		return under_def.on_rightclick(pt.under, under, placer, itemstack, pt)
+	end
+
+	-- check if pointing at the top of the node
+	if pt.above.y ~= pt.under.y + 1 then return end
+
+	local above = core.get_node(pt.above)
+	local above_def = core.registered_nodes[above.name]
+
+	-- return if any of the nodes arent registered
+	if not under_def or not above_def then return end
+
+	-- can I replace above node, and am I pointing directly at soil
+	if not above_def.buildable_to
+	or core.get_item_group(under.name, "soil") < 2
+	or core.get_item_group(above.name, "plant") ~= 0 then return end
+
+	-- is player planting seed?
+	local name = placer and placer:get_player_name() or ""
+
+	-- if not protected then add node and remove 1 item from the itemstack
+	if not core.is_protected(pt.above, name) then
+
+		local p2 = core.registered_nodes[plantname].place_param2 or 1
+		local item_name = itemstack:get_name()
+
+		core.set_node(pt.above, {name = plantname, param2 = p2})
+
+		farming.start_seed_timer(pt.above)
+
+		core.sound_play("default_place_node", {pos = pt.above}, true)
+
+		core.log("action", string.format("%s planted %s at %s",
+			(placer and placer:is_player() and name or "A mod"),
+			item_name, core.pos_to_string(pt.above)
+		))
+
+		if placer and itemstack and not farming.is_creative(name) then
+
+			itemstack:take_item()
+
+			-- check for refill
+			if itemstack:get_count() == 0 then
+				core.after(0.2, farming.refill_plant, placer, item_name,
+						placer:get_wield_index())
+			end
+		end
+
+		return itemstack
+	end
+end
+
+-- Function to register plants (default farming compatibility)
+
+function farming.register_plant(name, def)
+
+	if not def.steps then return nil end
+
+	local mname = name:split(":")[1]
+	local pname = name:split(":")[2]
+
+	-- Check def
+	def.description = def.description or S("Seed")
+	def.inventory_image = def.inventory_image or "unknown_item.png"
+	def.minlight = def.minlight or farming.min_light
+	def.maxlight = def.maxlight or farming.max_light
+
+	-- Register seed
+	core.register_node(":" .. mname .. ":seed_" .. pname, {
+
+		description = def.description,
+		tiles = {def.inventory_image},
+		inventory_image = def.inventory_image,
+		wield_image = def.inventory_image,
+		drawtype = "signlike",
+		groups = {
+			seed = 1, snappy = 3, attached_node = 1, flammable = 2, growing = 1,
+			compostability = 65, handy = 1
+		},
+		_mcl_hardness = farming.mcl_hardness,
+		is_ground_content = false,
+		paramtype = "light",
+		paramtype2 = "wallmounted",
+		walkable = false,
+		sunlight_propagates = true,
+		selection_box = farming.select,
+		fertility = def.fertility or {},
+		place_param2 = 1, -- place seed flat
+		next_plant = mname .. ":" .. pname .. "_1",
+
+		on_timer = function(pos, elapsed)
+
+			local def = core.registered_nodes[mname .. ":" .. pname .. "_1"]
+
+			if def then
+				core.set_node(pos, {name = def.name, param2 = def.place_param2})
+			end
+		end,
+
+		on_place = function(itemstack, placer, pointed_thing)
+
+			return farming.place_seed(itemstack, placer, pointed_thing,
+					mname .. ":seed_" .. pname)
+		end
+	})
+
+	-- Register harvest
+	core.register_craftitem(":" .. mname .. ":" .. pname, {
+		description = pname:gsub("^%l", string.upper),
+		inventory_image = mname .. "_" .. pname .. ".png",
+		groups = def.groups or {flammable = 2},
+	})
+
+	-- Register growing steps
+	for i = 1, def.steps do
+
+		local base_rarity = 1
+
+		if def.steps ~= 1 then
+			base_rarity =  8 - (i - 1) * 7 / (def.steps - 1)
+		end
+
+		local drop = {
+			items = {
+				{items = {mname .. ":" .. pname}, rarity = base_rarity},
+				{items = {mname .. ":" .. pname}, rarity = base_rarity * 2},
+				{items = {mname .. ":seed_" .. pname}, rarity = base_rarity},
+				{items = {mname .. ":seed_" .. pname}, rarity = base_rarity * 2},
+			}
+		}
+
+		local sel = farming.select
+		local g = {
+			handy = 1, snappy = 3, flammable = 2, plant = 1, growing = 1,
+			attached_node = 1, not_in_creative_inventory = 1,
+		}
+
+		-- Last step doesn't need growing=1 so Abm never has to check these
+		-- also increase selection box for visual indication plant has matured
+		if i == def.steps then
+			sel = farming.select_final
+			g.growing = 0
+		end
+
+		local node_name = mname .. ":" .. pname .. "_" .. i
+
+		local next_plant = nil
+
+		if i < def.steps then
+			next_plant = mname .. ":" .. pname .. "_" .. (i + 1)
+		end
+
+		local desc = pname:gsub("^%l", string.upper)
+
+		core.register_node(node_name, {
+			description = S(desc) .. S(" Crop"),
+			drawtype = "plantlike",
+			waving = 1,
+			tiles = {mname .. "_" .. pname .. "_" .. i .. ".png"},
+			paramtype = "light",
+			paramtype2 = def.paramtype2,
+			place_param2 = def.place_param2,
+			walkable = false,
+			buildable_to = true,
+			sunlight_propagates = true,
+			drop = drop,
+			selection_box = sel,
+			groups = g,
+			_mcl_hardness = farming.mcl_hardness,
+			is_ground_content = false,
+			sounds = farming.node_sound_leaves_defaults(),
+			minlight = def.minlight,
+			maxlight = def.maxlight,
+			next_plant = next_plant
+		})
+	end
+
+	-- add to farming.registered_plants
+	farming.registered_plants[mname .. ":" .. pname] = {
+		crop = mname .. ":" .. pname,
+		seed = mname .. ":seed_" .. pname,
+		steps = def.steps,
+		minlight = def.minlight,
+		maxlight = def.maxlight
+	}
+--	print(dump(farming.registered_plants[mname .. ":" .. pname]))
+
+	return {seed = mname .. ":seed_" .. pname, harvest = mname .. ":" .. pname}
+end
+
+-- default settings
+
+local function get_set(name, def_value)
+
+	local value = core.settings:get("farming_" .. name)
+
+	farming[name] = value and tonumber(value) or def_value
+end
+
+get_set("asparagus", 0.002)
+get_set("eggplant", 0.002)
+get_set("spinach", 0.002)
+get_set("carrot", 0.002)
+get_set("potato", 0.002)
+get_set("tomato", 0.002)
+get_set("cucumber", 0.002)
+get_set("corn", 0.002)
+get_set("coffee", 0.002)
+get_set("melon", 0.009)
+get_set("pumpkin", 0.009)
+get_set("raspberry", 0.002)
+get_set("blueberry", 0.002)
+get_set("rhubarb", 0.002)
+get_set("beans", 0.002)
+get_set("grapes", 0.002)
+get_set("chili", 0.003)
+get_set("hemp", 0.003)
+get_set("garlic", 0.002)
+get_set("onion", 0.002)
+get_set("pepper", 0.002)
+get_set("pineapple", 0.003)
+get_set("peas", 0.002)
+get_set("beetroot", 0.002)
+get_set("mint", 0.005)
+get_set("cabbage", 0.002)
+get_set("blackberry", 0.002)
+get_set("soy", 0.002)
+get_set("vanilla", 0.002)
+get_set("lettuce", 0.002)
+get_set("artichoke", 0.002)
+get_set("parsley", 0.002)
+get_set("sunflower", 0.002)
+get_set("ginger", 0.002)
+get_set("strawberry", 0.002)
+get_set("cotton", 0.003)
+get_set("kiwi", 0.001)
+
+farming.grains = core.settings:get_bool("farming_grains") ~= false
+farming.rice = core.settings:get_bool("farming_rice") ~= false
+farming.cocoa = core.settings:get_bool("farming_cocoa") ~= false
+farming.barley = core.settings:get_bool("farming_barley") ~= false
+
+-- Load new global settings if found inside mod folder
+
+local input = io.open(farming.path .. "/farming.conf", "r")
+
+if input then dofile(farming.path .. "/farming.conf") ; input:close() end
+
+-- load new world-specific settings if found inside world folder
+
+local worldpath = core.get_worldpath()
+
+input = io.open(worldpath .. "/farming.conf", "r")
+
+if input then dofile(worldpath .. "/farming.conf") ; input:close() end
+
+-- helper function to add {eatable} group to food items, also {flammable}
+
+function farming.add_eatable(item, hp, ftype)
+
+	local def = core.registered_items[item]
+
+	if def then
+
+		local groups = table.copy(def.groups) or {}
+
+		groups.eatable = hp ; groups.flammable = 2 ; groups.food = ftype or 2
+
+		core.override_item(item, {groups = groups})
+	end
+end
+
+-- recipe item list and alternatives
+
+dofile(farming.path .. "/item_list.lua")
+
+-- setup soil, register hoes, override grass
+
+if core.get_modpath("default") then
+	dofile(farming.path .. "/soil.lua")
+end
+
+dofile(farming.path .. "/hoes.lua")
+
+-- disable crops Mineclone already has
+
+if farming.mcl then
+	farming.carrot = nil
+	farming.potato = nil
+	farming.melon = nil
+	farming.cocoa = nil
+	farming.beetroot = nil
+	farming.sunflower = nil
+	farming.pumpkin = nil
+else
+	dofile(farming.path.."/crops/wheat.lua") -- default crop outwith mineclone
+end
+
+dofile(farming.path.."/crops/cotton.lua") -- default crop
+
+-- helper function
+
+local function ddoo(file, check)
+
+	if check and check ~= 0 then dofile(farming.path .. "/crops/" .. file .. ".lua") end
+end
+
+-- add additional crops and food (if enabled)
+ddoo("carrot", farming.carrot)
+ddoo("potato", farming.potato)
+ddoo("tomato", farming.tomato)
+ddoo("cucumber", farming.cucumber)
+ddoo("corn", farming.corn)
+ddoo("coffee", farming.coffee)
+ddoo("melon", farming.melon)
+ddoo("pumpkin", farming.pumpkin)
+ddoo("raspberry", farming.raspberry)
+ddoo("blueberry", farming.blueberry)
+ddoo("rhubarb", farming.rhubarb)
+ddoo("beans", farming.beans)
+ddoo("grapes", farming.grapes)
+ddoo("hemp", farming.hemp)
+ddoo("garlic", farming.garlic)
+ddoo("onion", farming.onion)
+ddoo("pepper", farming.pepper)
+ddoo("pineapple", farming.pineapple)
+ddoo("peas", farming.peas)
+ddoo("beetroot", farming.beetroot)
+ddoo("chili", farming.chili)
+ddoo("mint", farming.mint)
+ddoo("cabbage", farming.cabbage)
+ddoo("blackberry", farming.blackberry)
+ddoo("soy", farming.soy)
+ddoo("vanilla", farming.vanilla)
+ddoo("lettuce", farming.lettuce)
+ddoo("artichoke", farming.artichoke)
+ddoo("parsley", farming.parsley)
+ddoo("sunflower", farming.sunflower)
+ddoo("strawberry", farming.strawberry)
+ddoo("asparagus", farming.asparagus)
+ddoo("eggplant", farming.eggplant)
+ddoo("spinach", farming.eggplant)
+ddoo("ginger", farming.ginger)
+ddoo("kiwi", farming.kiwi)
+ddoo("rye_oat", farming.grains)
+ddoo("cocoa", farming.cocoa)
+ddoo("barley", farming.barley)
+ddoo("rice", farming.rice)
+
+-- register grass drops
+
+dofile(farming.path .. "/grass.lua")
+
+-- register food items, non-food items, recipes and stairs
+
+dofile(farming.path .. "/item_non_food.lua")
+dofile(farming.path .. "/item_food.lua")
+dofile(farming.path .. "/item_recipes.lua")
+dofile(farming.path .. "/item_stairs.lua")
+
+if not farming.mcl then
+	dofile(farming.path .. "/compatibility.lua") -- Farming Plus compatibility
+end
+
+if core.get_modpath("lucky_block") then
+	dofile(farming.path .. "/lucky_block.lua")
+end
+
+print("[MOD] Farming Redo loaded")
