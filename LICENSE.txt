@@ -9,6 +9,8 @@ Component Works and Individual Licenses:
 - Base Game Framework (derived from Minetest Game):
   - Source code: LGPL-2.1-only
   - Media: CC-BY-SA-3.0
+- Menu Media and Branding Assets (menu/header.png, menu/icon.png, screenshot.png):
+  - CC0-1.0 (Public Domain Dedication / No copyright claimed)
 - Integrated Community Mods:
   - Please refer to `external_mods.md` for a comprehensive list of all included community mods and their respective licenses (which include MIT, LGPL, GPL, AGPL, CC, and others).
   - Further details can be found in the `LICENSE`, `LICENSE.txt`, or `README.md` file within each mod's directory under `mods/`.
