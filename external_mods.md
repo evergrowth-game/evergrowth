@@ -1,12 +1,12 @@
-# External Integrated Mods
+# Integrated Community Mods
 
-This file tracks the third-party "external" mods utilized by Evergrowth. These mods are developed and maintained by the broader Minetest (Luanti) community outside of the Evergrowth repository.
+This file tracks the integrated community mods ("external" mods) utilized by Evergrowth. These mods are developed and maintained by the broader Minetest (Luanti) community outside of the Evergrowth repository.
 
-To ensure that the Evergrowth game repository is entirely self-contained, stable, and offers an out-of-the-box playable experience without requiring external manual downloads, these community mods are pre-packaged directly in the `mods/` directory as static snapshots.
+To ensure that the Evergrowth game repository is entirely self-contained, stable, and offers an out-of-the-box playable experience without requiring manual downloads, these community mods are pre-packaged directly in the `mods/` directory as static snapshots.
 
 ## Integrated Mods List
 
-The following 74 third-party community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
+The following 74 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
 
 | Mod Name | Author / Creator | License | Upstream Source | Notes / Attributions |
 | :--- | :--- | :--- | :--- | :--- |
