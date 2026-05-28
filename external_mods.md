@@ -14,7 +14,7 @@ The following 74 third-party community mods are packaged with this game:
 | `3d_armor_flyswim` | sirrobzeroone | MIT | [Source](https://github.com/sirrobzeroone/3d_armor_flyswim) |  |
 | `airtanks` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/airtanks) |  |
 | `airutils` | apercy | MIT | [Source](https://github.com/apercy/airutils) |  |
-| `ambience` | TenPlus1 | MIT | Not Listed |  |
+| `ambience` | TenPlus1 | MIT / CC-BY-SA | [Source](https://github.com/tenplus1/ambience) |  |
 | `anvil` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/anvil) |  |
 | `automobiles_pck` | apercy | MIT | [Source](https://github.com/apercy/automobiles_pck) |  |
 | `bakedclay` | TenPlus1 | MIT | [Source](https://forum.minetest.net/viewtopic.php) |  |
@@ -25,7 +25,7 @@ The following 74 third-party community mods are packaged with this game:
 | `castle_gates` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/castle_gates) |  |
 | `caverealms` | HeroOfTheWinds | MIT / CC-BY-SA-3.0 | [Source](https://github.com/HeroOfTheWinds/minetest-caverealms) |  |
 | `cheese` | cronvel | GPLv3 | [Source](https://github.com/cronvel/cheese) |  |
-| `cinematic_zoom` | Fennelfox | MIT | Not Listed |  |
+| `cinematic_zoom` | Fennelfox | MIT | [Source](https://github.com/fennelfox/cinematic_zoom) |  |
 | `climate` | t-affeldt | MIT / CC-BY-SA-3.0 | [Source](https://github.com/t-affeldt/climate) |  |
 | `controls` | mt-mods | MIT | [Source](https://github.com/mt-mods/controls) |  |
 | `death_compass` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/death_compass) |  |
@@ -35,52 +35,52 @@ The following 74 third-party community mods are packaged with this game:
 | `fakelib` | OgelGames | MIT | [Source](https://github.com/minetest/minetest/blob/master/doc/lua_api.md) |  |
 | `farming` | TenPlus1 | MIT / CC-BY-SA | [Source](https://github.com/tenplus1/farming) |  |
 | `farmtools` | camelia | GPLv3 | [Source](https://github.com/t-affeldt/sickles) |  |
-| `flowerpot` | sofar | LGPL | Not Listed |  |
+| `flowerpot` | sofar | LGPL-2.1 | [Source](https://github.com/lucasdemarchi/flowerpot) |  |
 | `gadgets_modpack` | ClockGen | GPLv3 | [Source](https://github.com/ClockGen/gadgets_modpack) |  |
 | `hbarmor` | Wuzzy | MIT | [Source](https://content.luanti.org/packages/Wuzzy/hbarmor/) |  |
 | `hbhunger` | Wuzzy | MIT | [Source](https://content.luanti.org/packages/Wuzzy/hbhunger/) |  |
 | `hidroplane` | APercy | LGPL-2.1 | [Source](https://github.com/APercy/hidroplane) |  |
 | `hudbars` | Wuzzy | MIT | [Source](https://content.luanti.org/packages/Wuzzy/hudbars/) |  |
-| `i_have_hands` | SURV | MIT | Not Listed |  |
+| `i_have_hands` | SURV | MIT | [Source](https://github.com/surv/i_have_hands) |  |
 | `item_drop` | texmex | GPLv3 | [Source](https://github.com/minetest-mods/item_drop) |  |
 | `itemframes` | TenPlus1 | WTFPL | [Source](https://github.com/tenplus1/itemframes) |  |
 | `lighting_monoid` | TestificateMods | MIT | [Source](https://github.com/minetest-mods/lighting_monoid) |  |
 | `lootchest_modpack` | ClockGen | GPLv3 | [Source](https://github.com/ClockGen/lootchests_modpack) |  |
 | `magic_materials` | ClockGen | GPLv3 | [Source](https://github.com/ClockGen/magic_materials) |  |
-| `maidroid_ng` | Unknown | Unknown | Not Listed |  |
-| `mana` | Wuzzy | information | Not Listed |  |
-| `mob_horse` | TenPlus1 | MIT | Not Listed |  |
-| `mobf_trader` | Sokomine | Unknown | Not Listed |  |
-| `mobkit` | mt-mods | MIT | Not Listed |  |
+| `maidroid_ng` | davedevils | MIT / GPLv3 | [Source](https://github.com/davedevils/maidroid_ng) |  |
+| `mana` | Wuzzy | MIT | [Source](https://content.luanti.org/packages/Wuzzy/mana/) |  |
+| `mob_horse` | TenPlus1 | MIT | [Source](https://github.com/tenplus1/mob_horse) |  |
+| `mobf_trader` | Sokomine | LGPL-2.1 | [Source](https://github.com/Sokomine/mobf_trader) |  |
+| `mobkit` | Termos | MIT | [Source](https://github.com/lothar7/mobkit) |  |
 | `mobs` | TenPlus1 | MIT | [Source](https://forum.minetest.net/viewtopic.php) |  |
-| `mobs_animal` | TenPlus1 | MIT | Not Listed |  |
-| `mobs_monster` | TenPlus1 | MIT | Not Listed |  |
-| `mobs_npc` | TenPlus1 | MIT | Not Listed |  |
-| `mobs_water` | Unknown | information for the models and textures can be found inside | Not Listed |  |
+| `mobs_animal` | TenPlus1 | MIT | [Source](https://github.com/tenplus1/mobs_animal) |  |
+| `mobs_monster` | TenPlus1 | MIT | [Source](https://github.com/tenplus1/mobs_monster) |  |
+| `mobs_npc` | TenPlus1 | MIT | [Source](https://github.com/tenplus1/mobs_npc) |  |
+| `mobs_water` | TenPlus1 | MIT | [Source](https://github.com/tenplus1/mobs_water) |  |
 | `motorboat` | apercy | MIT | [Source](https://github.com/APercy/minetest_biofuel) |  |
 | `music_modpack` | default | Code is licensed under GPLv3. | [Source](https://github.com/FaceDeer/dfcaverns) |  |
-| `nautilus` | apercy | MIT | Not Listed |  |
+| `nautilus` | APercy | MIT | [Source](https://github.com/APercy/nautilus) |  |
 | `new_campfire` | mt-mods | LGPL | [Source](https://forum.minetest.net/viewtopic.php) |  |
-| `nss_helicopter` | Unknown | Unknown | Not Listed |  |
+| `nss_helicopter` | NougatSalvation / APercy | MIT | [Source](https://github.com/APercy/nss_helicopter) |  |
 | `pa28` | apercy | LGPL | [Source](https://github.com/APercy/minetest_biofuel) |  |
-| `player_monoids` | Byakuren | Apache | Not Listed |  |
+| `player_monoids` | Byakuren | Apache-2.0 | [Source](https://github.com/minetest-mods/player_monoids) |  |
 | `regrow` | TenPlus1 | MIT | [Source](https://forum.minetest.net/viewtopic.php) |  |
-| `ropes` | FaceDeer | Unknown | Not Listed |  |
+| `ropes` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/ropes) |  |
 | `ruined_structures` | X-DE1 | MIT | [Source](https://github.com/minetest/minetes) |  |
 | `shipwrecks` | mt-mods | All code is GPLv3 | [Source](https://github.com/ClockGen/lootchests_modpack) |  |
 | `simple_woodcutter` | luarocks | MIT | [Source](https://github.com/orgs/minetestia/repositories) |  |
 | `supercub` | apercy | LGPL | [Source](https://github.com/APercy/minetest_biofuel) |  |
 | `techage_modpack` | joe7573 | LGPL-3.0 | [Source](https://github.com/joe7573/techage_modpack) |  |
 | `telemosaic` | mt-mods | GPL | [Source](https://github.com/mt-mods/telemosaic/workflows/luacheck/badge.sv) |  |
-| `torch_bomb` | FaceDeer | MIT | Not Listed |  |
+| `torch_bomb` | FaceDeer | MIT | [Source](https://github.com/FaceDeer/torch_bomb) |  |
 | `travelnet` | mt-mods | The mod was written by me | [Source](https://github.com/mt-mods/travelnet/workflows/luacheck/badge.sv) |  |
-| `tt` | Wuzzy | MIT | Not Listed |  |
-| `tt_armor` | adikalon | MIT | Not Listed |  |
-| `tt_food` | adikalon | MIT | Not Listed |  |
+| `tt` | Wuzzy | MIT | [Source](https://content.luanti.org/packages/Wuzzy/tt/) |  |
+| `tt_armor` | adikalon / Wuzzy | MIT | [Source](https://github.com/adikalon/tt_armor) |  |
+| `tt_food` | adikalon / Wuzzy | MIT | [Source](https://github.com/adikalon/tt_food) |  |
 | `unified_inventory_plus` | mt-mods | Refer to Unified Inventory for original medias copyright. | [Source](https://github.com/minetest-mods/unified_inventory) |  |
 | `wielded_light` | bell07 |  | [Source](https://github.com/minetest-mods/torches) |  |
 | `wine` | TenPlus1 | MIT / CC-BY-SA | [Source](https://github.com/tenplus1/wine) |  |
 | `worldedit` | left clicking on it once and press the | CC-BY-SA | [Source](https://github.com/Uberi/Minetest-WorldEdit/archive/refs/heads/master.zip) |  |
-| `x_enchanting` | SaKeL | GPL | Not Listed |  |
+| `x_enchanting` | SaKeL | GPLv3 | [Source](https://github.com/SaKeL/x_enchanting) |  |
 | `xcompat` | mt-mods | MIT | [Source](https://github.com/mt-mods/xcompat/actions/workflows/luacheck.yml/badge.sv) |  |
 | `xdecor` | Wuzzy | BSD | [Source](https://github.com/minetest-mods/xdecor) |  |
