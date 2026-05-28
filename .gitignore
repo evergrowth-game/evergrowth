@@ -26,3 +26,5 @@
 # Foreign research / reference mods
 research/
 
+# Local testing and debug files
+world.mt
