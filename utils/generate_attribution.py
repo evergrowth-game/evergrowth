@@ -232,6 +232,94 @@ def extract_metadata(mod_name):
         author = "ClockGen"
         license_type = "GPLv3"
         source_url = "https://github.com/ClockGen/magic_materials"
+    elif mod_name == "ambience":
+        author = "TenPlus1"
+        license_type = "MIT / CC-BY-SA"
+        source_url = "https://github.com/tenplus1/ambience"
+    elif mod_name == "cinematic_zoom":
+        author = "Fennelfox"
+        license_type = "MIT"
+        source_url = "https://github.com/fennelfox/cinematic_zoom"
+    elif mod_name == "flowerpot":
+        author = "sofar"
+        license_type = "LGPL-2.1"
+        source_url = "https://github.com/lucasdemarchi/flowerpot"
+    elif mod_name == "i_have_hands":
+        author = "SURV"
+        license_type = "MIT"
+        source_url = "https://github.com/surv/i_have_hands"
+    elif mod_name == "maidroid_ng":
+        author = "davedevils"
+        license_type = "MIT / GPLv3"
+        source_url = "https://github.com/davedevils/maidroid_ng"
+    elif mod_name == "mana":
+        author = "Wuzzy"
+        license_type = "MIT"
+        source_url = "https://content.luanti.org/packages/Wuzzy/mana/"
+    elif mod_name == "mob_horse":
+        author = "TenPlus1"
+        license_type = "MIT"
+        source_url = "https://github.com/tenplus1/mob_horse"
+    elif mod_name == "mobf_trader":
+        author = "Sokomine"
+        license_type = "LGPL-2.1"
+        source_url = "https://github.com/Sokomine/mobf_trader"
+    elif mod_name == "mobkit":
+        author = "Termos"
+        license_type = "MIT"
+        source_url = "https://github.com/lothar7/mobkit"
+    elif mod_name == "mobs_animal":
+        author = "TenPlus1"
+        license_type = "MIT"
+        source_url = "https://github.com/tenplus1/mobs_animal"
+    elif mod_name == "mobs_monster":
+        author = "TenPlus1"
+        license_type = "MIT"
+        source_url = "https://github.com/tenplus1/mobs_monster"
+    elif mod_name == "mobs_npc":
+        author = "TenPlus1"
+        license_type = "MIT"
+        source_url = "https://github.com/tenplus1/mobs_npc"
+    elif mod_name == "mobs_water":
+        author = "TenPlus1"
+        license_type = "MIT"
+        source_url = "https://github.com/tenplus1/mobs_water"
+    elif mod_name == "nautilus":
+        author = "APercy"
+        license_type = "MIT"
+        source_url = "https://github.com/APercy/nautilus"
+    elif mod_name == "nss_helicopter":
+        author = "NougatSalvation / APercy"
+        license_type = "MIT"
+        source_url = "https://github.com/APercy/nss_helicopter"
+    elif mod_name == "player_monoids":
+        author = "Byakuren"
+        license_type = "Apache-2.0"
+        source_url = "https://github.com/minetest-mods/player_monoids"
+    elif mod_name == "ropes":
+        author = "FaceDeer"
+        license_type = "MIT"
+        source_url = "https://github.com/FaceDeer/ropes"
+    elif mod_name == "torch_bomb":
+        author = "FaceDeer"
+        license_type = "MIT"
+        source_url = "https://github.com/FaceDeer/torch_bomb"
+    elif mod_name == "tt":
+        author = "Wuzzy"
+        license_type = "MIT"
+        source_url = "https://content.luanti.org/packages/Wuzzy/tt/"
+    elif mod_name == "tt_armor":
+        author = "adikalon / Wuzzy"
+        license_type = "MIT"
+        source_url = "https://github.com/adikalon/tt_armor"
+    elif mod_name == "tt_food":
+        author = "adikalon / Wuzzy"
+        license_type = "MIT"
+        source_url = "https://github.com/adikalon/tt_food"
+    elif mod_name == "x_enchanting":
+        author = "SaKeL"
+        license_type = "GPLv3"
+        source_url = "https://github.com/SaKeL/x_enchanting"
 
     # Format source URL as a clean Markdown link
     if source_url:
