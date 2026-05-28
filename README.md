@@ -1,46 +1,30 @@
-# Minetest Game
+# Evergrowth
 
-[![ContentDB](https://content.luanti.org/packages/Minetest/minetest_game/shields/title/)](https://content.luanti.org/packages/Minetest/minetest_game/)
+Evergrowth is a custom survival, automation, and settlement-building game for Minetest (Luanti) built on the foundation of Minetest Game. It integrates advanced technology systems, dynamic logistics, specialized NPC communities, and a high-stakes survival loop.
 
-Minetest Game (abbreviated MTG) is a simple and peaceful sandbox game, with no
-real goals or built-in enemy mobs.
+## Core Features
 
-While it provides a basic gameplay experience out of the box, it is best played
-with mods.
+- **Dynamic Settlements (`eg_settlers`)**: Custom-generated villages featuring interactive NPC settlers, specialized trade systems, community structures, and an evolving framework for daily schedules and town ledgers.
+- **Industrial Engineering & Automation**: Technical infrastructure powered by the `techage` ecosystem, supporting automation, fluid dynamics, power generation, and advanced processing networks.
+- **Advanced Logistics & Vehicles**: Dynamic vehicle physics utilizing the `airutils` and `automobiles_pck` libraries, bringing ground and aerial transport (including fixed-wing aircraft, helicopters, and watercraft) into active play.
+- **Extensive World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal` and hazardous subterranean layers driven by `caverealms`.
+- **Survival Mechanics**: Comprehensive hunger, thirst, and environmental challenges integrated with HUD bars, armor progression, and cooking/farming systems.
 
-Minetest Game is in perpetual maintenance-only mode, meaning it will not see new
-gameplay features or anything else that breaks compatibility (see
-[#2710](https://github.com/minetest/minetest_game/issues/2710)).
+## Repository Structure
 
-## Installation
+The `evergrowth` game is tracked as a single unified monorepo.
 
-### ContentDB
+- `mods/` - Integrated mod ecosystem containing community packs and custom-developed mods.
+  - `eg_settlers/` - The core settlement generation mod (formerly `evergrowth_villages`), fully merged with historical commits preserved.
+  - `aircraft_tweaks/`, `automobiles_tweaks/` - Core overrides managing vehicle friction and handling behavior.
+- `research/` - Prototyping and reference designs for sub-systems.
+- `utils/` - Administrative and maintenance tools.
 
-* Content > Browse Online Content
-* Search for "[Minetest Game](https://content.luanti.org/packages/Minetest/minetest_game/)"
-* Click Install
+## Installation & Setup
 
-### Manually
-
-- Unzip the archive, rename the folder to `minetest_game` and
-place it in `.../minetest/games/`
-
-- GNU/Linux: If you use a system-wide installation place it in `~/.minetest/games/`.
-
-The Luanti engine can be found at [GitHub](https://github.com/minetest/minetest).
-
-For further information or help, see: [Installing Mods](https://wiki.luanti.org/Installing_Mods).
-
-## Compatibility
-
-As of January 2024 Minetest Game follows a **rolling release** model with new changes being automatically
-published on ContentDB every day.
-
-There are no stable releases or tags, all existing ones are considered legacy.
-
-Minetest Game is always compatible to the latest stable release of the engine.
-Older releases may be supported too depending on circumstances.
-
-## Licensing
-
-See `LICENSE.txt`
+1. Clone or copy the `evergrowth` directory to your Minetest `games/` folder:
+   - **macOS**: `/Users/<user>/Library/Application Support/minetest/games/evergrowth`
+   - **Linux**: `~/.minetest/games/evergrowth`
+   - **Windows**: `<minetest_install_directory>\games\evergrowth`
+2. Launch Minetest (v5.8+ recommended).
+3. Create a new world, selecting **Evergrowth** as the target game.

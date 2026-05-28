@@ -22,3 +22,7 @@
 .metadata
 # Idea IDE
 .idea/*
+
+# Foreign research / reference mods
+research/
+
