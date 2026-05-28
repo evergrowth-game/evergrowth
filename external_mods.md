@@ -1,6 +1,8 @@
 # External Symlinked Mods
 
-This file records the original symlinks to external mods before they were converted to static folders. This helps track which mods originate from outside the Evergrowth game repository.
+This file tracks third-party "external" mods that are utilized by Evergrowth. These mods are developed and maintained by the broader Minetest community, outside of the Evergrowth repository. They are typically installed into the global Minetest mods directory (`~/Library/Application Support/minetest/mods/`) via ContentDB or direct git clones.
+
+Previously, these mods were symlinked directly into the game to share the global installation. To make the Evergrowth repository self-contained and stable, they have been converted into static folders (snapshots). The table below records their original upstream locations on the local machine.
 
 ## Updating External Mods
 
