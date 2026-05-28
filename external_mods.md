@@ -1,100 +1,86 @@
-# External Symlinked Mods
+# External Integrated Mods
 
-This file tracks third-party "external" mods that are utilized by Evergrowth. These mods are developed and maintained by the broader Minetest community, outside of the Evergrowth repository. They are installed into the global Minetest mods directory (`~/Library/Application Support/minetest/mods/`) via ContentDB or direct git clones.
+This file tracks the third-party "external" mods utilized by Evergrowth. These mods are developed and maintained by the broader Minetest community outside of the Evergrowth repository. 
 
-Previously, these mods were symlinked directly into the game to share the global installation. To make the Evergrowth repository self-contained and stable, they have been converted into static folders (snapshots). The table below records their original upstream locations on the local machine.
+To ensure that the Evergrowth game repository is entirely self-contained, stable, and offers an out-of-the-box playable experience without requiring external manual downloads, these community mods are pre-packaged directly in the `mods/` directory as static snapshots.
 
-## Updating External Mods
+## Integrated Mods List
 
-To update any of these external mods from their global sources, use the `sync_external_mods.sh` script located in the `utils/` directory.
+The following 74 third-party community mods are packaged with this game:
 
-The script reads the table below to find the original source paths. It automatically runs `rsync` while excluding `.git` directories to ensure the game repository remains clean.
-
-**To update a single mod:**
-```bash
-./utils/sync_external_mods.sh mod_name
-```
-*(Example: `./utils/sync_external_mods.sh 3d_armor`)*
-
-**To update all tracked mods at once:**
-```bash
-./utils/sync_external_mods.sh all
-```
-*(Or simply run `./utils/sync_external_mods.sh` as `all` is the default)*
-
-| Mod Name | Original Local Target Path |
-| :--- | :--- |
-| `3d_armor` | `/Users/Aresh/Library/Application Support/minetest/mods/3d_armor` |
-| `3d_armor_flyswim` | `/Users/Aresh/Library/Application Support/minetest/mods/3d_armor_flyswim` |
-| `airtanks` | `/Users/Aresh/Library/Application Support/minetest/mods/airtanks` |
-| `airutils` | `/Users/Aresh/Library/Application Support/minetest/mods/airutils` |
-| `ambience` | `/Users/Aresh/Library/Application Support/minetest/mods/ambience` |
-| `anvil` | `/Users/Aresh/Library/Application Support/minetest/mods/anvil` |
-| `automobiles_pck` | `/Users/Aresh/Library/Application Support/minetest/mods/automobiles_pck` |
-| `bakedclay` | `/Users/Aresh/Library/Application Support/minetest/mods/bakedclay` |
-| `biofuel` | `/Users/Aresh/Library/Application Support/minetest/mods/biofuel` |
-| `bonemeal` | `/Users/Aresh/Library/Application Support/minetest/mods/bonemeal` |
-| `bweapons_modpack` | `/Users/Aresh/Library/Application Support/minetest/mods/bweapons_modpack` |
-| `carpets` | `/Users/Aresh/Library/Application Support/minetest/mods/carpets` |
-| `castle_gates` | `/Users/Aresh/Library/Application Support/minetest/mods/castle_gates` |
-| `caverealms` | `/Users/Aresh/Library/Application Support/minetest/mods/caverealms` |
-| `cheese` | `/Users/Aresh/Library/Application Support/minetest/mods/cheese` |
-| `cinematic_zoom` | `/Users/Aresh/Library/Application Support/minetest/mods/cinematic_zoom` |
-| `climate` | `/Users/Aresh/Library/Application Support/minetest/mods/climate` |
-| `controls` | `/Users/Aresh/Library/Application Support/minetest/mods/controls` |
-| `death_compass` | `/Users/Aresh/Library/Application Support/minetest/mods/death_compass` |
-| `decorations_sea` | `/Users/Aresh/Library/Application Support/minetest/mods/decorations_sea` |
-| `dungeonsplus` | `/Users/Aresh/Library/Application Support/minetest/mods/dungeonsplus` |
-| `ethereal` | `/Users/Aresh/Library/Application Support/minetest/mods/ethereal` |
-| `fakelib` | `/Users/Aresh/Library/Application Support/minetest/mods/fakelib` |
-| `farming` | `/Users/Aresh/Library/Application Support/minetest/mods/farming` |
-| `farmtools` | `/Users/Aresh/Library/Application Support/minetest/mods/farmtools` |
-| `flowerpot` | `/Users/Aresh/Library/Application Support/minetest/mods/flowerpot` |
-| `gadgets_modpack` | `/Users/Aresh/Library/Application Support/minetest/mods/gadgets_modpack` |
-| `hbarmor` | `/Users/Aresh/Library/Application Support/minetest/mods/hbarmor` |
-| `hbhunger` | `/Users/Aresh/Library/Application Support/minetest/mods/hbhunger` |
-| `hidroplane` | `/Users/Aresh/Library/Application Support/minetest/mods/hidroplane` |
-| `hudbars` | `/Users/Aresh/Library/Application Support/minetest/mods/hudbars` |
-| `i_have_hands` | `/Users/Aresh/Library/Application Support/minetest/mods/i_have_hands` |
-| `item_drop` | `/Users/Aresh/Library/Application Support/minetest/mods/item_drop` |
-| `itemframes` | `/Users/Aresh/Library/Application Support/minetest/mods/itemframes` |
-| `lighting_monoid` | `/Users/Aresh/Library/Application Support/minetest/mods/lighting_monoid` |
-| `lootchest_modpack` | `/Users/Aresh/Library/Application Support/minetest/mods/lootchest_modpack` |
-| `magic_materials` | `/Users/Aresh/Library/Application Support/minetest/mods/magic_materials` |
-| `maidroid_ng` | `/Users/Aresh/Library/Application Support/minetest/mods/maidroid_ng` |
-| `mana` | `/Users/Aresh/Library/Application Support/minetest/mods/mana` |
-| `mob_horse` | `/Users/Aresh/Library/Application Support/minetest/mods/mob_horse` |
-| `mobf_trader` | `/Users/Aresh/Library/Application Support/minetest/mods/mobf_trader` |
-| `mobkit` | `/Users/Aresh/Library/Application Support/minetest/mods/mobkit` |
-| `mobs` | `/Users/Aresh/Library/Application Support/minetest/mods/mobs` |
-| `mobs_animal` | `/Users/Aresh/Library/Application Support/minetest/mods/mobs_animal` |
-| `mobs_monster` | `/Users/Aresh/Library/Application Support/minetest/mods/mobs_monster` |
-| `mobs_npc` | `/Users/Aresh/Library/Application Support/minetest/mods/mobs_npc` |
-| `mobs_water` | `/Users/Aresh/Library/Application Support/minetest/mods/mobs_water` |
-| `motorboat` | `/Users/Aresh/Library/Application Support/minetest/mods/motorboat` |
-| `music_modpack` | `/Users/Aresh/Library/Application Support/minetest/mods/music_modpack` |
-| `nautilus` | `/Users/Aresh/Library/Application Support/minetest/mods/nautilus` |
-| `new_campfire` | `/Users/Aresh/Library/Application Support/minetest/mods/new_campfire` |
-| `nss_helicopter` | `/Users/Aresh/Library/Application Support/minetest/mods/nss_helicopter` |
-| `pa28` | `/Users/Aresh/Library/Application Support/minetest/mods/pa28` |
-| `player_monoids` | `/Users/Aresh/Library/Application Support/minetest/mods/player_monoids` |
-| `regrow` | `/Users/Aresh/Library/Application Support/minetest/mods/regrow` |
-| `ropes` | `/Users/Aresh/Library/Application Support/minetest/mods/ropes` |
-| `ruined_structures` | `/Users/Aresh/Library/Application Support/minetest/mods/ruined_structures` |
-| `shipwrecks` | `/Users/Aresh/Library/Application Support/minetest/mods/shipwrecks` |
-| `simple_woodcutter` | `/Users/Aresh/Library/Application Support/minetest/mods/simple_woodcutter` |
-| `supercub` | `/Users/Aresh/Library/Application Support/minetest/mods/supercub` |
-| `techage_modpack` | `/Users/Aresh/Library/Application Support/minetest/mods/techage_modpack` |
-| `telemosaic` | `/Users/Aresh/Library/Application Support/minetest/mods/telemosaic` |
-| `torch_bomb` | `/Users/Aresh/Library/Application Support/minetest/mods/torch_bomb` |
-| `travelnet` | `/Users/Aresh/Library/Application Support/minetest/mods/travelnet` |
-| `tt` | `/Users/Aresh/Library/Application Support/minetest/mods/tt` |
-| `tt_armor` | `/Users/Aresh/Library/Application Support/minetest/mods/tt_armor` |
-| `tt_food` | `/Users/Aresh/Library/Application Support/minetest/mods/tt_food` |
-| `unified_inventory_plus` | `/Users/Aresh/Library/Application Support/minetest/mods/unified_inventory_plus` |
-| `wielded_light` | `/Users/Aresh/Library/Application Support/minetest/mods/wielded_light` |
-| `wine` | `/Users/Aresh/Library/Application Support/minetest/mods/wine` |
-| `worldedit` | `/Users/Aresh/Library/Application Support/minetest/mods/worldedit` |
-| `x_enchanting` | `/Users/Aresh/Library/Application Support/minetest/mods/x_enchanting` |
-| `xcompat` | `/Users/Aresh/Library/Application Support/minetest/mods/xcompat` |
-| `xdecor` | `/Users/Aresh/Library/Application Support/minetest/mods/xdecor` |
+| Mod Name |
+| :--- |
+| `3d_armor` |
+| `3d_armor_flyswim` |
+| `airtanks` |
+| `airutils` |
+| `ambience` |
+| `anvil` |
+| `automobiles_pck` |
+| `bakedclay` |
+| `biofuel` |
+| `bonemeal` |
+| `bweapons_modpack` |
+| `carpets` |
+| `castle_gates` |
+| `caverealms` |
+| `cheese` |
+| `cinematic_zoom` |
+| `climate` |
+| `controls` |
+| `death_compass` |
+| `decorations_sea` |
+| `dungeonsplus` |
+| `ethereal` |
+| `fakelib` |
+| `farming` |
+| `farmtools` |
+| `flowerpot` |
+| `gadgets_modpack` |
+| `hbarmor` |
+| `hbhunger` |
+| `hidroplane` |
+| `hudbars` |
+| `i_have_hands` |
+| `item_drop` |
+| `itemframes` |
+| `lighting_monoid` |
+| `lootchest_modpack` |
+| `magic_materials` |
+| `maidroid_ng` |
+| `mana` |
+| `mob_horse` |
+| `mobf_trader` |
+| `mobkit` |
+| `mobs` |
+| `mobs_animal` |
+| `mobs_monster` |
+| `mobs_npc` |
+| `mobs_water` |
+| `motorboat` |
+| `music_modpack` |
+| `nautilus` |
+| `new_campfire` |
+| `nss_helicopter` |
+| `pa28` |
+| `player_monoids` |
+| `regrow` |
+| `ropes` |
+| `ruined_structures` |
+| `shipwrecks` |
+| `simple_woodcutter` |
+| `supercub` |
+| `techage_modpack` |
+| `telemosaic` |
+| `torch_bomb` |
+| `travelnet` |
+| `tt` |
+| `tt_armor` |
+| `tt_food` |
+| `unified_inventory_plus` |
+| `wielded_light` |
+| `wine` |
+| `worldedit` |
+| `x_enchanting` |
+| `xcompat` |
+| `xdecor` |
