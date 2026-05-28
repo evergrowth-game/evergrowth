@@ -1,6 +1,6 @@
 # Evergrowth
 
-Evergrowth is a custom survival, automation, and settlement-building game for Minetest (Luanti) built on the foundation of Minetest Game. It integrates advanced technology systems, dynamic logistics, specialized NPC communities, and a high-stakes survival loop.
+Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foundation of Minetest Game. Set across diverse biomes and deep caverns, it places no limits on your ambition. Players can wander ancient ruins and fight hostile plunderers, collect and cultivate a wide variety of crops, establish towns and trade with hired NPC specialists, craft magical items of great power, build resource extraction and automation networks, or bypass the terrain entirely using ground, maritime, and aerial vehicles.
 
 ## Core Features
 - **Dynamic Settlements (`eg_settlers`)**: NPC and economy system that allows players to "hire" and trade with specialized settlers (such as guards, farmers, and blacksmiths), with future plans for community management structures, daily schedules, and more.
@@ -20,9 +20,13 @@ Evergrowth is a custom survival, automation, and settlement-building game for Mi
 
 ## Third-Party Dependencies
 
-To guarantee an out-of-the-box playable experience, all external community-developed mods required by Evergrowth are pre-packaged as static snapshots directly inside the `mods/` directory. No global mods or manual installs are required. 
+Evergrowth is built on the foundation of Minetest Game (MTG) and utilizes a carefully curated selection of 74 third-party community mods to provide its rich features (such as vehicle systems, machinery, biomes, and magic) without rebuilding those complex engines from scratch. This is not just mod soup! 
+These mods are pre-packaged directly in the `mods/` directory for two critical reasons:
+1. **Out-of-the-Box Playability**: Players and server hosts do not need to hunt down, download, or configure 74 separate external mods. The game is fully complete and playable immediately upon installation.
+2. **Stability & Version Control**: Community mods evolve independently and updates can frequently introduce breaking conflicts. Statically snapshotting these specific versions guarantees that all integrated systems remain locked at tested, compatible, and stable states.
+The complete list of these integrated community dependencies is documented in [external_mods.md](external_mods.md).
+3. **Custom Integration & Optimization**: Many of these mods have been custom-tweaked to ensure thematic compatibility and clean performance. Unnecessary heavy dependencies have been removed, and key components have been isolated (for example, the hostile `raiders` were cleanly stripped out of a much larger community mod to keep the codebase focused and lightweight).
 
-For a complete list of these integrated dependencies, see the [external_mods.md](external_mods.md) directory file.
 
 ## Installation & Setup
 
