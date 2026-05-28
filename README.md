@@ -20,6 +20,12 @@ The `evergrowth` game is tracked as a single unified monorepo.
 - `research/` - Prototyping and reference designs for sub-systems.
 - `utils/` - Administrative and maintenance tools.
 
+## Third-Party Dependencies
+
+To guarantee an out-of-the-box playable experience, all external community-developed mods required by Evergrowth are pre-packaged as static snapshots directly inside the `mods/` directory. No global mods or manual installs are required. 
+
+For a complete list of these integrated dependencies, see the [external_mods.md](external_mods.md) directory file.
+
 ## Installation & Setup
 
 1. Clone or copy the `evergrowth` directory to your Minetest `games/` folder:
