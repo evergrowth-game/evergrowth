@@ -2,6 +2,24 @@
 
 This file records the original symlinks to external mods before they were converted to static folders. This helps track which mods originate from outside the Evergrowth game repository.
 
+## Updating External Mods
+
+To update any of these external mods from their global sources, use the `sync_external_mods.sh` script located in the `utils/` directory.
+
+The script reads the table below to find the original source paths. It automatically runs `rsync` while excluding `.git` directories to ensure the game repository remains clean.
+
+**To update a single mod:**
+```bash
+./utils/sync_external_mods.sh mod_name
+```
+*(Example: `./utils/sync_external_mods.sh 3d_armor`)*
+
+**To update all tracked mods at once:**
+```bash
+./utils/sync_external_mods.sh all
+```
+*(Or simply run `./utils/sync_external_mods.sh` as `all` is the default)*
+
 | Mod Name | Original Local Target Path |
 | :--- | :--- |
 | `3d_armor` | `/Users/Aresh/Library/Application Support/minetest/mods/3d_armor` |
