@@ -8,10 +8,9 @@ Evergrowth is a custom survival, automation, and settlement-building game for Mi
 - **Transportation**: Dynamic vehicle physics utilizing `airutils` (and its descendents), `automobiles_pck`. and `motorboat`libraries, bringing ground, maritime, and aerial transport. This includes cars, ships, fixed-wing aircraft, helicopters, and submarines into active play.
 - **World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal` and subterranean layers through `caverealms`.
 - **Survival Mechanics**: Hunger and satiation mechanics integrated with HUD bars, armor progression, a dynamic weather and wind system (`climate`), and expanded cooking and farming ecosystems.
+- **Combat & Hostile Mobs**: Defensive equipment and weapons from `bweapons_modpack`, item enchantment from `x_enchanting`, hostile NPCs from `raiders`, and natural predators from `mobs_water`.
 
 ## Repository Structure
-
-The `evergrowth` game is tracked as a single unified monorepo.
 
 - `mods/` - Integrated mod ecosystem containing community packs and custom-developed mods.
   - `eg_settlers/` - The core settlement generation mod (formerly `evergrowth_villages`), fully merged with historical commits preserved.
