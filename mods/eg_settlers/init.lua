@@ -1,5 +1,5 @@
 --[[
-    Evergrowth Villages - Main Entry Point
+    Evergrowth Settlers - Main Entry Point
     ======================================
     This is the master file for the `eg_settlers` mod. It initializes the
     global `eg_settlers` table and loads all of the specialized sub-modules

@@ -80,10 +80,12 @@ enable_weather (Enable weather) bool false
 #    If enabled, non-player actions are logged
 log_non_player_actions (Log non-player action) bool false
 
+
+# deprecated
 #    Enable or disable the natural generation of villages.
 #    If disabled, villages can still be built manually using contracts.
-evergrowth_villages_natural_generation (Enable Natural Village Generation) bool true
+# evergrowth_villages_natural_generation (Enable Natural Village Generation) bool true
 
 #    Adjust the frequency of village spawns.
 #    A higher number makes villages rarer (e.g., 4 means a 1 in 4 chance per mapchunk).
-evergrowth_villages_chance (Village Gen Chance 1 in X) int 1
+# evergrowth_villages_chance (Village Gen Chance 1 in X) int 1
