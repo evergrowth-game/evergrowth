@@ -81,7 +81,7 @@ enable_weather (Enable weather) bool false
 log_non_player_actions (Log non-player action) bool false
 
 
-# deprecated
+# Below two settings are deprecated
 #    Enable or disable the natural generation of villages.
 #    If disabled, villages can still be built manually using contracts.
 # evergrowth_villages_natural_generation (Enable Natural Village Generation) bool true
