@@ -3,12 +3,11 @@
 Evergrowth is a custom survival, automation, and settlement-building game for Minetest (Luanti) built on the foundation of Minetest Game. It integrates advanced technology systems, dynamic logistics, specialized NPC communities, and a high-stakes survival loop.
 
 ## Core Features
-
-- **Dynamic Settlements (`eg_settlers`)**: Custom-generated villages featuring interactive NPC settlers, specialized trade systems, community structures, and an evolving framework for daily schedules and town ledgers.
-- **Industrial Engineering & Automation**: Technical infrastructure powered by the `techage` ecosystem, supporting automation, fluid dynamics, power generation, and advanced processing networks.
-- **Advanced Logistics & Vehicles**: Dynamic vehicle physics utilizing the `airutils` and `automobiles_pck` libraries, bringing ground and aerial transport (including fixed-wing aircraft, helicopters, and watercraft) into active play.
-- **Extensive World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal` and hazardous subterranean layers driven by `caverealms`.
-- **Survival Mechanics**: Comprehensive hunger, thirst, and environmental challenges integrated with HUD bars, armor progression, and cooking/farming systems.
+- **Dynamic Settlements (`eg_settlers`)**: NPC and economy system that allows players to "hire" and trade with specialized settlers (such as guards, farmers, and blacksmiths), with future plans for community management structures, daily schedules, and more.
+- **Industry & Automation**: Technology infrastructure powered by the `techage` ecosystem, supporting automation, fluid dynamics, power generation, and advanced processing networks.
+- **Transportation**: Dynamic vehicle physics utilizing `airutils` (and its descendents), `automobiles_pck`. and `motorboat`libraries, bringing ground, maritime, and aerial transport. This includes cars, ships, fixed-wing aircraft, helicopters, and submarines into active play.
+- **World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal` and subterranean layers through `caverealms`.
+- **Survival Mechanics**: Hunger and satiation mechanics integrated with HUD bars, armor progression, a dynamic weather and wind system (`climate`), and expanded cooking and farming ecosystems.
 
 ## Repository Structure
 
