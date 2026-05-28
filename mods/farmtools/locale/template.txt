@@ -1,0 +1,64 @@
+# textdomain: farmtools
+Flower Petals=
+Rake=
+Scythe=
+Sickle=
+Copper Sickle=
+Copper Scythe=
+Copper Rake=
+Emerald Sickle=
+Emerald Scythe=
+Emerald Rake=
+Iron Scythe=
+Diamond Scythe=
+Iron Rake=
+Diamond Rake=
+Iron Sickle=
+Golden Sickle=
+Diamond Sickle=
+Cut complete grains (e.g., wheat) down to growth level 3 immediately when harvesting.=
+Iron sickle=
+Gold sickle=
+Diamond sickle=
+Netherite sickle=
+Prepares ground for farming, in a larger radius than a hoe.=
+Iron rake=
+Diamond rake=
+Netherite rake=
+Works only on completely grown crops, or as a weapon.=
+Iron scythe=
+Diamond scythe=
+Netherite scythe=
+Copper scythe=
+Steel Scythe=
+Steel Rake=
+Bronze Rake=
+Bronze Sickle=
+Steel Sickle=
+Mithril Scythe=
+Mithril Rake=
+Mithril Sickle=
+
+
+##### not used anymore #####
+
+# textdomain: farmtools
+Farm Tools=
+Based on Scythes & Sickles, it adds various tools to make farming more convenient.=
+Bronze Scythe=
+Moss=
+Purple Moss=
+Blue Moss=
+Yellow Moss=
+Moss Block=
+Purple Moss Block=
+Blue Moss Block=
+Yellow Moss Block=
+Moss Stair=
+Purple Moss Stair=
+Blue Moss Stair=
+Yellow Moss Stair=
+Moss Slab=
+Purple Moss Slab=
+Blue Moss Slab=
+Yellow Moss Slab=

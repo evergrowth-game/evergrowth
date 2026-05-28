@@ -1,0 +1,12 @@
+# textdomain: tt_armor
+
+Armor=Броня
+Protection: @1%=Защита: @1%
+Strength: @1=Прочность: @1
+Fire: @1=Огонь: @1
+Water protection=Защита от воды
+Fall protection=Защита при падении
+Speed: @1%=Скорость: @1%
+Gravity: @1%=Гравитация: @1%
+Jump: @1%=Прыжок: @1%
+Protected groups:=Защищаемые группы:

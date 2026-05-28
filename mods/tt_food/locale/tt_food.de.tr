@@ -1,0 +1,4 @@
+# textdomain: tt_food
+
+Food item=Lebensmittel
+@1 food points=@1 Nahrungspunkte
