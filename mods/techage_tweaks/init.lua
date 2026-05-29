@@ -193,14 +193,14 @@ minetest.register_on_mods_loaded(function()
             table.insert(Cable.primary_node_names, "techage:power_pole_conn")
         end
         
-        local original_after_place_tube = Cable.after_place_tube
-        if original_after_place_tube then
-            Cable.after_place_tube = function(self, pos, param2, tube_type, num_tubes)
+        local original_clbk = Cable.clbk_after_place_tube
+        if original_clbk then
+            Cable.clbk_after_place_tube = function(pos, param2, tube_type, num_tubes)
                 local node = minetest.get_node(pos)
                 if node.name == "techage:power_pole_conn" then
                     return
                 end
-                original_after_place_tube(self, pos, param2, tube_type, num_tubes)
+                original_clbk(pos, param2, tube_type, num_tubes)
             end
         end
 
