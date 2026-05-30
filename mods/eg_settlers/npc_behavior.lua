@@ -18,6 +18,11 @@ local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
 for _, entity_name in ipairs(target_entities) do
     local base_entity = minetest.registered_entities[entity_name]
     if base_entity then
+        -- Triggers mobs_redo pathfinding to avoid water as a hazard (>0) while taking negligible damage if they fall in
+        base_entity.water_damage = 0.001
+        -- Disables active jumping to prevent them from vaulting over fences, while stepheight (1.1) still allows walking up steps/slabs
+        base_entity.jump_height = 0
+        
         local old_on_step = base_entity.on_step
         base_entity.on_step = function(self, dtime)
         -- Call original logic
