@@ -6,7 +6,7 @@ To ensure that the Evergrowth game repository is entirely self-contained, stable
 
 ## Integrated Mods List
 
-The following 74 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
+The following 75 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
 
 | Mod Name | Author / Creator | License | Upstream Source | Notes / Attributions |
 | :--- | :--- | :--- | :--- | :--- |
@@ -64,6 +64,7 @@ The following 74 integrated community mods are packaged with this game. All link
 | `nss_helicopter` | mt-mods | GPL-2.0-only for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/nss_helicopter/) &bull; [Source](https://github.com/mt-mods/helicopter) |  |
 | `pa28` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/pa28/) &bull; [Source](https://github.com/APercy/pa28.git) |  |
 | `player_monoids` | Byakuren | Apache-2.0 | [ContentDB](https://content.luanti.org/packages/Byakuren/player_monoids/) &bull; [Source](https://github.com/minetest-mods/player_monoids) |  |
+| `playereffects` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/playereffects/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_playereffects) |  |
 | `raiders` | Liil | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/Liil/people/) &bull; [Source](https://github.com/Skandarella/people.git) | Custom-derived from Wilhelmine's (Skandarella) original `people` mod. |
 | `regrow` | TenPlus1 | MIT | [ContentDB](https://content.luanti.org/packages/TenPlus1/regrow/) &bull; [Source](https://codeberg.org/tenplus1/regrow) |  |
 | `ropes` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/ropes/) &bull; [Source](https://github.com/minetest-mods/ropes) |  |
