@@ -116,7 +116,8 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
             else
                 local name_list = is_female and female_names or male_names
                 local name = name_list[math.random(#name_list)]
-                ent.nametag = name .. " the " .. (profession:gsub("^%l", string.upper))
+                local display_prof = profession:gsub("_", " "):gsub("(%a)([%w_']*)", function(first, rest) return first:upper() .. rest:lower() end)
+                ent.nametag = name .. " the " .. display_prof
             end
             ent.game_name = ent.nametag
             
@@ -177,9 +178,17 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                         male = {"male_carpenter.png"},
                         female = {"female_carpenter.png"}
                     },
-                    mechanic = {
+                    automobile_mechanic = {
                         male = {"male_mechanic.png"},
                         female = {"female_mechanic.png"}
+                    },
+                    aircraft_mechanic = {
+                        male = {"male_aircraft_mechanic.png"},
+                        female = {"female_aircraft_mechanic.png"}
+                    },
+                    nautical_mechanic = {
+                        male = {"male_nautical_mechanic.png"},
+                        female = {"female_nautical_mechanic.png"}
                     }
                 }
                 
@@ -251,7 +260,9 @@ register_spawner("mage", "mage")
 register_spawner("technologist", "technologist")
 register_spawner("gunsmith", "gunsmith")
 register_spawner("carpenter", "carpenter")
-register_spawner("mechanic", "mechanic")
+register_spawner("automobile_mechanic", "automobile_mechanic")
+register_spawner("aircraft_mechanic", "aircraft_mechanic")
+register_spawner("nautical_mechanic", "nautical_mechanic")
 
 minetest.register_node("eg_settlers:build_anchor", {
     description = "Village Building Anchor",

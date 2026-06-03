@@ -62,3 +62,9 @@ There is **zero overlap** in this mapping, and **no monster or raider skins** ar
 | **Fisher** | Female | Online ID 467 | `female_fisher.png` |
 | **Guard** | Male | Online ID 1166 (`Knight`) | `male_guard.png` |
 | **Guard** | Female | Online ID 2335 (`Knighted Girl`) | `female_guard.png` |
+| **Automobile Mechanic** | Male | Original Mechanic Skin | `male_mechanic.png` |
+| **Automobile Mechanic** | Female | Original Mechanic Skin | `female_mechanic.png` |
+| **Aircraft Mechanic** | Male | Original Mechanic Skin (Green Hue Shift) | `male_aircraft_mechanic.png` |
+| **Aircraft Mechanic** | Female | Original Mechanic Skin (Green Hue Shift) | `female_aircraft_mechanic.png` |
+| **Nautical Mechanic** | Male | Original Mechanic Skin (Blue Hue Shift) | `male_nautical_mechanic.png` |
+| **Nautical Mechanic** | Female | Original Mechanic Skin (Blue Hue Shift) | `female_nautical_mechanic.png` |

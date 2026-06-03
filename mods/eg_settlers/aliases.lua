@@ -23,7 +23,10 @@ minetest.register_alias("evergrowth_villages:contract_mage", "eg_settlers:contra
 minetest.register_alias("evergrowth_villages:contract_technologist", "eg_settlers:contract_technologist")
 minetest.register_alias("evergrowth_villages:contract_gunsmith", "eg_settlers:contract_gunsmith")
 minetest.register_alias("evergrowth_villages:contract_carpenter", "eg_settlers:contract_carpenter")
-minetest.register_alias("evergrowth_villages:contract_mechanic", "eg_settlers:contract_mechanic")
+minetest.register_alias("evergrowth_villages:contract_mechanic", "eg_settlers:contract_automobile_mechanic")
+minetest.register_alias("eg_settlers:contract_mechanic", "eg_settlers:contract_automobile_mechanic")
+minetest.register_alias("evergrowth_villages:spawn_mechanic", "eg_settlers:spawn_automobile_mechanic")
+minetest.register_alias("eg_settlers:spawn_mechanic", "eg_settlers:spawn_automobile_mechanic")
 minetest.register_alias("evergrowth_villages:contract_fisher", "eg_settlers:contract_fisher")
 
 -- Companion Contracts

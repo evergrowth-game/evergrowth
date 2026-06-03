@@ -153,17 +153,44 @@ eg_settlers.trades_list = {
         {"default:gold_lump 2", "default:clay_lump 40", 100},
         {"default:gold_lump 2", "wool:white 20", 100},
     },
-    mechanic = {
+    automobile_mechanic = {
         -- NPC Sells (Trader Sells, Player Buys)
-        {"automobiles_lib:engine 1", "default:gold_lump 30", 100},
-        {"automobiles_lib:wheel 4", "default:gold_lump 10", 100},
-        {"automobiles_motorcycle:motorcycle 1", "default:gold_lump 40", 100},
-        {"automobiles_buggy:buggy 1", "default:gold_lump 60", 100},
-        {"automobiles_beetle:beetle 1", "default:gold_lump 80", 100},
-        {"automobiles_coupe:coupe 1", "default:gold_lump 100", 100},
+        {"automobiles_lib:engine 1", "default:gold_lump 50", 100},
+        {"automobiles_lib:wheel 4", "default:gold_lump 50", 100},
+        {"automobiles_motorcycle:motorcycle 1", "default:gold_lump 80", 100},
+        {"automobiles_buggy:buggy 1", "default:gold_lump 110", 100},
+        {"automobiles_beetle:beetle 1", "default:gold_lump 130", 100},
+        {"automobiles_coupe:coupe 1", "default:gold_lump 150", 100},
         -- NPC Buys (Trader Buys, Player Sells)
-        {"default:gold_lump 36", "default:steelblock 5", 100},
+        {"default:gold_lump 8", "default:steelblock 1", 100},
         {"default:gold_lump 10", "techage:ta3_barrel_oil 1", 100},
+        {"default:gold_lump 1", "default:tin_ingot 20", 100},
+        {"default:gold_lump 50", "default:mese_block 1", 100},
+    },
+    nautical_mechanic = {
+        -- NPC Sells (Trader Sells, Player Buys)
+        {"boats:boat 1", "default:gold_lump 2", 100},
+        {"motorboat:hull 1", "default:gold_lump 10", 100},
+        {"motorboat:engine 1", "default:gold_lump 60", 100},
+        {"motorboat:boat 1", "default:gold_lump 80", 100},
+        {"nautilus:boat 1", "default:gold_lump 100", 100},
+        -- NPC Buys (Trader Buys, Player Sells)
+        {"default:gold_lump 8", "default:steelblock 1", 100},
+        {"default:gold_lump 10", "techage:ta3_barrel_oil 1", 100},
+        {"default:gold_lump 1", "default:glass 20", 100},
+        {"default:gold_lump 20", "default:diamond 1", 100},
+    },
+    aircraft_mechanic = {
+        -- NPC Sells (Trader Sells, Player Buys)
+        {"airutils:repair_tool 1", "default:gold_lump 5", 100},
+        {"supercub:supercub 1", "default:gold_lump 120", 100},
+        {"pa28:pa28 1", "default:gold_lump 150", 100},
+        {"nss_helicopter:helicopter 1", "default:gold_lump 180", 100},
+        -- NPC Buys (Trader Buys, Player Sells)
+        {"default:gold_lump 8", "default:steelblock 1", 100},
+        {"default:gold_lump 10", "techage:ta3_barrel_oil 1", 100},
+        {"default:gold_lump 10", "default:tinblock 1", 100},
+        {"default:gold_lump 50", "default:mese_block 1", 100},
     },
     fisher = {
         -- NPC Sells (Trader Sells, Player Buys)
