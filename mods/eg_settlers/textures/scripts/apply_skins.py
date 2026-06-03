@@ -28,9 +28,9 @@ def main():
         ("/Users/Aresh/Library/Application Support/minetest/mods/mobf_trader/textures/tomatenhaendler.png", "male_farmer_2.png"),
         ("/Users/Aresh/Library/Application Support/minetest/mods/mobf_trader/textures/baeuerin.png", "female_farmer_2.png"),
         
-        # Smith (Male uses Builder ID 390, Female uses woman_lott ID 1961)
+        # Smith (Male uses Builder ID 390, Female uses Lillyta Guard ID 1319)
         ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_390.png", "male_smith.png"),
-        ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_1961.png", "female_blacksmith.png"),
+        ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_1319.png", "female_blacksmith.png"),
         
         # Lumberjack (Male uses Woodcutter ID 732, Female uses Adventer girl ID 369)
         ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_732.png", "male_lumberjack.png"),
@@ -79,6 +79,10 @@ def main():
         # Mechanic (Male uses mobs_npc5, Female uses Female Train Driver ID 815)
         ("/Users/Aresh/Library/Application Support/minetest/mods/mobs_npc/textures/mobs_npc5.png", "male_mechanic.png"),
         ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_815.png", "female_mechanic.png"),
+
+        # Roboticist
+        ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_1138.png", "male_roboticist.png"),
+        ("/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research/character_1961.png", "female_roboticist.png"),
     ]
     
     print("Executing NPC skin copy and crop operations...")
