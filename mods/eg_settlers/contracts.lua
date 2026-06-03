@@ -75,7 +75,9 @@ register_contract("mage", "mage", "default:mese_crystal", "Mage's Contract")
 register_contract("technologist", "technologist", "techage:electric_cable", "Technologist's Contract", "basic_materials_copper_wire.png")
 register_contract("gunsmith", "gunsmith", "tnt:gunpowder", "Gunsmith's Contract", "bweapons_firearms_pack_pistol.png")
 register_contract("carpenter", "carpenter", "xdecor:workbench", "Carpenter's Contract", "xdecor_hammer.png")
-register_contract("mechanic", "mechanic", "automobiles_lib:engine", "Mechanic's Contract", "automobiles_wheel_icon.png")
+register_contract("automobile_mechanic", "automobile_mechanic", "automobiles_lib:wheel", "Automobile Mechanic's Contract", "techage_inv_wrench.png")
+register_contract("aircraft_mechanic", "aircraft_mechanic", "airutils:repair_tool", "Aircraft Mechanic's Contract")
+register_contract("nautical_mechanic", "nautical_mechanic", "motorboat:hull", "Nautical Mechanic's Contract", "motorboat_inv.png")
 register_contract("fisher", "fisher", "ethereal:fishing_rod", "Fisher's Contract")
 
 
