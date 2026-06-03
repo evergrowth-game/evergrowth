@@ -60,10 +60,10 @@ This document registers the origin, author, and license information for all NPC 
    Origin URL: https://skinsdb.terraqueststudios.net/
 
 10. Target Filename: female_blacksmith.png
-    Source: Minetest SkinsDB (ID: 1961)
-    Name: woman_lott
-    Author: catninja
-    License: CC BY-SA 3.0
+    Source: Minetest SkinsDB (ID: 1319)
+    Name: Lillyta Guard
+    Author: Karelys26
+    License: CC BY-NC-SA 3.0
     Origin URL: https://skinsdb.terraqueststudios.net/
 
 11. Target Filename: female_lumberjack.png
@@ -178,4 +178,18 @@ This document registers the origin, author, and license information for all NPC 
     Name: Female Train Driver
     Author: Glory!
     License: CC 0 (1.0)
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+31. Target Filename: male_roboticist.png
+    Source: Minetest SkinsDB (ID: 1138)
+    Name: Scientist MB
+    Author: Néoprene
+    License: CC BY-SA 3.0
+    Origin URL: https://skinsdb.terraqueststudios.net/
+
+32. Target Filename: female_roboticist.png
+    Source: Minetest SkinsDB (ID: 1961)
+    Name: woman_lott
+    Author: catninja
+    License: CC BY-SA 3.0
     Origin URL: https://skinsdb.terraqueststudios.net/

@@ -29,6 +29,8 @@ def main():
         '467': ('character_467.png', 'Pirate girl'),
         '1798': ('character_1798.png', 'Scientist 1'),
         '1961': ('character_1961.png', 'woman_lott'),
+        '1319': ('character_1319.png', 'Lillyta Guard'),
+        '1138': ('character_1138.png', 'Scientist MB'),
         '369': ('character_369.png', 'Adventer girl'),
         '2165': ('character_2165.png', 'blue_maid'),
         '466': ('character_466.png', 'farmer girl pink and green'),

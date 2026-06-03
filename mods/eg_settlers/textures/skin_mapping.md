@@ -43,7 +43,7 @@ There is **zero overlap** in this mapping, and **no monster or raider skins** ar
 | **Farmer 2** | Male | `mobf_trader/textures/tomatenhaendler.png` | `male_farmer_2.png` |
 | **Farmer 2** | Female | `mobf_trader/textures/baeuerin.png` | `female_farmer_2.png` |
 | **Smith** | Male | Online ID 390 (`Builder`) | `male_smith.png` |
-| **Smith** | Female | Custom AI Generated Blacksmith Skin | `female_blacksmith.png` |
+| **Smith** | Female | Online ID 1319 (`Lillyta Guard`) | `female_blacksmith.png` |
 | **Lumberjack** | Male | Online ID 732 (`Woodcutter`) | `male_lumberjack.png` |
 | **Lumberjack** | Female | `skinsdb/textures/character_castaway_female.png` | `female_lumberjack.png` |
 | **Miner** | Male | `skinsdb/textures/character_rogue_male.png` | `male_miner.png` |
@@ -68,3 +68,5 @@ There is **zero overlap** in this mapping, and **no monster or raider skins** ar
 | **Aircraft Mechanic** | Female | Original Mechanic Skin (Green Hue Shift) | `female_aircraft_mechanic.png` |
 | **Nautical Mechanic** | Male | Original Mechanic Skin (Blue Hue Shift) | `male_nautical_mechanic.png` |
 | **Nautical Mechanic** | Female | Original Mechanic Skin (Blue Hue Shift) | `female_nautical_mechanic.png` |
+| **Roboticist** | Male | Online ID 1138 (`Scientist MB`) | `male_roboticist.png` |
+| **Roboticist** | Female | Online ID 1961 (`woman_lott`) | `female_roboticist.png` |
