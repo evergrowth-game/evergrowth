@@ -79,6 +79,7 @@ register_contract("automobile_mechanic", "automobile_mechanic", "automobiles_lib
 register_contract("aircraft_mechanic", "aircraft_mechanic", "airutils:repair_tool", "Aircraft Mechanic's Contract")
 register_contract("nautical_mechanic", "nautical_mechanic", "motorboat:hull", "Nautical Mechanic's Contract", "motorboat_inv.png")
 register_contract("fisher", "fisher", "ethereal:fishing_rod", "Fisher's Contract")
+register_contract("roboticist", "roboticist", "maidroid_tool:capture_rod", "Roboticist's Contract")
 
 
 -- Companion Contracts

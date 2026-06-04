@@ -213,5 +213,15 @@ eg_settlers.trades_list = {
         {"default:gold_lump 1", "default:coral_brown 10", 100},
         {"default:gold_lump 1", "default:coral_orange 10", 100},
     },
+    roboticist = {
+        -- NPC Sells (Trader Sells, Player Buys)
+        {"maidroid:maidroid_egg 1", "default:gold_lump 40", 100},
+        {"maidroid_tool:capture_rod 1", "default:gold_lump 20", 100},
+        {"maidroid_tool:nametag 1", "default:gold_lump 5", 100},
+        -- NPC Buys (Trader Buys, Player Sells)
+        {"default:gold_lump 8", "default:bronzeblock 1", 100},
+        {"default:gold_lump 9", "default:coalblock 5", 100},
+        {"default:gold_lump 4", "default:mese 1", 100},
+    },
 }
 
