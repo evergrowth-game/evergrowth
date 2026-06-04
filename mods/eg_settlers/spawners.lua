@@ -189,6 +189,10 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                     nautical_mechanic = {
                         male = {"male_nautical_mechanic.png"},
                         female = {"female_nautical_mechanic.png"}
+                    },
+                    roboticist = {
+                        male = {"male_roboticist.png"},
+                        female = {"female_roboticist.png"}
                     }
                 }
                 
