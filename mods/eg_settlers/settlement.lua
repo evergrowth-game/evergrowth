@@ -40,13 +40,34 @@ minetest.register_node("eg_settlers:housing_deed", {
         meta:set_string("resident_name", "")
         meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
     end,
+    
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        if placer and placer:is_player() then
+            local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+            if not sid then
+                minetest.chat_send_player(placer:get_player_name(),
+                    S("[eg_settlers] No Town Ledger found nearby. If you assign a resident here, they will not be part of a settlement."))
+            end
+        end
+    end,
+
+    on_destruct = function(pos)
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        if sid and sid ~= "" then
+            eg_settlers.db.unregister_resident(sid, pos)
+        end
+    end,
 
     can_dig = function(pos, player)
         local meta = minetest.get_meta(pos)
         if meta:get_int("occupied") == 1 then
             if player and player:is_player() then
+                if player:get_player_control().sneak then
+                    return true
+                end
                 minetest.chat_send_player(player:get_player_name(),
-                    S("Relocate the resident first."))
+                    S("Relocate the resident first, or hold Sneak while mining to forcefully break this deed."))
             end
             return false
         end
@@ -57,36 +78,8 @@ minetest.register_node("eg_settlers:housing_deed", {
         if not clicker or not clicker:is_player() then return itemstack end
         
         local meta = minetest.get_meta(pos)
-        if meta:get_int("occupied") == 1 then
-            -- Run safety scan before evaluating hand contents
-            local resident_found = false
-            local objs = minetest.get_objects_inside_radius(pos, 50)
-            for _, obj in ipairs(objs) do
-                if not obj:is_player() then
-                    local ent = obj:get_luaentity()
-                    if ent and ent.is_villager and ent.home_pos then
-                        if vector.equals(ent.home_pos, pos) then
-                            resident_found = true
-                            break
-                        end
-                    end
-                end
-            end
-            
-            if not resident_found then
-                meta:set_int("occupied", 0)
-                meta:set_string("resident_name", "")
-                meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
-                minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is missing. The Deed has been safely vacated."))
-            else
-                -- If hand is empty, explicitly inform the player the resident is alive
-                if itemstack:is_empty() then
-                    minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is alive. Use a Relocation Contract to move them."))
-                end
-            end
-        end
         
-        -- After safety scan, if player is holding an item, check if it's a Contract
+        -- If player is holding an item, check if it's a Contract
         if not itemstack:is_empty() then
             local item_name = itemstack:get_name()
             -- Only manually trigger on_place for our specific contracts
@@ -97,9 +90,14 @@ minetest.register_node("eg_settlers:housing_deed", {
                 end
             end
             -- For all other items (like signs), return to consume the click.
-            -- This perfectly mimics standard Minetest blocks (like Furnaces):
-            -- to place a block against an interactive node, the player must hold Sneak.
             return itemstack
+        end
+        
+        -- If hand is empty, explicitly inform the player the resident is alive
+        if meta:get_int("occupied") == 1 then
+            minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is alive. Use a Relocation Contract to move them."))
+        else
+            minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] This Deed is vacant. Use a Contract on it to assign a resident."))
         end
         
         return itemstack

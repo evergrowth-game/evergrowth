@@ -5,13 +5,13 @@ This document acts as the active roadmap and master task checklist for developme
 ---
 
 ## 🟩 Priority 1: Town Ledger & Satiation (`town_management_design.md`)
-*   [ ] **Establish Town Center:** Register the `eg_settlers:town_ledger` node.
-*   [ ] **Granary Inventory:** Design a 4x4 food-only container slot within the Ledger.
-*   [ ] **Registration Registry (Anti-Lag):** Code a coordinate registration system where Housing Deeds register themselves to their parent Ledger metadata instead of scanning the world.
-*   [ ] **Satiation Consumption Logic:** Set up a 1200-second timer using `minetest.get_gametime()` timestamp catch-up to calculate missed days and consume granary food when chunks unload.
-*   [ ] **Food Value Hierarchy:** Implement a multi-layer lookup function (farming registry, `on_use` item definition, generic `group:food` fallback).
-*   [ ] **Trade Locking:** Edit `npc_behavior.lua` to block trading interfaces if the linked town Ledger is starving.
-*   [ ] **Mayor Dashboard:** Design the custom status UI showing population, name, and food supply days remaining.
+*   [x] **Establish Town Center:** Register the `eg_settlers:town_ledger` node.
+*   [x] **Granary Inventory:** Design a 4x4 food-only container slot within the Ledger.
+*   [x] **Registration Registry (Anti-Lag):** Code a coordinate registration system where Housing Deeds register themselves to their parent Ledger metadata instead of scanning the world.
+*   [x] **Satiation Consumption Logic:** Set up a 1200-second timer using `minetest.get_gametime()` timestamp catch-up to calculate missed days and consume granary food when chunks unload.
+*   [x] **Food Value Hierarchy:** Implement a multi-layer lookup function (farming registry, `on_use` item definition, generic `group:food` fallback).
+*   [x] **Trade Locking:** Edit `npc_behavior.lua` to block trading interfaces if the linked town Ledger is starving.
+*   [x] **Mayor Dashboard:** Design the custom status UI showing population, name, and food supply days remaining.
 
 ---
 
@@ -24,9 +24,9 @@ This document acts as the active roadmap and master task checklist for developme
 ---
 
 ## 🟧 Priority 3: The Roboticist Profession (`job_additions.md`)
-*   [ ] **Define Trades:** Add the cybernetics trade table to `trades.lua`.
-*   [ ] **Recruitment Contract:** Register the Roboticist Deed and spawn item in `contracts.lua`.
-*   [ ] **Entity Spawning:** Register Male/Female skin textures and add them to `spawners.lua`.
+*   [X] **Define Trades:** Add the cybernetics trade table to `trades.lua`.
+*   [X] **Recruitment Contract:** Register the Roboticist Deed and spawn item in `contracts.lua`.
+*   [X] **Entity Spawning:** Register Male/Female skin textures and add them to `spawners.lua`.
 
 ---
 
