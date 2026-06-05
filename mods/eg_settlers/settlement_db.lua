@@ -204,6 +204,10 @@ end
 eg_settlers.food_values = {}
 
 function eg_settlers.get_food_value(item_name)
+    local def = minetest.registered_items[item_name]
+    if def and def.groups and def.groups.eatable and def.groups.eatable > 0 then
+        return def.groups.eatable
+    end
     return eg_settlers.food_values[item_name]
 end
 
@@ -213,8 +217,12 @@ minetest.register_on_mods_loaded(function()
             local value = nil
             
             -- Layer A: explicit food group value
-            if def.groups and def.groups.food and def.groups.food > 0 then
-                value = def.groups.food
+            if def.groups then
+                if def.groups.eatable and def.groups.eatable > 0 then
+                    value = def.groups.eatable
+                elseif def.groups.food and def.groups.food > 0 then
+                    value = def.groups.food
+                end
             end
             
             -- Layer B/C: fallback for known food mods or generic food group
