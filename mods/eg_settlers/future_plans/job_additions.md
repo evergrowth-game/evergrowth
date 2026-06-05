@@ -1,33 +1,33 @@
-# Job Additions Log
+# Job Additions Template
 
-This document serves as the master record for new NPC jobs added to the `eg_settlers` mod. It details the required trade tables, visual assets, and contract logic for each new profession.
+This document serves as the master template for proposing new NPC jobs for the `eg_settlers` mod. It details the required trade tables, visual assets, and contract logic for each new profession.
 
-## Roboticist
+## [Profession Name]
 
-The Roboticist serves as a high-tier cybernetics engineer, trading in automated helper droids (Maidroids), programming tools, and advanced materials.
+[Brief description of the profession, what role they serve in the village, and what kinds of items they trade.]
 
 ### 1. Attributes & Implementation Details
 
-*   **Profession ID:** `roboticist`
-*   **Recruitment Contract Recipe Item:** `maidroid_tool:capture_rod`
+*   **Profession ID:** `[profession_id]` (e.g., lowercase, no spaces)
+*   **Recruitment Contract Recipe Item:** `[mod_name:item_name]` (The item used to craft the contract)
 *   **Required Textures:** 
-    *   Male: `male_roboticist.png`
-    *   Female: `female_roboticist.png`
+    *   Male: `male_[profession_id].png`
+    *   Female: `female_[profession_id].png`
 *   **Files Required for Implementation:**
     *   `trades.lua`: Add the Trade Table to `eg_settlers.trades_list`
     *   `spawners.lua`: Add texture definitions to `profession_textures` inside `spawn_trader()`
-    *   `contracts.lua`: Call `register_contract("roboticist", "roboticist", "maidroid_tool:capture_rod", "Roboticist's Contract")`
+    *   `contracts.lua`: Call `register_contract("[profession_id]", "[profession_id]", "[mod_name:item_name]", "[Profession Name]'s Contract")`
 
 ### 2. Trade Table Definition
 
-Below is the verified trade list for the Roboticist, adhering to the standard `{"item count", "price count", chance}` format.
+Below is the proposed trade list for the [Profession Name], adhering to the standard `{"item count", "price count", chance}` format.
 
-**NPC Sells (Player provides gold, receives technology):**
-*   `{"default:gold_lump 40", "maidroid:maidroid_egg 1", 100}` *(High-value droid activator)*
-*   `{"default:gold_lump 20", "maidroid_tool:capture_rod 1", 100}` *(Android control rod)*
-*   `{"default:gold_lump 5", "maidroid_tool:nametag 1", 100}` *(Android tracking tag)*
+**NPC Sells (Player provides currency, receives items):**
+*   `{"[received_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
+*   `{"[received_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
+*   `{"[received_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
 
-**NPC Buys (Player provides items, receives gold):**
-*   `{"default:bronzeblock 1", "default:gold_lump 8", 100}` *(Bronze blocks for chassis)*
-*   `{"default:coalblock 2", "default:gold_lump 6", 100}` *(Graphite casings)*
-*   `{"default:mese 1", "default:gold_lump 4", 100}` *(Mese processors)*
+**NPC Buys (Player provides items, receives currency):**
+*   `{"[provided_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
+*   `{"[provided_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
+*   `{"[provided_item count]", "[currency_item count]", [chance]}` *([Item description/purpose])*
