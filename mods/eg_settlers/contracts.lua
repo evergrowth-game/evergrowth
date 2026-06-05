@@ -32,12 +32,13 @@ local function register_contract(name, profession, recipe_item, description, cus
                 
                 deed_meta:set_int("occupied", 1)
                 deed_meta:set_string("resident_name", npc_name or profession)
+                deed_meta:set_string("profession", profession)
                 deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or profession))
                 
                 local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
                 if sid then
                     deed_meta:set_string("settlement_id", sid)
-                    eg_settlers.db.register_resident(sid, under_pos, npc_name or profession)
+                    eg_settlers.db.register_resident(sid, under_pos, npc_name or profession, profession)
                 end
             else
                 -- Free-standing: spawn without tethering (original behavior)
@@ -233,12 +234,13 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
 
         deed_meta:set_int("occupied", 1)
         deed_meta:set_string("resident_name", npc_name or "Villager")
+        deed_meta:set_string("profession", profession)
         deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or "Villager"))
 
         local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
         if sid then
             deed_meta:set_string("settlement_id", sid)
-            eg_settlers.db.register_resident(sid, under_pos, npc_name or "Villager")
+            eg_settlers.db.register_resident(sid, under_pos, npc_name or "Villager", profession)
         end
 
         minetest.sound_play("default_place_node_hard", {pos = spawn_pos, gain = 1.0}, true)
