@@ -104,12 +104,13 @@ function eg_settlers.db.set_name(settlement_id, name)
     end
 end
 
-function eg_settlers.db.register_resident(settlement_id, deed_pos, resident_name)
+function eg_settlers.db.register_resident(settlement_id, deed_pos, resident_name, profession)
     local s = db_data.settlements[settlement_id]
     if s then
         local pos_str = deed_pos.x .. "," .. deed_pos.y .. "," .. deed_pos.z
         s.residents[pos_str] = {
-            name = resident_name
+            name = resident_name,
+            profession = profession or "Unknown"
         }
         eg_settlers.db.mark_dirty()
     end
