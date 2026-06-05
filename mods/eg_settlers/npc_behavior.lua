@@ -23,6 +23,31 @@ for _, entity_name in ipairs(target_entities) do
         -- Disables active jumping to prevent them from vaulting over fences, while stepheight (1.1) still allows walking up steps/slabs
         base_entity.jump_height = 0
         
+        local old_on_die = base_entity.on_die
+        base_entity.on_die = function(self, pos)
+            if self.is_villager and self.home_pos then
+                minetest.load_area(self.home_pos, self.home_pos)
+                local deed_meta = minetest.get_meta(self.home_pos)
+                if deed_meta and deed_meta:get_int("occupied") == 1 then
+                    local deed_node = minetest.get_node(self.home_pos)
+                    if deed_node and deed_node.name == "eg_settlers:housing_deed" then
+                        deed_meta:set_int("occupied", 0)
+                        deed_meta:set_string("resident_name", "")
+                        deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+                        
+                        local sid = deed_meta:get_string("settlement_id")
+                        if sid and sid ~= "" then
+                            eg_settlers.db.unregister_resident(sid, self.home_pos)
+                            deed_meta:set_string("settlement_id", "")
+                        end
+                    end
+                end
+            end
+            if old_on_die then
+                return old_on_die(self, pos)
+            end
+        end
+        
         local old_on_step = base_entity.on_step
         base_entity.on_step = function(self, dtime)
         -- Call original logic
@@ -93,18 +118,29 @@ for _, entity_name in ipairs(target_entities) do
                             if self.home_pos then
                                 local dist_home = vector.distance(pos, self.home_pos)
                                 if dist_home > 3 then
-                                    -- Teleport directly in front of deed to avoid geometry issues
+                                    -- Teleport safely by finding an adjacent non-solid coordinate
                                     local dest = {x = self.home_pos.x, y = self.home_pos.y, z = self.home_pos.z}
-                                    local face = 0
+                                    local offsets = {
+                                        {x=0, y=0, z=1}, {x=0, y=0, z=-1},
+                                        {x=1, y=0, z=0}, {x=-1, y=0, z=0},
+                                        {x=0, y=0, z=0} -- fallback to exact deed pos
+                                    }
                                     
-                                    local node = minetest.get_node(self.home_pos)
-                                    if node and node.param2 then face = node.param2 end
-                                    
-                                    if face == 0 then dest.z = dest.z - 1
-                                    elseif face == 1 then dest.x = dest.x - 1
-                                    elseif face == 2 then dest.z = dest.z + 1
-                                    elseif face == 3 then dest.x = dest.x + 1
-                                    else dest.z = dest.z - 1 end
+                                    for _, off in ipairs(offsets) do
+                                        local test_pos = {x = self.home_pos.x + off.x, y = self.home_pos.y + off.y, z = self.home_pos.z + off.z}
+                                        local head_pos = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
+                                        
+                                        local node1 = minetest.get_node(test_pos)
+                                        local node2 = minetest.get_node(head_pos)
+                                        
+                                        local def1 = minetest.registered_nodes[node1.name]
+                                        local def2 = minetest.registered_nodes[node2.name]
+                                        
+                                        if def1 and not def1.walkable and def2 and not def2.walkable then
+                                            dest = test_pos
+                                            break
+                                        end
+                                    end
                                     
                                     self.object:set_pos(dest)
                                     self.order = "stand"
@@ -208,12 +244,19 @@ for _, entity_name in ipairs(target_entities) do
 
                 -- Mark old Deed as vacant
                 if self.home_pos then
+                    minetest.load_area(self.home_pos, self.home_pos)
                     local deed_node = minetest.get_node(self.home_pos)
                     if deed_node.name == "eg_settlers:housing_deed" then
                         local deed_meta = minetest.get_meta(self.home_pos)
                         deed_meta:set_int("occupied", 0)
                         deed_meta:set_string("resident_name", "")
                         deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+                        
+                        local sid = deed_meta:get_string("settlement_id")
+                        if sid and sid ~= "" then
+                            eg_settlers.db.unregister_resident(sid, self.home_pos)
+                            deed_meta:set_string("settlement_id", "")
+                        end
                     end
                 end
 
