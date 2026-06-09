@@ -5,79 +5,110 @@
 
 local S = minetest.get_translator("eg_settlers")
 
-local function get_formspec(sid, tab_index)
-    tab_index = tab_index or 1
+local function get_formspec(sid)
     local s = eg_settlers.db.get_settlement(sid)
     if not s then return "" end
     
     local resident_count = eg_settlers.db.get_resident_count(sid)
     local status_text = s.satiated == 1 and minetest.colorize("#00FF00", S("● Well-Fed")) or minetest.colorize("#FF0000", S("● Starving"))
     
-    local estimated = S("No residents")
-    if resident_count > 0 then
-        local days = s.reserve_points / (resident_count * 4)
-        estimated = string.format("~%.1f " .. S("days remaining"), days)
+    local roster_list = ""
+    for pos_str, res in pairs(s.residents) do
+        local prof = res.profession or "Unknown"
+        local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
+        if roster_list == "" then
+            roster_list = minetest.formspec_escape(entry)
+        else
+            roster_list = roster_list .. "," .. minetest.formspec_escape(entry)
+        end
     end
     
-    local formspec = "size[8,9]" ..
-        "tabheader[0,0;ledger_tabs;Overview,Roster;" .. tab_index .. ";true;false]" ..
+    local formspec = "size[8,8]" ..
         "label[0.5,0.5;" .. S("Town Name:") .. "]" ..
         "field[2.5,0.8;4,1;town_name;;" .. minetest.formspec_escape(s.name) .. "]" ..
         "button[6.5,0.5;1.5,1;rename;" .. S("Rename") .. "]" ..
         "label[0.5,2;" .. S("Population:") .. " " .. resident_count .. " " .. S("residents") .. "]" ..
         "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]" ..
-        "label[0.5,3;" .. S("Food Reserve:") .. " " .. s.reserve_points .. " " .. S("points") .. "]" ..
-        "label[0.5,3.5;" .. S("Estimated:") .. " " .. estimated .. "]"
+        "button[6.5,2;1.5,1;disband_prompt;" .. S("Disband") .. "]" ..
+        "label[0.5,3.5;" .. S("── Town Roster ──") .. "]" ..
+        "textlist[0.5,4;7,3.5;roster_list;" .. roster_list .. "]"
         
-    if tab_index == 1 then
-        formspec = formspec ..
-            "label[0.5,4.5;" .. S("── Granary (deposit food below) ──") .. "]" ..
-            "list[nodemeta:" .. s.ledger_pos.x .. "," .. s.ledger_pos.y .. "," .. s.ledger_pos.z .. ";granary;2,5;4,1;]" ..
-            "list[current_player;main;0,6.5;8,4;]" ..
-            "listring[nodemeta:" .. s.ledger_pos.x .. "," .. s.ledger_pos.y .. "," .. s.ledger_pos.z .. ";granary]" ..
-            "listring[current_player;main]"
-    elseif tab_index == 2 then
-        local roster_list = ""
-        for pos_str, res in pairs(s.residents) do
-            local prof = res.profession or "Unknown"
-            local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
-            if roster_list == "" then
-                roster_list = minetest.formspec_escape(entry)
-            else
-                roster_list = roster_list .. "," .. minetest.formspec_escape(entry)
-            end
-        end
-        formspec = formspec ..
-            "label[0.5,4.5;" .. S("── Town Roster ──") .. "]" ..
-            "textlist[0.5,5;7,3.5;roster_list;" .. roster_list .. "]"
-    end
+    return formspec
+end
+
+local function get_disband_formspec(sid)
+    local s = eg_settlers.db.get_settlement(sid)
+    if not s then return "" end
     
+    local formspec = "size[6,4]" ..
+        "box[0,0;6,4;#550000]" ..
+        "label[0.5,0.5;" .. minetest.colorize("#FFFFFF", S("WARNING: You are about to permanently")) .. "]" ..
+        "label[0.5,1.0;" .. minetest.colorize("#FFFFFF", S("disband ") .. s.name .. S(".")) .. "]" ..
+        "label[0.5,1.8;" .. minetest.colorize("#FFCCCC", S("All data will be lost and villagers released.")) .. "]" ..
+        "button[0.5,3;2,1;cancel_disband;" .. S("Cancel") .. "]" ..
+        "button[3.5,3;2,1;confirm_disband;" .. minetest.colorize("#FF0000", S("Confirm")) .. "]"
+        
     return formspec
 end
 
 minetest.register_node("eg_settlers:town_ledger", {
     description = S("Town Ledger"),
+    drawtype = "mesh",
+    mesh = "eg_settlers_town_ledger.obj",
     tiles = {
-        "default_chest_top.png^[colorize:#FFD700:80",
-        "default_chest_top.png^[colorize:#FFD700:80",
-        "default_chest_side.png^[colorize:#FFD700:80",
-        "default_chest_side.png^[colorize:#FFD700:80",
-        "default_chest_front.png^[colorize:#FFD700:80",
-        "default_chest_inside.png^[colorize:#FFD700:80"
+        "default_wood.png",
+        "default_wood.png^[colorize:#EFE4B0:230" -- Book pages (parchment)
     },
+    paramtype = "light",
     paramtype2 = "facedir",
+    selection_box = {
+        type = "fixed",
+        fixed = {
+            {-0.4, -0.5, -0.4, 0.4, 0.45, 0.4},
+        }
+    },
+    collision_box = {
+        type = "fixed",
+        fixed = {
+            {-0.4, -0.5, -0.4, 0.4, 0.45, 0.4},
+        }
+    },
     groups = {choppy = 2, oddly_breakable_by_hand = 2},
     is_ground_content = false,
     
     on_construct = function(pos)
         local meta = minetest.get_meta(pos)
+        
+        local nearest_sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+        if nearest_sid then
+            local s = eg_settlers.db.get_settlement(nearest_sid)
+            if s then
+                local is_exact_spot = vector.equals(pos, s.ledger_pos)
+                local node_at_old_pos = minetest.get_node(s.ledger_pos)
+                if s.is_orphaned or is_exact_spot or (node_at_old_pos.name ~= "eg_settlers:town_ledger" and node_at_old_pos.name ~= "ignore") then
+                    -- Orphaned town! Adopt it.
+                    s.is_orphaned = false
+                    s.ledger_pos = {x=pos.x, y=pos.y, z=pos.z}
+                    eg_settlers.db.mark_dirty()
+                    meta:set_string("settlement_id", nearest_sid)
+                    meta:set_string("infotext", S("Town Ledger: ") .. s.name)
+                    minetest.get_node_timer(pos):start(10.0)
+                    return
+                else
+                    -- Active town nearby! Reject placement.
+                    minetest.chat_send_all("[Evergrowth] Cannot place Ledger here. An active Ledger for '" .. s.name .. "' is too close.")
+                    minetest.remove_node(pos)
+                    minetest.add_item(pos, "eg_settlers:town_ledger")
+                    return
+                end
+            end
+        end
+        
+        -- Create a new settlement
         local sid = eg_settlers.db.create_settlement(pos, "New Settlement")
         meta:set_string("settlement_id", sid)
-        
-        local inv = meta:get_inventory()
-        inv:set_size("granary", 4)
-        
-        meta:set_string("infotext", S("Town Ledger: ") .. "New Settlement")
+        meta:set_string("infotext", S("Town Ledger: New Settlement"))
+        minetest.get_node_timer(pos):start(10.0)
     end,
     
     can_dig = function(pos, player)
@@ -102,7 +133,11 @@ minetest.register_node("eg_settlers:town_ledger", {
         local meta = minetest.get_meta(pos)
         local sid = meta:get_string("settlement_id")
         if sid and sid ~= "" then
-            eg_settlers.db.delete_settlement(sid)
+            local s = eg_settlers.db.get_settlement(sid)
+            if s and vector.equals(s.ledger_pos, pos) then
+                s.is_orphaned = true
+                eg_settlers.db.mark_dirty()
+            end
         end
     end,
     
@@ -110,46 +145,9 @@ minetest.register_node("eg_settlers:town_ledger", {
         local meta = minetest.get_meta(pos)
         local sid = meta:get_string("settlement_id")
         if sid and sid ~= "" then
-            minetest.show_formspec(clicker:get_player_name(), "eg_settlers:ledger_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z, get_formspec(sid, 1))
+            minetest.show_formspec(clicker:get_player_name(), "eg_settlers:ledger_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z, get_formspec(sid))
         end
         return itemstack
-    end,
-    
-    allow_metadata_inventory_put = function(pos, listname, index, stack, player)
-        if listname == "granary" then
-            local food_val = eg_settlers.get_food_value(stack:get_name())
-            if food_val then
-                return stack:get_count()
-            end
-            return 0
-        end
-        return 0
-    end,
-    
-    on_metadata_inventory_put = function(pos, listname, index, stack, player)
-        if listname == "granary" then
-            local meta = minetest.get_meta(pos)
-            local sid = meta:get_string("settlement_id")
-            if sid and sid ~= "" then
-                local food_val = eg_settlers.get_food_value(stack:get_name())
-                if food_val then
-                    local total_points = food_val * stack:get_count()
-                    eg_settlers.db.add_food(sid, total_points)
-                    
-                    local inv = meta:get_inventory()
-                    inv:set_stack("granary", index, ItemStack(""))
-                    
-                    if player and player:is_player() then
-                        local formname = "eg_settlers:ledger_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z
-                        minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid, 1))
-                    end
-                end
-            end
-        end
-    end,
-    
-    allow_metadata_inventory_take = function(pos, listname, index, stack, player)
-        return 0
     end,
 })
 
@@ -157,8 +155,8 @@ minetest.register_craft({
     output = "eg_settlers:town_ledger",
     recipe = {
         {"default:gold_ingot", "default:book", "default:gold_ingot"},
-        {"", "default:chest", ""},
-        {"", "", ""}
+        {"", "default:wood", ""},
+        {"", "default:wood", ""}
     }
 })
 
@@ -174,9 +172,15 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                 if fields.rename and fields.town_name then
                     eg_settlers.db.set_name(sid, fields.town_name)
                     meta:set_string("infotext", S("Town Ledger: ") .. fields.town_name)
-                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid, 1))
-                elseif fields.ledger_tabs then
-                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid, tonumber(fields.ledger_tabs)))
+                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid))
+                elseif fields.disband_prompt then
+                    minetest.show_formspec(player:get_player_name(), formname, get_disband_formspec(sid))
+                elseif fields.cancel_disband then
+                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid))
+                elseif fields.confirm_disband then
+                    eg_settlers.db.delete_settlement(sid)
+                    minetest.remove_node(pos)
+                    minetest.close_formspec(player:get_player_name(), formname)
                 end
             end
         end
