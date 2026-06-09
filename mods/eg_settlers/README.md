@@ -8,6 +8,8 @@
 - **Housing Deeds:** Placeable nodes that set an NPC's home coordinate and establish a wander tether.
 - **Town Management:** The Town Ledger tracks population and manages the food supply (satiation system) for NPCs within its radius using a centralized database.
 - **Trading & Contracts:** Systems for recruiting, relocating, and managing NPCs, alongside defined trade tables.
+- **Job Board:** A dynamic request board for fulfilling daily town bounties and recruiting new seekers.
+- **NPC Schedules:** Villagers exhibit day/night cycles, returning home to sleep at night and actively looking at/greeting players during the day.
 - **Sentinel Ward Stones:** Placeable nodes that deal periodic damage to hostile mobs within a defined radius.
 
 ## Documentation
@@ -18,4 +20,4 @@ For deep dives into the architectural design and mechanics of specific systems, 
 
 ## Future Plans
 
-The `future_plans/` directory contains templates and roadmaps for upcoming features (like the Job Board and NPC schedules) and a generic template for proposing new job additions.
+The `future_plans/` directory contains templates and roadmaps for upcoming features and a generic template for proposing new job additions.
