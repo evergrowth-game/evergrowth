@@ -16,10 +16,10 @@ This document acts as the active roadmap and master task checklist for developme
 ---
 
 ## 🟨 Priority 2: Job Board Depot & Quests (`job_board_design.md`)
-*   [ ] **Register Job Board:** Create the interactive `eg_settlers:job_board` node.
-*   [ ] **Passive Income Depot:** Code daily scans of `Housing Deeds` to deposit resources based on resident professions (e.g., Farmer yields wheat, Miner yields coal).
-*   [ ] **Daily Quest Generator:** Design the Bounty Board input/output system with daily item requests matching the town's population.
-*   [ ] **Seeker Contracts:** Set up the centralized contract shop to recruit random NPCs.
+*   [x] **Register Job Board:** Create the interactive `eg_settlers:job_board` node.
+*   [x] **Passive Income Depot:** Code daily scans of `Housing Deeds` to deposit resources based on resident professions (e.g., Farmer yields wheat, Miner yields coal).
+*   [x] **Daily Quest Generator:** Design the Bounty Board input/output system with daily item requests matching the town's population.
+*   [x] **Seeker Contracts:** Set up the centralized contract shop to recruit random NPCs.
 
 ---
 

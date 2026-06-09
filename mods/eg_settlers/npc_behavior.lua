@@ -230,53 +230,76 @@ for _, entity_name in ipairs(target_entities) do
 
     local old_on_rightclick = base_entity.on_rightclick
     base_entity.on_rightclick = function(self, clicker)
-        if clicker and clicker:is_player() and clicker:get_player_control().sneak then
+        if clicker and clicker:is_player() then
             local name = clicker:get_player_name()
+            
+            if clicker:get_player_control().sneak then
+                if self.is_villager then
+                    -- Relocation: create a contract item with this NPC's data
+                    local contract = ItemStack("eg_settlers:contract_villager_relocation")
+                    local meta = contract:get_meta()
+                    meta:set_string("resident_name", self.nametag or self.game_name or "Villager")
+                    meta:set_string("profession", self.evergrowth_profession or "merchant")
+                    meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
+                    meta:set_int("health", self.health or 20)
 
-            if self.is_villager then
-                -- Relocation: create a contract item with this NPC's data
-                local contract = ItemStack("eg_settlers:contract_villager_relocation")
-                local meta = contract:get_meta()
-                meta:set_string("resident_name", self.nametag or self.game_name or "Villager")
-                meta:set_string("profession", self.evergrowth_profession or "merchant")
-                meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
-                meta:set_int("health", self.health or 20)
-
-                -- Mark old Deed as vacant
-                if self.home_pos then
-                    minetest.load_area(self.home_pos, self.home_pos)
-                    local deed_node = minetest.get_node(self.home_pos)
-                    if deed_node.name == "eg_settlers:housing_deed" then
-                        local deed_meta = minetest.get_meta(self.home_pos)
-                        deed_meta:set_int("occupied", 0)
-                        deed_meta:set_string("resident_name", "")
-                        deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
-                        
-                        local sid = deed_meta:get_string("settlement_id")
-                        if sid and sid ~= "" then
-                            eg_settlers.db.unregister_resident(sid, self.home_pos)
-                            deed_meta:set_string("settlement_id", "")
+                    -- Mark old Deed as vacant
+                    if self.home_pos then
+                        minetest.load_area(self.home_pos, self.home_pos)
+                        local deed_node = minetest.get_node(self.home_pos)
+                        if deed_node.name == "eg_settlers:housing_deed" then
+                            local deed_meta = minetest.get_meta(self.home_pos)
+                            deed_meta:set_int("occupied", 0)
+                            deed_meta:set_string("resident_name", "")
+                            deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+                            
+                            local sid = deed_meta:get_string("settlement_id")
+                            if sid and sid ~= "" then
+                                eg_settlers.db.unregister_resident(sid, self.home_pos)
+                                deed_meta:set_string("settlement_id", "")
+                            end
                         end
                     end
-                end
 
-                -- Give contract to player
-                local inv = clicker:get_inventory()
-                if inv:room_for_item("main", contract) then
-                    inv:add_item("main", contract)
-                else
-                    minetest.add_item(clicker:get_pos(), contract)
-                end
+                    -- Give contract to player
+                    local inv = clicker:get_inventory()
+                    if inv:room_for_item("main", contract) then
+                        inv:add_item("main", contract)
+                    else
+                        minetest.add_item(clicker:get_pos(), contract)
+                    end
 
-                self.object:remove()
-                minetest.chat_send_player(name, S("[eg_settlers] Villager relocated to contract."))
-                return
-            else
-                -- Admin delete for non-villager NPCs
-                if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
                     self.object:remove()
-                    minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")
+                    minetest.chat_send_player(name, S("[eg_settlers] Villager relocated to contract."))
                     return
+                else
+                    -- Admin delete for non-villager NPCs
+                    if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+                        self.object:remove()
+                        minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")
+                        return
+                    end
+                end
+            else
+                -- Not sneaking (normal interaction)
+                if self.is_villager then
+                    local can_trade = false
+                    if self.home_pos then
+                        local deed_meta = minetest.get_meta(self.home_pos)
+                        local sid = deed_meta:get_string("settlement_id")
+                        if sid and sid ~= "" then
+                            local settlement = eg_settlers.db.get_settlement(sid)
+                            if settlement and settlement.satiated == 1 then
+                                can_trade = true
+                            end
+                        end
+                    end
+                    
+                    if not can_trade then
+                        local msg = S("The town is starving. I have nothing to trade.")
+                        minetest.chat_send_player(name, minetest.colorize("#FF8888", msg))
+                        return
+                    end
                 end
             end
         end
