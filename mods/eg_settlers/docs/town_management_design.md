@@ -23,10 +23,11 @@ The Ledger acts as the heart of a settlement. It tracks the local population and
 *   **Centralized Consumption Timer (Anti-Pause):**
     *   Daily consumption ticks are managed globally (e.g., via `minetest.register_globalstep` or a daily server tick) using `minetest.get_gametime()`.
     *   This prevents node timer freezes in unloaded mapblocks while avoiding instant catch-up penalties when players return to a frozen chunk.
-*   **Granary (Food Deposit):**
-    *   The Ledger node has a physical inventory (granary slots) that the player places food items into.
-    *   When the player closes the Ledger formspec, all food items in the granary are **consumed and converted** into `reserve_points` stored in the world database, using the food value hierarchy below. The slots are then cleared.
-    *   This ensures the globalstep timer can deduct points from the database without needing the Ledger's mapblock to be loaded.
+*   **Town Granary Node (`eg_settlers:town_granary`):**
+    *   A separate, physical node linked to the nearest Ledger via the `settlement_id`.
+    *   It contains an inventory grid where the player deposits food items.
+    *   Items placed in the Granary are immediately **consumed and converted** into `reserve_points` stored in the world database using the `allow_metadata_inventory_put` callbacks, clearing the slots instantly.
+    *   This separation ensures the globalstep timer can deduct points from the centralized database without needing the Ledger or Granary mapblocks to be loaded.
 
     *   **Food Value Hierarchy:**
         *   *Layer A:* Explicit values from a load-time registration intercept of `minetest.item_eat`.
@@ -41,13 +42,16 @@ The Ledger acts as the heart of a settlement. It tracks the local population and
             *   If `reserve_points >= 0`: Set settlement status to `satiated = 1`.
             *   If `reserve_points < 0`: Set to `satiated = 0` (starving). Clamp `reserve_points` to `0`.
 
-### UI (Formspec):
-*   Displays the Town Name (editable).
+### Town Ledger UI (Formspec):
+*   Displays the Town Name (editable) and an option to Disband the town.
 *   Displays the current Population (registered deeds count).
 *   Status Indicator: "Well-Fed" (green) or "Starving" (red).
+*   Displays the full Roster of residents (name, profession, and coordinates).
+
+### Town Granary UI (Formspec):
 *   Current Reserve: Shows total `reserve_points` stored.
 *   Estimated Time: "Food will last for approximately X more days" based on `reserve_points` and daily demand.
-*   Granary Slots: A small inventory grid where the player deposits food items (converted to points on close).
+*   Granary Slots: An inventory grid where the player deposits food items (converted to points on insertion).
 
 ---
 
@@ -65,7 +69,19 @@ The `on_rightclick` behavior in `npc_behavior.lua` is modified to include a sati
 
 ---
 
-## 3. Balancing & Gameplay Impact
+## 3. Town Depot (Passive Income)
+
+The **Town Dropbox (`eg_settlers:town_depot`)** serves as a centralized collection point for the town's production.
+
+*   **Mechanics:**
+    *   Linked to the nearest Ledger via the `settlement_id`.
+    *   Once per in-game day, it queries the centralized world database to check if the town is satiated (`satiated = 1`).
+    *   If satiated, it generates passive income items based on the professions of all registered residents (e.g., Farmers generate wheat, Miners generate coal) and deposits them into its inventory.
+    *   If the town is starving, no items are generated.
+
+---
+
+## 4. Balancing & Gameplay Impact
 
 *   **Automation Sink:** Players who use Techage or other automation mods to generate vast amounts of resources now have a "sink" for that wealth: they must produce enough food to keep their workforce operational.
 *   **Settlement Growth:** As the town grows, the food requirement increases linearly, forcing the player to expand their farms or trade for food from other sources.
