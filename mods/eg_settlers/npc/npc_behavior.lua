@@ -5,7 +5,7 @@
     entity. It implements a player-distance check to selectively show or hide 
     nametags, reducing screen clutter when the player is far away.
     
-    If the entity possesses the `is_villager` flag (spawned naturally in a village),
+    If the entity possesses the `is_settler` flag (spawned naturally in a settlement),
     it also injects dynamic engagement behaviors:
     - Look at nearby players (yaw_to_pos)
     - Day/Night schedules (return home to sleep)
@@ -100,7 +100,7 @@ for _, entity_name in ipairs(target_entities) do
                          self.object:set_properties({nametag = ""})
                     end
                     
-                    -- 2. Schedule & Engagement Logic (Villagers Only)
+                    -- 2. Schedule & Engagement Logic (Settlers Only)
                     if self.is_villager then
                         local current_time = minetest.get_timeofday() * 24000
                         local is_night = (current_time > 18500 or current_time < 4500) and self.evergrowth_profession ~= "guard"
@@ -238,10 +238,18 @@ for _, entity_name in ipairs(target_entities) do
                     -- Relocation: create a contract item with this NPC's data
                     local contract = ItemStack("eg_settlers:contract_villager_relocation")
                     local meta = contract:get_meta()
-                    meta:set_string("resident_name", self.nametag or self.game_name or "Villager")
-                    meta:set_string("profession", self.evergrowth_profession or "merchant")
+                    local rname = self.nametag or self.game_name or "Settler"
+                    local prof = self.evergrowth_profession or "merchant"
+                    local hp = self.health or 20
+
+                    meta:set_string("resident_name", rname)
+                    meta:set_string("profession", prof)
                     meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
-                    meta:set_int("health", self.health or 20)
+                    meta:set_int("health", hp)
+
+                    local desc = contract:get_definition().description
+                    local formatted_prof = prof:gsub("^%l", string.upper)
+                    meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
 
                     -- Mark old Deed as vacant
                     if self.home_pos then
@@ -270,10 +278,10 @@ for _, entity_name in ipairs(target_entities) do
                     end
 
                     self.object:remove()
-                    minetest.chat_send_player(name, S("[eg_settlers] Villager relocated to contract."))
+                    minetest.chat_send_player(name, S("[eg_settlers] Settler relocated to contract."))
                     return
                 else
-                    -- Admin delete for non-villager NPCs
+                    -- Admin delete for non-settler NPCs
                     if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
                         self.object:remove()
                         minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")

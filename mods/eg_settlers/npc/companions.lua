@@ -90,9 +90,10 @@ if base_npc then
                     
                     local desc = stack:get_definition().description
                     local desc_name = self.game_name or self.nametag
-                    if desc_name and desc_name ~= "" then
-                        meta:set_string("description", desc .. "\n(" .. desc_name .. ")")
-                    end
+                    if not desc_name or desc_name == "" then desc_name = "Unknown" end
+                    local gender = self.companion_is_female and "Female" or "Male"
+                    local hp = self.health or 20
+                    meta:set_string("description", desc .. "\nName: " .. desc_name .. "\nGender: " .. gender .. "\nHealth: " .. tostring(hp))
                     
                     local inv = clicker:get_inventory()
                     if inv:room_for_item("main", stack) then
