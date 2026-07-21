@@ -13,8 +13,8 @@ local function get_granary_formspec(sid, pos)
     
     local pos_str = pos.x .. "," .. pos.y .. "," .. pos.z
     
-    local formspec = "size[8,7]" ..
-        "box[0,0;8,7;#3E2723]" ..
+    local formspec = "size[8,9.25]" ..
+        "box[0,0;8,9.25;#3E2723]" ..
         "label[0.5,0.5;" .. minetest.colorize("#FFFFFF", S("── Town Granary ──")) .. "]" ..
         "label[0.5,1.2;" .. minetest.colorize("#FFFFFF", S("Food Reserve:") .. " " .. s.reserve_points .. " " .. S("points")) .. "]" ..
         "label[0.5,1.7;" .. minetest.colorize("#FFFFFF", S("Estimated:") .. " " .. estimated) .. "]" ..
