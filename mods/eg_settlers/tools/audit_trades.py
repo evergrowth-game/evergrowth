@@ -111,7 +111,7 @@ def find_arbitrage(edges):
     return arbitrage_cycles
 
 def audit():
-    init_lua_path = os.path.join(os.path.dirname(__file__), "../trades.lua")
+    init_lua_path = os.path.join(os.path.dirname(__file__), "../npc/trades.lua")
     edges = parse_trades(init_lua_path)
     if not edges:
         print("No trades returned by parser.")
@@ -123,9 +123,9 @@ def audit():
     cycles = find_arbitrage(edges)
     
     if not cycles:
-        print("PASS: No arbitrage cycles found. Economy mathematically secure against infinite trade loops!")
+        print("PASS: No arbitrage cycles found. Economy mathematically secure against infinite trade loops.")
     else:
-        print(f"FAIL: Found {len(cycles)} arbitrage loops generating infinite wealth!\n")
+        print(f"FAIL: Found {len(cycles)} arbitrage loops generating infinite wealth.\n")
         for i, cycle in enumerate(cycles):
             print(f"--- Loop {i+1} ---")
             multiplier = 1.0

@@ -220,10 +220,12 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         end
 
         local meta = itemstack:get_meta()
+        local trades_str = meta:get_string("trades")
         local override_data = {
             nametag = meta:get_string("resident_name"),
             texture = meta:get_string("texture"),
             health = meta:get_int("health"),
+            trades = (trades_str ~= "") and minetest.deserialize(trades_str) or nil,
             home_pos = under_pos,
         }
         local profession = meta:get_string("profession")
