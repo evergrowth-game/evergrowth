@@ -108,6 +108,8 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 ent.trades = override_data.trades
             elseif profession == "merchant" then
                 ent.trades = eg_settlers.generate_merchant_trades(4, 4)
+            elseif profession == "rancher" then
+                ent.trades = eg_settlers.generate_rancher_trades(3, 7)
             else
                 ent.trades = eg_settlers.trades_list[profession] or eg_settlers.trades_list.merchant
             end
@@ -136,8 +138,12 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                         female = {"female_guard.png"}
                     },
                     farmer = {
-                        male = {"male_farmer_1.png", "male_farmer_2.png"},
-                        female = {"female_farmer_1.png", "female_farmer_2.png"}
+                        male = {"male_farmer_2.png"},
+                        female = {"female_farmer_2.png"}
+                    },
+                    rancher = {
+                        male = {"male_farmer_1.png"},
+                        female = {"female_farmer_1.png"}
                     },
                     smith = {
                         male = {"male_smith.png"},
@@ -261,6 +267,7 @@ local function register_spawner(name, profession)
 end
 
 register_spawner("farmer", "farmer")
+register_spawner("rancher", "rancher")
 register_spawner("smith", "smith")
 register_spawner("merchant", "merchant")
 register_spawner("brewer", "brewer")

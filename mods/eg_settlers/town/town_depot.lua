@@ -2,6 +2,7 @@ local S = minetest.get_translator("eg_settlers")
 
 local profession_yields = {
     ["farmer"] = {item = "farming:wheat", count = 2},
+    ["rancher"] = {item = "mobs:leather", count = 1},
     ["lumberjack"] = {item = "default:wood", count = 1},
     ["miner"] = {item = "default:coal_lump", count = 1},
     ["smith"] = {item = "default:iron_lump", count = 1},

@@ -31,9 +31,9 @@ def check_disparities(trades_path):
             continue
             
         if current_prof:
-            # We don't care about the comment direction, we just infer from item2 vs item1
-            # But wait, mobs_npc defines direction by which item is given to get the other.
-            # But the script can just use the gold position like analyze_trades did.
+            # Infer from item2 vs item1
+            # Defines direction by which item is given to get the other.
+            # Use the gold position like analyze_trades did.
             match = trade_pattern.search(line_strip)
             if match:
                 item_str1, item_str2, chance = match.groups()
@@ -89,7 +89,7 @@ def check_disparities(trades_path):
         if values['sell_gold'] and values['buy_gold']:
             max_buy = max(val for prof, val, line in values['buy_gold'])
             min_sell = min(val for prof, val, line in values['sell_gold'])
-            # We allow max_buy == min_sell, but max_buy > min_sell is arbitrage!
+            # Allow max_buy == min_sell, but max_buy > min_sell is arbitrage.
             if max_buy > min_sell:
                 disparities_found = True
                 print(f"❌ ARBITRAGE DETECTED: {item}")
@@ -97,10 +97,10 @@ def check_disparities(trades_path):
                 print(f"    Min Sell Price: {min_sell:.4f} gold/unit")
 
     if disparities_found:
-        print("\nEconomy is UNSTABLE! Disparities or arbitrage loops were found.")
+        print("\nEconomy is UNSTABLE. Disparities or arbitrage loops were found.")
         sys.exit(1)
     else:
-        print("✅ Economy is perfectly balanced and consistent. No disparities found.")
+        print("✅ Economy appears balanced and consistent. No disparities found.")
         sys.exit(0)
 
 if __name__ == "__main__":
