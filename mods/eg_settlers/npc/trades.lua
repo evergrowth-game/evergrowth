@@ -23,6 +23,7 @@ eg_settlers.trades_list = {
         {"default:gold_lump 1", "farming:potato 10", 100},
         {"default:gold_lump 1", "farming:corn 10", 100},
     },
+    -- Rancher has been moved to a rotating master pool below
     smith = {
         -- Buys
         {"default:pick_steel 1", "default:gold_lump 5", 100},
@@ -295,6 +296,58 @@ function eg_settlers.generate_merchant_trades(num_buys, num_sells)
 
     local sells_pool = {}
     for i, v in ipairs(eg_settlers.merchant_master_pool.sells) do
+        sells_pool[i] = v
+    end
+
+    for i = 1, math.min(num_buys, #buys_pool) do
+        local idx = math.random(#buys_pool)
+        table.insert(trades, buys_pool[idx])
+        table.remove(buys_pool, idx)
+    end
+
+    for i = 1, math.min(num_sells, #sells_pool) do
+        local idx = math.random(#sells_pool)
+        table.insert(trades, sells_pool[idx])
+        table.remove(sells_pool, idx)
+    end
+
+    return trades
+end
+
+-- RANCHER MASTER TRADE POOL
+eg_settlers.rancher_master_pool = {
+    buys = {
+        -- Player Sells (NPC Buys)
+        {"default:gold_lump 1", "farming:wheat 15", 100},
+        {"default:gold_lump 1", "farming:seed_wheat 10", 100},
+        {"default:gold_lump 1", "bucket:bucket_empty 1", 100},
+        {"default:gold_lump 1", "vessels:glass_bottle 10", 100},
+    },
+    sells = {
+        -- Player Buys (NPC Sells)
+        {"mobs:leather 5", "default:gold_lump 1", 100},
+        {"mobs:pork_raw 5", "default:gold_lump 2", 100},
+        {"mobs:mutton_raw 5", "default:gold_lump 2", 100},
+        {"mobs:chicken_raw 5", "default:gold_lump 2", 100},
+        {"wool:white 10", "default:gold_lump 1", 100},
+        {"mobs:egg 5", "default:gold_lump 1", 100},
+        {"mobs:bucket_milk 1", "default:gold_lump 5", 100},
+        {"mobs:glass_milk 1", "default:gold_lump 2", 100},
+    }
+}
+
+function eg_settlers.generate_rancher_trades(num_buys, num_sells)
+    num_buys = num_buys or 3
+    num_sells = num_sells or 7
+    local trades = {}
+
+    local buys_pool = {}
+    for i, v in ipairs(eg_settlers.rancher_master_pool.buys) do
+        buys_pool[i] = v
+    end
+
+    local sells_pool = {}
+    for i, v in ipairs(eg_settlers.rancher_master_pool.sells) do
         sells_pool[i] = v
     end
 
