@@ -6,7 +6,7 @@ To ensure that the Evergrowth game repository is entirely self-contained, stable
 
 ## Integrated Mods List
 
-The following 75 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
+The following 80 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
 
 | Mod Name | Author / Creator | License | Upstream Source | Notes / Attributions |
 | :--- | :--- | :--- | :--- | :--- |
@@ -30,6 +30,10 @@ The following 75 integrated community mods are packaged with this game. All link
 | `controls` | mt-mods | MIT | [ContentDB](https://content.luanti.org/packages/mt-mods/controls/) &bull; [Source](https://github.com/mt-mods/controls) |  |
 | `death_compass` | FaceDeer | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/FaceDeer/death_compass/) &bull; [Source](https://github.com/minetest-mods/death_compass) |  |
 | `decorations_sea` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/decorations_sea/) &bull; [Source](https://github.com/mt-historical/decorations_sea) |  |
+| `doc` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc) | Base API for in-game documentation |
+| `doc_basics` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_basics/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_basics) | Basic documentation entries |
+| `doc_encyclopedia` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_encyclopedia/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_encyclopedia) | Encyclopedia UI viewer |
+| `doc_items` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_items/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_items) | Automatically parses block/item docs |
 | `dungeonsplus` | EmptyStar | MIT | [ContentDB](https://content.luanti.org/packages/EmptyStar/dungeonsplus/) &bull; [Source](https://github.com/EmptyStar/dungeonsplus) |  |
 | `ethereal` | TenPlus1 | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/ethereal/) &bull; [Source](https://codeberg.org/tenplus1/ethereal) |  |
 | `fakelib` | OgelGames | MIT | [ContentDB](https://content.luanti.org/packages/OgelGames/fakelib/) &bull; [Source](https://github.com/OgelGames/fakelib) |  |
@@ -37,6 +41,7 @@ The following 75 integrated community mods are packaged with this game. All link
 | `farmtools` | camelia | LGPL-3.0-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/camelia/farmtools/) &bull; [Source](https://codeberg.org/camelia/farmtools) |  |
 | `flowerpot` | sofar | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/sofar/flowerpot/) &bull; [Source](https://github.com/minetest-mods/flowerpot) |  |
 | `gadgets_modpack` | Aurailus | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Aurailus/aurora_tech/) &bull; [Source](https://github.com/Aurailus-Minetest/AuroraTech) |  |
+| `guidebooks` | PolySaken | CC-BY-SA-4.0 | [ContentDB](https://content.luanti.org/packages/PolySaken/guidebooks/) &bull; [Source](https://github.com/PolySaken/guidebooks) | Physical written books support |
 | `hbarmor` | Wuzzy | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbarmor/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbarmor) |  |
 | `hbhunger` | Wuzzy | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbhunger/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbhunger) |  |
 | `hidroplane` | apercy | LGPL-3.0-only for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/hidroplane/) &bull; [Source](https://github.com/APercy/hidroplane) |  |
