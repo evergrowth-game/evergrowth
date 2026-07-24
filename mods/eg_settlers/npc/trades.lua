@@ -36,15 +36,13 @@ eg_settlers.trades_list = {
         {"default:gold_lump 8", "default:steel_ingot 10", 100},
     },
     merchant = {
-        -- Buys
+        -- Default fallback trades
         {"default:book 1", "default:gold_lump 2", 100},
         {"default:torch 10", "default:gold_lump 1", 100},
         {"default:glass 10", "default:gold_lump 1", 100},
         {"wool:red 5", "default:gold_lump 2", 100},
-        {"wool:blue 5", "default:gold_lump 2", 100},
-        -- Sells
         {"default:gold_lump 20", "default:diamond 1", 100},
-        {"default:gold_lump 3", "default:mese_crystal 1", 100},
+        {"default:gold_lump 2", "default:mese_crystal 1", 100},
         {"default:gold_lump 5", "wine:bottle_wine 5", 100},
         {"default:gold_lump 5", "wine:bottle_beer 5", 100},
     },
@@ -54,7 +52,7 @@ eg_settlers.trades_list = {
         {"wine:bottle_beer 1", "default:gold_lump 2", 100},
         {"wine:bottle_cider 1", "default:gold_lump 2", 100},
         -- Sells
-        {"default:gold_lump 1", "farming:wheat 10", 100},
+        {"default:gold_lump 1", "farming:wheat 15", 100},
         {"default:gold_lump 1", "default:apple 10", 100},
         {"default:gold_lump 1", "farming:grapes 10", 100},
         {"default:gold_lump 5", "wine:wine_barrel 1", 100},
@@ -78,7 +76,7 @@ eg_settlers.trades_list = {
         {"default:iron_lump 5", "default:gold_lump 3", 100},
         {"default:cobble 50", "default:gold_lump 1", 100},
         -- Sells
-        {"default:gold_lump 1", "default:coal_lump 15", 100},
+        {"default:gold_lump 1", "default:coal_lump 20", 100},
         {"default:gold_lump 3", "default:pick_steel 1", 100},
         {"default:gold_lump 8", "tnt:tnt 1", 50},
     },
@@ -224,4 +222,94 @@ eg_settlers.trades_list = {
         {"default:gold_lump 4", "default:mese 1", 100},
     },
 }
+
+-- EXPANDED MERCHANT MASTER TRADE POOLS
+eg_settlers.merchant_master_pool = {
+    buys = {
+        {"default:gold_lump 1", "default:paper 20",           100},
+        {"default:gold_lump 1", "default:torch 20",           100},
+        {"default:gold_lump 1", "default:glass 20",           100},
+        {"default:gold_lump 1", "default:book 2",             100},
+        {"default:gold_lump 1", "vessels:glass_bottle 10",    100},
+        {"default:gold_lump 1", "default:clay_lump 20",       100},
+        {"default:gold_lump 1", "default:sand 30",            100},
+        {"default:gold_lump 1", "default:flint 10",           100},
+        {"default:gold_lump 1", "default:papyrus 20",         100},
+        {"default:gold_lump 1", "farming:cotton 10",          100},
+        {"default:gold_lump 1", "wool:white 10",              100},
+        {"default:gold_lump 1", "wool:red 10",                100},
+        {"default:gold_lump 1", "wool:blue 10",               100},
+        {"default:gold_lump 1", "mobs:leather 10",            100},
+        {"default:gold_lump 1", "default:apple 10",           100},
+        {"default:gold_lump 1", "flowers:flower_rose 10",     100},
+        {"default:gold_lump 1", "flowers:flower_tulip 10",    100},
+        {"default:gold_lump 1", "flowers:flower_viola 10",    100},
+        {"default:gold_lump 1", "xdecor:honey 5",             100},
+        {"default:gold_lump 1", "fireflies:firefly 4",        100},
+        {"default:gold_lump 1", "farming:seed_wheat 10",      100},
+        {"default:gold_lump 1", "farming:seed_cotton 10",     100},
+    },
+    sells = {
+        {"xdecor:lantern 5",             "default:gold_lump 3",  100},
+        {"xdecor:candle 5",              "default:gold_lump 2",  100},
+        {"ropes:ropesegment 5",          "default:gold_lump 5",  100},
+        {"default:chest_locked 1",       "default:gold_lump 3",  100},
+        {"vessels:drinking_glass 5",     "default:gold_lump 1",  100},
+        {"xdecor:barrel 1",              "default:gold_lump 4",  100},
+        {"xdecor:cabinet 1",             "default:gold_lump 4",  100},
+        {"xdecor:cushion_block 5",       "default:gold_lump 2",  100},
+        {"fireflies:firefly_bottle 1",   "default:gold_lump 3",  100},
+        {"flowerpot:empty 2",            "default:gold_lump 2",  100},
+        {"wool:red 5",                   "default:gold_lump 2",  100},
+        {"wool:blue 5",                  "default:gold_lump 2",  100},
+        {"dye:red 5",                    "default:gold_lump 2",  100},
+        {"dye:blue 5",                   "default:gold_lump 2",  100},
+        {"dye:black 5",                  "default:gold_lump 2",  100},
+        {"carpet:wool_red 5",            "default:gold_lump 2",  100},
+        {"xdecor:woodframed_glass 5",    "default:gold_lump 2",  100},
+        {"x_enchanting:table 1",         "default:gold_lump 20", 100},
+        {"binoculars:binoculars 1",      "default:gold_lump 8",  100},
+        {"airtanks:empty_steel_tank 1",  "default:gold_lump 8", 100},
+        {"beds:bed_bottom 1",            "default:gold_lump 3",  100},
+        {"bonemeal:bonemeal 5",          "default:gold_lump 2",  100},
+        {"farming:bread 5",              "default:gold_lump 1",  100},
+        {"wine:bottle_wine 5",           "default:gold_lump 10", 100},
+        {"wine:bottle_beer 5",           "default:gold_lump 10", 100},
+        {"xdecor:honey 5",               "default:gold_lump 3",  100},
+        {"default:diamond 1",            "default:gold_lump 20", 100},
+        {"default:mese_crystal 1",       "default:gold_lump 5",  100},
+        {"default:obsidian 5",           "default:gold_lump 5",  100},
+        {"magic_materials:enchanted_page 1", "default:gold_lump 5",  100},
+    }
+}
+
+function eg_settlers.generate_merchant_trades(num_buys, num_sells)
+    num_buys = num_buys or 4
+    num_sells = num_sells or 4
+    local trades = {}
+
+    local buys_pool = {}
+    for i, v in ipairs(eg_settlers.merchant_master_pool.buys) do
+        buys_pool[i] = v
+    end
+
+    local sells_pool = {}
+    for i, v in ipairs(eg_settlers.merchant_master_pool.sells) do
+        sells_pool[i] = v
+    end
+
+    for i = 1, math.min(num_buys, #buys_pool) do
+        local idx = math.random(#buys_pool)
+        table.insert(trades, buys_pool[idx])
+        table.remove(buys_pool, idx)
+    end
+
+    for i = 1, math.min(num_sells, #sells_pool) do
+        local idx = math.random(#sells_pool)
+        table.insert(trades, sells_pool[idx])
+        table.remove(sells_pool, idx)
+    end
+
+    return trades
+end
 

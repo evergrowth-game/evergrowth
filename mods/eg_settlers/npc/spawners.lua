@@ -104,8 +104,13 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
             end
             
-            local trade_def = eg_settlers.trades_list[profession] or eg_settlers.trades_list.merchant
-            ent.trades = trade_def
+            if override_data and override_data.trades then
+                ent.trades = override_data.trades
+            elseif profession == "merchant" then
+                ent.trades = eg_settlers.generate_merchant_trades(4, 4)
+            else
+                ent.trades = eg_settlers.trades_list[profession] or eg_settlers.trades_list.merchant
+            end
             
             -- Roll gender once for both name and texture
             local is_female = (math.random() < 0.5)
@@ -200,7 +205,9 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 if not texture_pool then
                     texture_pool = is_female and {"mobs_trader4.png"} or {"mobs_trader.png"}
                 end
-                ent.base_texture = { texture_pool[math.random(#texture_pool)] }
+
+                local chosen_tex = texture_pool[math.random(#texture_pool)]
+                ent.base_texture = { chosen_tex }
             end
 
             

@@ -213,6 +213,10 @@ for _, entity_name in ipairs(target_entities) do
     base_entity.on_activate = function(self, staticdata, dtime)
         if old_on_activate then old_on_activate(self, staticdata, dtime) end
 
+        if self.base_texture then
+            self.object:set_properties({textures = self.base_texture})
+        end
+
         if self.evergrowth_profession == "guard" then
             self.hp_max = 50
             self.object:set_properties({hp_max = 50})
@@ -246,6 +250,9 @@ for _, entity_name in ipairs(target_entities) do
                     meta:set_string("profession", prof)
                     meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
                     meta:set_int("health", hp)
+                    if self.trades then
+                        meta:set_string("trades", minetest.serialize(self.trades))
+                    end
 
                     local desc = contract:get_definition().description
                     local formatted_prof = prof:gsub("^%l", string.upper)
