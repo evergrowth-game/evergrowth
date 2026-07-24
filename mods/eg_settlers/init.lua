@@ -30,3 +30,5 @@ dofile(modpath .. "/town/town_ledger.lua")
 dofile(modpath .. "/town/job_board.lua")
 dofile(modpath .. "/town/town_depot.lua")
 dofile(modpath .. "/town/town_granary.lua")
+dofile(modpath .. "/docs/guide_content.lua")
+
