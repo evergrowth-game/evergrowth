@@ -13,7 +13,7 @@ local S = minetest.get_translator("eg_settlers")
 
 -- Housing Deed Node
 minetest.register_node("eg_settlers:housing_deed", {
-    description = S("Housing Deed"),
+    description = S("Housing Deed") .. "\n" .. S("Sneak+Right-Click with an empty hand to clear if resident is missing."),
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
     inventory_image = "default_sign_steel.png^[multiply:#FFD700",
