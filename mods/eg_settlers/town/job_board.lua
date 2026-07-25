@@ -11,11 +11,74 @@ local seeker_professions = {
 }
 
 local bounty_requests = {
-    ["farmer"] = {text = "The Farmer needs 20 Wheat", input = "farming:wheat", in_count = 20, out = "default:gold_lump", out_count = 1},
-    ["lumberjack"] = {text = "The Lumberjack needs 20 Wood", input = "default:wood", in_count = 20, out = "default:gold_lump", out_count = 1},
-    ["miner"] = {text = "The Miner needs 20 Coal", input = "default:coal_lump", in_count = 20, out = "default:gold_lump", out_count = 1},
-    ["smith"] = {text = "The Blacksmith needs 20 Iron", input = "default:iron_lump", in_count = 20, out = "default:gold_lump", out_count = 2},
+    -- Farmer
+    ["farmer_wheat"] = {prof="farmer", text="The Farmer needs 20 Wheat", input="farming:wheat", in_count=20, out="default:gold_lump", out_count=2},
+    ["farmer_cotton"] = {prof="farmer", text="The Farmer needs 50 Cotton", input="farming:cotton", in_count=50, out="default:gold_lump", out_count=7},
+    ["farmer_rabbit"] = {prof="farmer", text="The Farmer needs 20 Raw Rabbit", input="mobs:rabbit_raw", in_count=20, out="default:gold_lump", out_count=10},
+    -- Lumberjack
+    ["lumberjack_wood"] = {prof="lumberjack", text="The Lumberjack needs 50 Wood", input="default:wood", in_count=50, out="default:gold_lump", out_count=4},
+    ["lumberjack_jungle"] = {prof="lumberjack", text="The Lumberjack needs 50 Jungle Wood", input="default:junglewood", in_count=50, out="default:gold_lump", out_count=4},
+    ["lumberjack_pine"] = {prof="lumberjack", text="The Lumberjack needs 50 Pine Wood", input="default:pine_wood", in_count=50, out="default:gold_lump", out_count=4},
+    -- Miner
+    ["miner_coal"] = {prof="miner", text="The Miner needs 20 Coal", input="default:coal_lump", in_count=20, out="default:gold_lump", out_count=2},
+    ["miner_mese"] = {prof="miner", text="The Miner needs 5 Mese Crystals", input="default:mese_crystal", in_count=5, out="default:gold_lump", out_count=30},
+    ["miner_diamond"] = {prof="miner", text="The Miner needs 2 Diamonds", input="default:diamond", in_count=2, out="default:gold_lump", out_count=50},
+    -- Blacksmith (smith)
+    ["smith_iron"] = {prof="smith", text="The Blacksmith needs 20 Iron Lumps", input="default:iron_lump", in_count=20, out="default:gold_lump", out_count=6},
+    ["smith_bronze"] = {prof="smith", text="The Blacksmith needs 20 Bronze Ingots", input="default:bronze_ingot", in_count=20, out="default:gold_lump", out_count=25},
+    -- Guard
+    ["guard_swords"] = {prof="guard", text="The Guard needs 5 Steel Swords", input="default:sword_steel", in_count=5, out="default:gold_lump", out_count=50},
+    ["guard_bones"] = {prof="guard", text="The Guard needs 20 Bones", input="bones:bone", in_count=20, out="default:gold_lump", out_count=5},
+    -- Gunsmith
+    ["gunsmith_gunpowder"] = {prof="gunsmith", text="The Gunsmith needs 20 Gunpowder", input="tnt:gunpowder", in_count=20, out="default:gold_lump", out_count=8},
+    ["gunsmith_tnt"] = {prof="gunsmith", text="The Gunsmith needs 5 TNT", input="tnt:tnt", in_count=5, out="default:gold_lump", out_count=50},
+    -- Roboticist
+    ["roboticist_bronze"] = {prof="roboticist", text="The Roboticist needs 2 Bronze Blocks", input="default:bronzeblock", in_count=2, out="default:gold_lump", out_count=20},
+    ["roboticist_coal"] = {prof="roboticist", text="The Roboticist needs 10 Coal Blocks", input="default:coalblock", in_count=10, out="default:gold_lump", out_count=25},
+    -- Merchant
+    ["merchant_glass"] = {prof="merchant", text="The Merchant needs 30 Glass", input="default:glass", in_count=30, out="default:gold_lump", out_count=2},
+    ["merchant_clay"] = {prof="merchant", text="The Merchant needs 30 Clay Lumps", input="default:clay_lump", in_count=30, out="default:gold_lump", out_count=2},
+    ["merchant_book"] = {prof="merchant", text="The Merchant needs 3 Books", input="default:book", in_count=3, out="default:gold_lump", out_count=2},
+    -- Brewer
+    ["brewer_wine"] = {prof="brewer", text="The Brewer needs 5 Wine", input="wine:bottle_wine", in_count=5, out="default:gold_lump", out_count=13},
+    ["brewer_beer"] = {prof="brewer", text="The Brewer needs 5 Beer", input="wine:bottle_beer", in_count=5, out="default:gold_lump", out_count=13},
+    -- Librarian
+    ["librarian_paper"] = {prof="librarian", text="The Librarian needs 20 Paper", input="default:paper", in_count=20, out="default:gold_lump", out_count=3},
+    ["librarian_book"] = {prof="librarian", text="The Librarian needs 5 Books", input="default:book", in_count=5, out="default:gold_lump", out_count=13},
+    ["librarian_bookshelf"] = {prof="librarian", text="The Librarian needs 2 Bookshelves", input="default:bookshelf", in_count=2, out="default:gold_lump", out_count=13},
+    -- Mage
+    ["mage_mese"] = {prof="mage", text="The Mage needs 2 Mese Crystals", input="default:mese_crystal", in_count=2, out="default:gold_lump", out_count=13},
+    ["mage_obsidian"] = {prof="mage", text="The Mage needs 10 Obsidian", input="default:obsidian", in_count=10, out="default:gold_lump", out_count=13},
+    ["mage_etherium"] = {prof="mage", text="The Mage needs 2 Etherium Dust", input="ethereal:etherium_dust", in_count=2, out="default:gold_lump", out_count=8},
+    -- Technologist
+    ["technologist_copper"] = {prof="technologist", text="The Technologist needs 20 Copper Ingots", input="default:copper_ingot", in_count=20, out="default:gold_lump", out_count=15},
+    ["technologist_plastic"] = {prof="technologist", text="The Technologist needs 20 Plastic Sheets", input="basic_materials:plastic_sheet", in_count=20, out="default:gold_lump", out_count=5},
+    -- Carpenter
+    ["carpenter_cobble"] = {prof="carpenter", text="The Carpenter needs 200 Cobblestone", input="default:cobble", in_count=200, out="default:gold_lump", out_count=5},
+    ["carpenter_wood"] = {prof="carpenter", text="The Carpenter needs 50 Wood", input="default:wood", in_count=50, out="default:gold_lump", out_count=3},
+    ["carpenter_wool"] = {prof="carpenter", text="The Carpenter needs 40 White Wool", input="wool:white", in_count=40, out="default:gold_lump", out_count=5},
+    -- Automobile Mechanic
+    ["automobile_mechanic_steel"] = {prof="automobile_mechanic", text="The Mechanic needs 2 Steel Blocks", input="default:steelblock", in_count=2, out="default:gold_lump", out_count=20},
+    ["automobile_mechanic_oil"] = {prof="automobile_mechanic", text="The Mechanic needs 2 Barrel Oil", input="techage:ta3_barrel_oil", in_count=2, out="default:gold_lump", out_count=25},
+    ["automobile_mechanic_tin"] = {prof="automobile_mechanic", text="The Mechanic needs 40 Tin Ingots", input="default:tin_ingot", in_count=40, out="default:gold_lump", out_count=3},
+    -- Nautical Mechanic
+    ["nautical_mechanic_steel"] = {prof="nautical_mechanic", text="The Mechanic needs 2 Steel Blocks", input="default:steelblock", in_count=2, out="default:gold_lump", out_count=20},
+    ["nautical_mechanic_glass"] = {prof="nautical_mechanic", text="The Mechanic needs 40 Glass", input="default:glass", in_count=40, out="default:gold_lump", out_count=3},
+    ["nautical_mechanic_diamond"] = {prof="nautical_mechanic", text="The Mechanic needs 1 Diamond", input="default:diamond", in_count=1, out="default:gold_lump", out_count=25},
+    -- Aircraft Mechanic
+    ["aircraft_mechanic_tin"] = {prof="aircraft_mechanic", text="The Mechanic needs 2 Tin Blocks", input="default:tinblock", in_count=2, out="default:gold_lump", out_count=25},
+    ["aircraft_mechanic_mese"] = {prof="aircraft_mechanic", text="The Mechanic needs 1 Mese Block", input="default:mese_block", in_count=1, out="default:gold_lump", out_count=65},
+    -- Fisher
+    ["fisher_string"] = {prof="fisher", text="The Fisher needs 40 String", input="farming:string", in_count=40, out="default:gold_lump", out_count=3},
+    ["fisher_sticks"] = {prof="fisher", text="The Fisher needs 60 Sticks", input="default:stick", in_count=60, out="default:gold_lump", out_count=3},
+    ["fisher_sand"] = {prof="fisher", text="The Fisher needs 40 Sand", input="default:sand", in_count=40, out="default:gold_lump", out_count=2},
 }
+
+local bounties_by_prof = {}
+for id, req in pairs(bounty_requests) do
+    bounties_by_prof[req.prof] = bounties_by_prof[req.prof] or {}
+    table.insert(bounties_by_prof[req.prof], {id = id, req = req})
+end
 
 -- Utility to get formspec
 local function get_job_board_formspec(pos, tab_index)
@@ -197,11 +260,12 @@ minetest.register_node("eg_settlers:job_board", {
                     
                     if #valid_professions > 0 then
                         local chosen_prof = valid_professions[math.random(#valid_professions)]
-                        local bounty = bounty_requests[chosen_prof]
-                        if bounty then
-                            meta:set_string("bounty_id", chosen_prof)
-                            meta:set_string("bounty_text", bounty.text)
-                            meta:set_string("infotext", S("Job Board Request: ") .. bounty.text)
+                        local prof_bounties = bounties_by_prof[chosen_prof]
+                        if prof_bounties and #prof_bounties > 0 then
+                            local chosen_bounty = prof_bounties[math.random(#prof_bounties)]
+                            meta:set_string("bounty_id", chosen_bounty.id)
+                            meta:set_string("bounty_text", chosen_bounty.req.text)
+                            meta:set_string("infotext", S("Job Board Request: ") .. chosen_bounty.req.text)
                         end
                     end
                 end
