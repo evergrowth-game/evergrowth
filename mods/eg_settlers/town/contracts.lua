@@ -9,7 +9,7 @@ local function register_contract(name, profession, recipe_item, description, cus
     end
 
     minetest.register_craftitem(item_name, {
-        description = S(description) .. "\n" .. S("Use on a Housing Deed to assign a resident"),
+        description = S(description) .. "\n" .. S("Use on a Housing Deed to assign a resident.") .. "\n" .. S("Sneak+Right-Click an assigned resident to relocate them."),
         inventory_image = "default_paper.png^(" .. tex_name .. "^[resize:16x16)",
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then return itemstack end
