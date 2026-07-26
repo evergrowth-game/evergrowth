@@ -1,5 +1,7 @@
 # Evergrowth
 
+![Evergrowth Screenshot](screenshot.png)
+
 Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foundation of Minetest Game. Set across diverse biomes and deep caverns, it places no limits on your ambition. Players can wander ancient ruins and fight hostile plunderers, collect and cultivate a wide variety of crops, establish towns and trade with hired NPC specialists, craft magical items of great power, build resource extraction and automation networks, or bypass the terrain entirely using ground, maritime, and aerial vehicles.
 
 ## Core Features
@@ -14,9 +16,11 @@ Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foun
 
 - `mods/` - Integrated mod ecosystem containing community packs and custom-developed mods.
   - `eg_settlers/` - The core settlement generation mod (formerly `evergrowth_villages`), fully merged with historical commits preserved.
-  - `aircraft_tweaks/`, `automobiles_tweaks/` - Core overrides managing vehicle friction and handling behavior.
+  - `eg_third_party_docs/` - Modular encyclopedia and help entries for existing third-party systems.
+  - `*_tweaks/` - Core overrides and custom behaviors for community mods (e.g., `aircraft_tweaks`, `automobiles_tweaks`, `mobs_animal_tweaks`, `techage_tweaks`, etc.).
+- `menu/` - Main menu assets and configuration.
 - `research/` - Prototyping and reference designs for sub-systems.
-- `utils/` - Administrative and maintenance tools.
+- `utils/` - Administrative and maintenance tools (using `venv/` for python dependencies).
 
 ## Integrated Community Mods
 
