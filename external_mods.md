@@ -55,7 +55,6 @@ The following 80 integrated community mods are packaged with this game. All link
 | `maidroid_ng` | mazes | LGPL-2.1-or-later for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mazes/maidroid_ng/) &bull; [Source](https://gitlab.com/mazes_80/maidroid_ng) |  |
 | `mana` | Wuzzy | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Wuzzy/mana/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_mana) |  |
 | `mob_horse` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mob_horse/) &bull; [Source](https://codeberg.org/tenplus1/mob_horse) |  |
-| `mobf_trader` | Sokomine | GPL-3.0-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Sokomine/mobf_trader/) &bull; [Source](https://github.com/Sokomine/mobf_trader) |  |
 | `mobkit` | mt-mods | MIT | [ContentDB](https://content.luanti.org/packages/mt-mods/mobkit/) &bull; [Source](https://github.com/mt-mods/mobkit) |  |
 | `mobs` | TenPlus1 | MIT | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs/) &bull; [Source](https://codeberg.org/tenplus1/mobs_redo) | Also known as `mobs_redo`. |
 | `mobs_animal` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_animal/) &bull; [Source](https://codeberg.org/tenplus1/mobs_animal) |  |
