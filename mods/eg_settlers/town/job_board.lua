@@ -22,23 +22,26 @@ local bounty_requests = {
     -- Miner
     ["miner_coal"] = {prof="miner", text="The Miner needs 20 Coal", input="default:coal_lump", in_count=20, out="default:gold_lump", out_count=2},
     ["miner_mese"] = {prof="miner", text="The Miner needs 5 Mese Crystals", input="default:mese_crystal", in_count=5, out="default:gold_lump", out_count=30},
-    ["miner_diamond"] = {prof="miner", text="The Miner needs 2 Diamonds", input="default:diamond", in_count=2, out="default:gold_lump", out_count=50},
+    ["miner_diamond"] = {prof="miner", text="The Miner needs 2 Diamonds", input="default:diamond", in_count=2, out="default:gold_lump", out_count=60},
     -- Blacksmith (smith)
     ["smith_iron"] = {prof="smith", text="The Blacksmith needs 20 Iron Lumps", input="default:iron_lump", in_count=20, out="default:gold_lump", out_count=6},
     ["smith_bronze"] = {prof="smith", text="The Blacksmith needs 20 Bronze Ingots", input="default:bronze_ingot", in_count=20, out="default:gold_lump", out_count=25},
     -- Guard
     ["guard_swords"] = {prof="guard", text="The Guard needs 5 Steel Swords", input="default:sword_steel", in_count=5, out="default:gold_lump", out_count=50},
-    ["guard_bones"] = {prof="guard", text="The Guard needs 20 Bones", input="bones:bone", in_count=20, out="default:gold_lump", out_count=5},
+    ["guard_torches"] = {prof="guard", text="The Guard needs 99 Torches", input="default:torch", in_count=99, out="default:gold_lump", out_count=8},
+    ["guard_coffee"] = {prof="guard", text="The Guard needs 10 Cups of Coffee", input="farming:coffee_cup", in_count=10, out="default:gold_lump", out_count=15},
+    ["guard_chestplate"] = {prof="guard", text="The Guard needs 1 Steel Chestplate", input="3d_armor:chestplate_steel", in_count=1, out="default:gold_lump", out_count=40},
+    ["guard_shield"] = {prof="guard", text="The Guard needs 1 Steel Shield", input="shields:shield_steel", in_count=1, out="default:gold_lump", out_count=35},
     -- Gunsmith
     ["gunsmith_gunpowder"] = {prof="gunsmith", text="The Gunsmith needs 20 Gunpowder", input="tnt:gunpowder", in_count=20, out="default:gold_lump", out_count=8},
     ["gunsmith_tnt"] = {prof="gunsmith", text="The Gunsmith needs 5 TNT", input="tnt:tnt", in_count=5, out="default:gold_lump", out_count=50},
     -- Roboticist
-    ["roboticist_bronze"] = {prof="roboticist", text="The Roboticist needs 2 Bronze Blocks", input="default:bronzeblock", in_count=2, out="default:gold_lump", out_count=20},
+    ["roboticist_bronze"] = {prof="roboticist", text="The Roboticist needs 2 Bronze Blocks", input="default:bronzeblock", in_count=2, out="default:gold_lump", out_count=30},
     ["roboticist_coal"] = {prof="roboticist", text="The Roboticist needs 10 Coal Blocks", input="default:coalblock", in_count=10, out="default:gold_lump", out_count=25},
     -- Merchant
-    ["merchant_glass"] = {prof="merchant", text="The Merchant needs 30 Glass", input="default:glass", in_count=30, out="default:gold_lump", out_count=2},
+    ["merchant_glass"] = {prof="merchant", text="The Merchant needs 30 Glass", input="default:glass", in_count=30, out="default:gold_lump", out_count=4},
     ["merchant_clay"] = {prof="merchant", text="The Merchant needs 30 Clay Lumps", input="default:clay_lump", in_count=30, out="default:gold_lump", out_count=2},
-    ["merchant_book"] = {prof="merchant", text="The Merchant needs 3 Books", input="default:book", in_count=3, out="default:gold_lump", out_count=2},
+    ["merchant_leather"] = {prof="merchant", text="The Merchant needs 20 Leather", input="mobs:leather", in_count=20, out="default:gold_lump", out_count=3},
     -- Brewer
     ["brewer_wine"] = {prof="brewer", text="The Brewer needs 5 Wine", input="wine:bottle_wine", in_count=5, out="default:gold_lump", out_count=13},
     ["brewer_beer"] = {prof="brewer", text="The Brewer needs 5 Beer", input="wine:bottle_beer", in_count=5, out="default:gold_lump", out_count=13},
