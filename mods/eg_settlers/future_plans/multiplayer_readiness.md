@@ -24,11 +24,14 @@ Because Minetest defaults to allowing inventory interaction if the `allow_metada
 5. **NPC Removal is Soft-Locked for Normal Players:**
    In `npc_behavior.lua` and `companions.lua`, the code explicitly checks `if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then` before allowing a player to safely remove/relocate an NPC. In a multiplayer setting, a standard player will be completely unable to remove their own NPCs unless you give them the `server` privilege.
 
+6. **Infrastructure Node Breaking & Explosions:**
+   The `town_ledger.lua` has a `can_dig` callback that allows *any* player holding sneak to bypass formspec checks and instantly destroy the ledger. Furthermore, `town_depot.lua`, `town_granary.lua`, and `job_board.lua` lack explicit `can_dig` and `on_blast` protections entirely. A griefer can simply mine these nodes when empty or blow them up with TNT to permanently cripple a town.
+
 ## Implementation Plan for Multiplayer Patch
 To make this viable for a multiplayer server, the following changes must be implemented:
-* **Database Updates:** Add an `owner` string and an `associates` list to settlements in the DB. Add a mechanism to transfer ownership.
+* **Database Updates:** Add an `owner` string and an `associates` list to settlements in the DB. Add a mechanism to transfer ownership. Add a migration hook on startup to assign ownership of unowned legacy settlements to the host player.
 * **Formspec Protection:** Update the Town Ledger formspec to allow the owner to add/remove associates and transfer ownership. Enforce that only the owner or associates can access the Ledger and Job Board formspecs (with some actions like 'Disband' restricted strictly to the owner).
-* **Inventory Protection:** Add `allow_metadata_inventory_take` and `allow_metadata_inventory_put` callbacks to the **Job Board** and **Town Depot** so only the owner and their associates can access them.
+* **Inventory & Node Protection:** Add `allow_metadata_inventory_take` and `allow_metadata_inventory_put` callbacks to the **Job Board** and **Town Depot** so only authorized players can access them. Add strict `can_dig` and `on_blast` protections to all infrastructure nodes to prevent mining bypasses and explosion griefing.
 * **NPC Interaction:** Change the NPC removal logic to check if the player is the owner or an associate of the town, rather than checking for admin privileges.
 * **Protection Mod Hooks (Optional):** Ensure deeds can only be placed if the player has permission to build in that area (hooks into `areas` or `protector` mods if present), preventing players from placing deeds near towns they don't own.
 * **Global Build Protection (Integration):** We can override `minetest.is_protected(pos, name)` so that the Town Ledger itself acts as a massive protection block. If a player tries to build or dig within the town's radius, the system will check if they are the owner or an associate. If not, it blocks the action. https://content.luanti.org/packages/TenPlus1/protector/
