@@ -30,3 +30,11 @@ research/
 
 # Local testing and debug files
 world.mt
+
+# Ignore all dotfiles and directories by default
+.*
+
+# Whitelist currently tracked dotfiles
+!/.github/
+!/.gitignore
+!/.luacheckrc
