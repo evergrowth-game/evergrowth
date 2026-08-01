@@ -16,7 +16,7 @@ def fetch_page(page, per_page=1000):
         return {}
 
 def main():
-    dest_dir = "/Users/Aresh/Library/Application Support/minetest/games/evergrowth/research"
+    dest_dir = os.path.expanduser("~/Library/Application Support/minetest/games/evergrowth/research")
     
     # Master list of all required online skins
     all_targets = {

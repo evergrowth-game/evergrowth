@@ -21,7 +21,7 @@ fi
 TARGET_MOD="${1:-all}"
 
 # Extract mod names and paths from external_mods.md table
-# Example format: | `3d_armor` | `/Users/Aresh/...` |
+# Example format: | `3d_armor` | `~/...` |
 parse_mods() {
     grep -E '^\| `[a-zA-Z0-9_-]+` \| `' "$EXTERNAL_MODS_FILE" | while read -r line; do
         # Extract mod name (between first set of backticks)

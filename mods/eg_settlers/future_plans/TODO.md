@@ -1,10 +1,10 @@
 # Evergrowth Settlers Development TODO List
 
-This TODO list tracks the status of all planned features from the [Master Development Priorities](file:///Users/Aresh/Library/Application%20Support/minetest/games/evergrowth/mods/eg_settlers/future_plans/master_priority_list.md).
+This TODO list tracks the status of all planned features from the [Master Development Priorities](master_priority_list.md).
 
 ## Phase 1: Core Multiplayer Foundation (Complete)
 - [x] **Database Refactoring & Legacy Migration (Ownership)**
-  - [x] Update [settlement_db.lua](file:///Users/Aresh/Library/Application%20Support/minetest/games/evergrowth/mods/eg_settlers/api/settlement_db.lua) to store `owner` string and `associates` list.
+  - [x] Update [settlement_db.lua](../api/settlement_db.lua) to store `owner` string and `associates` list.
   - [x] Add Access Control tab to Town Ledger to transfer ownership and manage authorized players.
   - [x] Add migration hook during database load to assign ownership of unowned legacy settlements to the host player.
 - [x] **Formspec & Interface Protection**

@@ -70,7 +70,7 @@ def process_image(img_path, out_path, hue_shift):
     os.remove(txt_path)
     os.remove(out_txt_path)
     
-textures_dir = "/Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/eg_settlers/textures"
+textures_dir = os.path.expanduser("~/Library/Application Support/minetest/games/evergrowth/mods/eg_settlers/textures")
 
 # Original is Olive Green (Hue ~ 0.18)
 # Nautical (Blue shift): +0.42 puts it at ~0.60 (Blue)
