@@ -28,6 +28,6 @@ def analyze_colors(txt_path):
     for color, count in c.most_common(15):
         print(f"{color}: {count} pixels")
 
-os.system("magick '/Users/Aresh/Library/Application Support/minetest/games/evergrowth/mods/eg_settlers/textures/female_mechanic.png' temp.txt")
+os.system("magick '" + os.path.expanduser("~/Library/Application Support/minetest/games/evergrowth/mods/eg_settlers/textures/female_mechanic.png") + "' temp.txt")
 analyze_colors("temp.txt")
 os.remove("temp.txt")
