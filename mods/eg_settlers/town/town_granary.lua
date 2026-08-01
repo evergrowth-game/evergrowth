@@ -90,6 +90,35 @@ minetest.register_node("eg_settlers:town_granary", {
         return itemstack
     end,
     
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        if placer and placer:is_player() then
+            local meta = minetest.get_meta(pos)
+            meta:set_string("owner", placer:get_player_name())
+        end
+    end,
+    
+    can_dig = function(pos, player)
+        if not player or not player:is_player() then return false end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        
+        -- Placer / owner bypass
+        local owner = meta:get_string("owner")
+        if owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+            return true
+        end
+        
+        if sid and sid ~= "" then
+            return eg_settlers.db.is_authorized(sid, name)
+        end
+        return false
+    end,
+    
+    on_blast = function(pos, intensity)
+        return nil
+    end,
+    
     allow_metadata_inventory_put = function(pos, listname, index, stack, player)
         if listname == "granary" then
             local food_val = eg_settlers.get_food_value(stack:get_name())

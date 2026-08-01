@@ -5,33 +5,85 @@
 
 local S = minetest.get_translator("eg_settlers")
 
-local function get_formspec(sid)
+local function get_formspec(sid, player_name, tab_index)
+    tab_index = tab_index or 1
     local s = eg_settlers.db.get_settlement(sid)
     if not s then return "" end
     
+    local is_owner = eg_settlers.db.is_owner(sid, player_name)
+    local is_auth = eg_settlers.db.is_authorized(sid, player_name)
     local resident_count = eg_settlers.db.get_resident_count(sid)
-    local status_text = s.satiated == 1 and minetest.colorize("#00FF00", S("● Well-Fed")) or minetest.colorize("#FF0000", S("● Starving"))
     
-    local roster_list = ""
-    for pos_str, res in pairs(s.residents) do
-        local prof = res.profession or "Unknown"
-        local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
-        if roster_list == "" then
-            roster_list = minetest.formspec_escape(entry)
-        else
-            roster_list = roster_list .. "," .. minetest.formspec_escape(entry)
-        end
+    local formspec = "size[8,9]"
+    
+    if is_auth then
+        formspec = formspec .. "tabheader[0,0;ledger_tabs;" .. S("Info") .. "," .. S("Access Control") .. ";" .. tab_index .. ";true;false]"
     end
     
-    local formspec = "size[8,8]" ..
-        "label[0.5,0.5;" .. S("Town Name:") .. "]" ..
-        "field[2.5,0.8;4,1;town_name;;" .. minetest.formspec_escape(s.name) .. "]" ..
-        "button[6.5,0.5;1.5,1;rename;" .. S("Rename") .. "]" ..
-        "label[0.5,2;" .. S("Population:") .. " " .. resident_count .. " " .. S("residents") .. "]" ..
-        "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]" ..
-        "button[6.5,2;1.5,1;disband_prompt;" .. S("Disband") .. "]" ..
-        "label[0.5,3.5;" .. S("── Town Roster ──") .. "]" ..
-        "textlist[0.5,4;7,3.5;roster_list;" .. roster_list .. "]"
+    if tab_index == 1 or not is_auth then
+        local status_text = s.satiated == 1 and minetest.colorize("#00FF00", S("● Well-Fed")) or minetest.colorize("#FF0000", S("● Starving"))
+        
+        local roster_list = ""
+        for pos_str, res in pairs(s.residents) do
+            local prof = res.profession or "Unknown"
+            local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
+            if roster_list == "" then
+                roster_list = minetest.formspec_escape(entry)
+            else
+                roster_list = roster_list .. "," .. minetest.formspec_escape(entry)
+            end
+        end
+        
+        formspec = formspec ..
+            "label[0.5,0.5;" .. S("Town Name:") .. "]" ..
+            "field[2.5,0.8;4,1;town_name;;" .. minetest.formspec_escape(s.name) .. "]"
+            
+        if is_auth then
+            formspec = formspec .. "button[6.5,0.5;1.5,1;rename;" .. S("Rename") .. "]"
+        end
+        
+        formspec = formspec ..
+            "label[0.5,2;" .. S("Population:") .. " " .. resident_count .. " " .. S("residents") .. "]" ..
+            "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]"
+            
+        if is_owner then
+            formspec = formspec .. "button[6.5,2;1.5,1;disband_prompt;" .. S("Disband") .. "]"
+        end
+        
+        formspec = formspec ..
+            "label[0.5,3.5;" .. S("── Town Roster ──") .. "]" ..
+            "textlist[0.5,4;7,4.5;roster_list;" .. roster_list .. "]"
+    elseif tab_index == 2 and is_auth then
+        -- Access Control Tab
+        formspec = formspec ..
+            "label[0.5,0.5;" .. S("Owner: ") .. minetest.colorize("#FFFF00", s.owner) .. "]"
+            
+        if is_owner then
+            formspec = formspec ..
+                "field[0.8,1.5;4,1;new_owner;;" .. S("Transfer Ownership to...") .. "]" ..
+                "button[4.8,1.2;2.5,1;transfer_owner;" .. S("Transfer") .. "]"
+        end
+        
+        local assoc_list = ""
+        for _, name in ipairs(s.associates) do
+            if assoc_list == "" then
+                assoc_list = minetest.formspec_escape(name)
+            else
+                assoc_list = assoc_list .. "," .. minetest.formspec_escape(name)
+            end
+        end
+        
+        formspec = formspec ..
+            "label[0.5,2.5;" .. S("── Authorized Associates ──") .. "]" ..
+            "textlist[0.5,3;7,3.5;assoc_list;" .. assoc_list .. "]"
+            
+        if is_owner then
+            formspec = formspec ..
+                "field[0.8,7.5;4,1;assoc_name;;" .. S("Associate Name") .. "]" ..
+                "button[4.8,7.2;1.2,1;add_assoc;" .. S("Add") .. "]" ..
+                "button[6.2,7.2;1.2,1;remove_assoc;" .. S("Remove") .. "]"
+        end
+    end
         
     return formspec
 end
@@ -96,7 +148,6 @@ minetest.register_node("eg_settlers:town_ledger", {
                     return
                 else
                     -- Active town nearby! Reject placement.
-                    minetest.chat_send_all("[Evergrowth] Cannot place Ledger here. An active Ledger for '" .. s.name .. "' is too close.")
                     minetest.remove_node(pos)
                     minetest.add_item(pos, "eg_settlers:town_ledger")
                     return
@@ -111,22 +162,45 @@ minetest.register_node("eg_settlers:town_ledger", {
         minetest.get_node_timer(pos):start(10.0)
     end,
     
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        if sid and sid ~= "" and placer and placer:is_player() then
+            local s = eg_settlers.db.get_settlement(sid)
+            if s then
+                s.owner = placer:get_player_name()
+                eg_settlers.db.mark_dirty()
+                meta:set_string("owner", s.owner)
+            end
+        end
+    end,
+    
     can_dig = function(pos, player)
         local meta = minetest.get_meta(pos)
         local sid = meta:get_string("settlement_id")
         if sid and sid ~= "" then
+            if player and player:is_player() then
+                local name = player:get_player_name()
+                if not eg_settlers.db.is_authorized(sid, name) then
+                    minetest.chat_send_player(name, S("Only authorized players can remove the Town Ledger."))
+                    return false
+                end
+            else
+                return false
+            end
             local count = eg_settlers.db.get_resident_count(sid)
             if count > 0 then
                 if player and player:is_player() then
-                    if player:get_player_control().sneak then
-                        return true
-                    end
-                    minetest.chat_send_player(player:get_player_name(), S("Relocate all residents before removing the Town Ledger, or hold Sneak while mining to forcefully break it."))
+                    minetest.chat_send_player(player:get_player_name(), S("Relocate all residents before removing the Town Ledger."))
                 end
                 return false
             end
         end
         return true
+    end,
+    
+    on_blast = function(pos, intensity)
+        return nil
     end,
     
     on_destruct = function(pos)
@@ -144,8 +218,9 @@ minetest.register_node("eg_settlers:town_ledger", {
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
         local meta = minetest.get_meta(pos)
         local sid = meta:get_string("settlement_id")
-        if sid and sid ~= "" then
-            minetest.show_formspec(clicker:get_player_name(), "eg_settlers:ledger_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z, get_formspec(sid))
+        if sid and sid ~= "" and clicker and clicker:is_player() then
+            local name = clicker:get_player_name()
+            minetest.show_formspec(name, "eg_settlers:ledger_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z, get_formspec(sid, name, 1))
         end
         return itemstack
     end,
@@ -169,18 +244,49 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             local meta = minetest.get_meta(pos)
             local sid = meta:get_string("settlement_id")
             if sid and sid ~= "" then
-                if fields.rename and fields.town_name then
+                local name = player:get_player_name()
+                local is_owner = eg_settlers.db.is_owner(sid, name)
+                local is_auth = eg_settlers.db.is_authorized(sid, name)
+                
+                if fields.ledger_tabs then
+                    local tab = tonumber(fields.ledger_tabs)
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, tab))
+                    return true
+                end
+                
+                if fields.rename and fields.town_name and is_auth then
                     eg_settlers.db.set_name(sid, fields.town_name)
                     meta:set_string("infotext", S("Town Ledger: ") .. fields.town_name)
-                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid))
-                elseif fields.disband_prompt then
-                    minetest.show_formspec(player:get_player_name(), formname, get_disband_formspec(sid))
-                elseif fields.cancel_disband then
-                    minetest.show_formspec(player:get_player_name(), formname, get_formspec(sid))
-                elseif fields.confirm_disband then
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 1))
+                elseif fields.disband_prompt and is_owner then
+                    minetest.show_formspec(name, formname, get_disband_formspec(sid))
+                elseif fields.cancel_disband and is_owner then
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 1))
+                elseif fields.confirm_disband and is_owner then
                     eg_settlers.db.delete_settlement(sid)
                     minetest.remove_node(pos)
-                    minetest.close_formspec(player:get_player_name(), formname)
+                    minetest.close_formspec(name, formname)
+                elseif fields.add_assoc and fields.assoc_name and is_owner then
+                    if fields.assoc_name ~= "" then
+                        eg_settlers.db.add_associate(sid, fields.assoc_name)
+                    end
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 2))
+                elseif fields.remove_assoc and fields.assoc_name and is_owner then
+                    if fields.assoc_name ~= "" then
+                        eg_settlers.db.remove_associate(sid, fields.assoc_name)
+                    end
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 2))
+                elseif fields.transfer_owner and fields.new_owner and is_owner then
+                    if fields.new_owner ~= "" and fields.new_owner ~= name then
+                        if minetest.player_exists(fields.new_owner) then
+                            eg_settlers.db.transfer_ownership(sid, fields.new_owner)
+                            meta:set_string("owner", fields.new_owner)
+                            minetest.show_formspec(name, formname, get_formspec(sid, name, 2))
+                            minetest.chat_send_player(name, S("Ownership transferred to ") .. fields.new_owner)
+                        else
+                            minetest.chat_send_player(name, S("Player does not exist: ") .. fields.new_owner)
+                        end
+                    end
                 end
             end
         end
