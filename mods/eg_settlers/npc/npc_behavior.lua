@@ -239,6 +239,31 @@ for _, entity_name in ipairs(target_entities) do
             
             if clicker:get_player_control().sneak then
                 if self.is_villager then
+                    local allowed = false
+                    if self.home_pos then
+                        local db_sid = eg_settlers.db.get_settlement_by_deed(self.home_pos)
+                        if db_sid then
+                            allowed = eg_settlers.db.is_authorized(db_sid, name)
+                        else
+                            -- Fallback to metadata verification only if the block is loaded
+                            if minetest.get_node_or_nil(self.home_pos) then
+                                local deed_meta = minetest.get_meta(self.home_pos)
+                                local owner = deed_meta:get_string("owner")
+                                allowed = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+                            else
+                                minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Cannot relocate villager: home area is unloaded.")))
+                                return
+                            end
+                        end
+                    else
+                        allowed = minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer()
+                    end
+
+                    if not allowed then
+                        minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Only the town owner or associates can relocate this villager.")))
+                        return
+                    end
+
                     -- Relocation: create a contract item with this NPC's data
                     local contract = ItemStack("eg_settlers:contract_villager_relocation")
                     local meta = contract:get_meta()

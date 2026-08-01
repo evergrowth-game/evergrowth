@@ -26,6 +26,23 @@ function eg_settlers.db.load()
         local data = minetest.deserialize(content)
         if data then
             db_data = data
+            db_data.settlements = db_data.settlements or {}
+            db_data.next_id = db_data.next_id or 1
+            -- Migration hook for legacy unowned settlements
+            for id, s in pairs(db_data.settlements) do
+                local updated = false
+                if not s.owner then
+                    s.owner = minetest.settings:get("name") or "singleplayer"
+                    updated = true
+                end
+                if not s.associates then
+                    s.associates = {}
+                    updated = true
+                end
+                if updated then
+                    eg_settlers.db.mark_dirty()
+                end
+            end
         end
     end
 end
@@ -60,7 +77,7 @@ minetest.register_globalstep(function(dtime)
 end)
 
 -- CRUD
-function eg_settlers.db.create_settlement(ledger_pos, name)
+function eg_settlers.db.create_settlement(ledger_pos, name, owner)
     local id = tostring(db_data.next_id)
     db_data.next_id = db_data.next_id + 1
     
@@ -70,10 +87,90 @@ function eg_settlers.db.create_settlement(ledger_pos, name)
         reserve_points = 0,
         satiated = 0,
         last_tick_gametime = minetest.get_gametime(),
-        residents = {}
+        residents = {},
+        owner = owner or "",
+        associates = {}
     }
     eg_settlers.db.mark_dirty()
     return id
+end
+
+function eg_settlers.db.is_owner(settlement_id, name)
+    if not name or name == "" then
+        return false
+    end
+    if minetest.is_singleplayer() then
+        return true
+    end
+    local s = db_data.settlements[settlement_id]
+    if s then
+        return s.owner == name
+    end
+    return false
+end
+
+function eg_settlers.db.is_authorized(settlement_id, name)
+    if not name or name == "" then
+        return false
+    end
+    local s = db_data.settlements[settlement_id]
+    if s then
+        if s.owner == name then
+            return true
+        end
+        for _, assoc in ipairs(s.associates) do
+            if assoc == name then
+                return true
+            end
+        end
+        -- Check for admin bypass privilege
+        if minetest.check_player_privs(name, {protection_bypass = true}) or
+           minetest.check_player_privs(name, {server = true}) or
+           minetest.is_singleplayer() then
+            return true
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.add_associate(settlement_id, name)
+    local s = db_data.settlements[settlement_id]
+    if s then
+        -- Check if already associate
+        for _, assoc in ipairs(s.associates) do
+            if assoc == name then
+                return false
+            end
+        end
+        table.insert(s.associates, name)
+        eg_settlers.db.mark_dirty()
+        return true
+    end
+    return false
+end
+
+function eg_settlers.db.remove_associate(settlement_id, name)
+    local s = db_data.settlements[settlement_id]
+    if s then
+        for i, assoc in ipairs(s.associates) do
+            if assoc == name then
+                table.remove(s.associates, i)
+                eg_settlers.db.mark_dirty()
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.transfer_ownership(settlement_id, new_owner)
+    local s = db_data.settlements[settlement_id]
+    if s and new_owner and new_owner ~= "" then
+        s.owner = new_owner
+        eg_settlers.db.mark_dirty()
+        return true
+    end
+    return false
 end
 
 function eg_settlers.db.delete_settlement(settlement_id)
@@ -81,6 +178,17 @@ function eg_settlers.db.delete_settlement(settlement_id)
         db_data.settlements[settlement_id] = nil
         eg_settlers.db.mark_dirty()
     end
+end
+
+function eg_settlers.db.get_settlement_by_deed(deed_pos)
+    if not deed_pos then return nil end
+    local pos_str = deed_pos.x .. "," .. deed_pos.y .. "," .. deed_pos.z
+    for id, s in pairs(db_data.settlements) do
+        if s.residents[pos_str] then
+            return id
+        end
+    end
+    return nil
 end
 
 function eg_settlers.db.get_settlement(settlement_id)

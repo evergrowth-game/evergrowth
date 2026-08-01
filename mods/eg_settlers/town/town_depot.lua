@@ -115,10 +115,98 @@ minetest.register_node("eg_settlers:town_depot", {
         return true
     end,
     
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        if placer and placer:is_player() then
+            local meta = minetest.get_meta(pos)
+            meta:set_string("owner", placer:get_player_name())
+        end
+    end,
+    
+    can_dig = function(pos, player)
+        if not player or not player:is_player() then return false end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        
+        -- Placer / owner bypass
+        local owner = meta:get_string("owner")
+        if owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+            return true
+        end
+        
+        if sid and sid ~= "" then
+            return eg_settlers.db.is_authorized(sid, name)
+        end
+        return false
+    end,
+    
+    on_blast = function(pos, intensity)
+        return nil
+    end,
+    
+    allow_metadata_inventory_put = function(pos, listname, index, stack, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and stack:get_count() or 0
+    end,
+    
+    allow_metadata_inventory_take = function(pos, listname, index, stack, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and stack:get_count() or 0
+    end,
+
+    allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and count or 0
+    end,
+    
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
         if clicker and clicker:is_player() then
+            local meta = minetest.get_meta(pos)
+            local sid = meta:get_string("settlement_id")
+            local name = clicker:get_player_name()
+            local authorized = false
+            if sid and sid ~= "" then
+                authorized = eg_settlers.db.is_authorized(sid, name)
+            else
+                local owner = meta:get_string("owner")
+                authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+            end
+            if not authorized then
+                minetest.chat_send_player(name, S("Only authorized players can access this dropbox."))
+                return itemstack
+            end
             local formname = "eg_settlers:town_depot_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z
-            minetest.show_formspec(clicker:get_player_name(), formname, get_depot_formspec(pos))
+            minetest.show_formspec(name, formname, get_depot_formspec(pos))
         end
         return itemstack
     end,

@@ -277,10 +277,98 @@ minetest.register_node("eg_settlers:job_board", {
         return true
     end,
     
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        if placer and placer:is_player() then
+            local meta = minetest.get_meta(pos)
+            meta:set_string("owner", placer:get_player_name())
+        end
+    end,
+    
+    can_dig = function(pos, player)
+        if not player or not player:is_player() then return false end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        
+        -- Placer / owner bypass
+        local owner = meta:get_string("owner")
+        if owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+            return true
+        end
+        
+        if sid and sid ~= "" then
+            return eg_settlers.db.is_authorized(sid, name)
+        end
+        return false
+    end,
+    
+    on_blast = function(pos, intensity)
+        return nil
+    end,
+    
+    allow_metadata_inventory_put = function(pos, listname, index, stack, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and stack:get_count() or 0
+    end,
+    
+    allow_metadata_inventory_take = function(pos, listname, index, stack, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and stack:get_count() or 0
+    end,
+
+    allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+        if not player or not player:is_player() then return 0 end
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        local authorized = false
+        if sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        else
+            local owner = meta:get_string("owner")
+            authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        end
+        return authorized and count or 0
+    end,
+    
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
         if clicker and clicker:is_player() then
+            local meta = minetest.get_meta(pos)
+            local sid = meta:get_string("settlement_id")
+            local name = clicker:get_player_name()
+            local authorized = false
+            if sid and sid ~= "" then
+                authorized = eg_settlers.db.is_authorized(sid, name)
+            else
+                local owner = meta:get_string("owner")
+                authorized = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+            end
+            if not authorized then
+                minetest.chat_send_player(name, S("Only authorized players can access this Job Board."))
+                return itemstack
+            end
             local formname = "eg_settlers:job_board_" .. pos.x .. "_" .. pos.y .. "_" .. pos.z
-            minetest.show_formspec(clicker:get_player_name(), formname, get_job_board_formspec(pos, 1))
+            minetest.show_formspec(name, formname, get_job_board_formspec(pos, 1))
         end
         return itemstack
     end,
@@ -295,6 +383,18 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             local meta = minetest.get_meta(pos)
             local inv = meta:get_inventory()
             local pname = player:get_player_name()
+            local sid = meta:get_string("settlement_id")
+            local authorized = false
+            if sid and sid ~= "" then
+                authorized = eg_settlers.db.is_authorized(sid, pname)
+            else
+                local owner = meta:get_string("owner")
+                authorized = (owner == "" or owner == pname or minetest.check_player_privs(pname, {server=true}) or minetest.is_singleplayer())
+            end
+            if not authorized then
+                minetest.close_formspec(pname, formname)
+                return true
+            end
             
             if fields.job_tabs then
                 minetest.show_formspec(pname, formname, get_job_board_formspec(pos, tonumber(fields.job_tabs)))

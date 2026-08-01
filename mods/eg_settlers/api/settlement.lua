@@ -43,6 +43,9 @@ minetest.register_node("eg_settlers:housing_deed", {
     
     after_place_node = function(pos, placer, itemstack, pointed_thing)
         if placer and placer:is_player() then
+            local meta = minetest.get_meta(pos)
+            meta:set_string("owner", placer:get_player_name())
+            
             local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
             if not sid then
                 minetest.chat_send_player(placer:get_player_name(),
@@ -60,18 +63,38 @@ minetest.register_node("eg_settlers:housing_deed", {
     end,
 
     can_dig = function(pos, player)
+        if not player or not player:is_player() then return false end
         local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        local name = player:get_player_name()
+        
+        local authorized = false
+        local owner = meta:get_string("owner")
+        local is_node_owner = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+        if is_node_owner then
+            authorized = true
+        elseif sid and sid ~= "" then
+            authorized = eg_settlers.db.is_authorized(sid, name)
+        end
+        
+        if not authorized then
+            minetest.chat_send_player(name, S("Only authorized players can remove this Housing Deed."))
+            return false
+        end
+
         if meta:get_int("occupied") == 1 then
-            if player and player:is_player() then
-                if player:get_player_control().sneak then
-                    return true
-                end
-                minetest.chat_send_player(player:get_player_name(),
-                    S("Relocate the resident first, or hold Sneak while mining to forcefully break this deed."))
+            if player:get_player_control().sneak then
+                return true
             end
+            minetest.chat_send_player(name,
+                S("Relocate the resident first, or hold Sneak while mining to forcefully break this deed."))
             return false
         end
         return true
+    end,
+
+    on_blast = function(pos, intensity)
+        return nil
     end,
 
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
