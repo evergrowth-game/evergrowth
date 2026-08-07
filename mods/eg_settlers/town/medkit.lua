@@ -1,42 +1,49 @@
 local S = minetest.get_translator("eg_settlers")
 
-minetest.register_craftitem("eg_settlers:medkit", {
-	description = S("Field Medkit") .. "\n" .. S("Right-click a settler or companion to heal them to full health."),
-	inventory_image = "default_paper.png^[colorize:#E6DFD3:255^(default_paper.png^[colorize:#794E24:255^[resize:16x3)^(default_paper.png^[colorize:#00C844:255^[resize:8x2)^(default_paper.png^[colorize:#00C844:255^[resize:2x8)",
-	on_use = function(itemstack, user, pointed_thing)
-		if not pointed_thing or pointed_thing.type ~= "object" then
-			return itemstack
+eg_settlers = eg_settlers or {}
+
+function eg_settlers.use_medkit_on_entity(self_or_obj, clicker, itemstack)
+	if not self_or_obj then
+		return false
+	end
+
+	local lua_ent, target_obj
+	if self_or_obj.get_luaentity then
+		target_obj = self_or_obj
+		lua_ent = target_obj:get_luaentity()
+	else
+		lua_ent = self_or_obj
+		target_obj = lua_ent and lua_ent.object
+	end
+
+	if not target_obj then
+		return false
+	end
+
+	local is_villager = lua_ent and (lua_ent.is_villager or lua_ent.is_settler)
+	local is_companion = lua_ent and (lua_ent.is_companion or lua_ent.is_evergrowth_companion)
+	local is_npc = lua_ent and (lua_ent.type == "npc" or (lua_ent.name and lua_ent.name:find("mobs_npc:")))
+
+	if not (is_villager or is_companion or is_npc) then
+		return false
+	end
+
+	local hp = (lua_ent and lua_ent.health) or target_obj:get_hp()
+	local max_hp = (lua_ent and lua_ent.hp_max) or target_obj:get_properties().hp_max
+	if not max_hp or max_hp <= 0 then
+		max_hp = 20
+	end
+
+	if hp < max_hp then
+		if lua_ent then
+			lua_ent.health = max_hp
 		end
+		target_obj:set_hp(max_hp)
 
-		local target = pointed_thing.ref
-		if not target then
-			return itemstack
-		end
-
-		local target_pos = target:get_pos()
-		if not target_pos then
-			return itemstack
-		end
-
-		local lua_ent = target:get_luaentity()
-		local is_villager = lua_ent and lua_ent.is_villager
-		local is_companion = lua_ent and lua_ent.is_companion
-
-		if not (is_villager or is_companion) then
-			return itemstack
-		end
-
-		local hp = target:get_hp()
-		local max_hp = target:get_properties().hp_max
-		if not max_hp or max_hp <= 0 then
-			max_hp = lua_ent and lua_ent.hp_max or 20
-		end
-
-		if hp < max_hp then
-			target:set_hp(max_hp)
-
+		local target_pos = target_obj:get_pos()
+		if target_pos then
 			minetest.add_particlespawner({
-				amount = 12,
+				amount = 16,
 				time = 0.5,
 				minpos = {x = target_pos.x - 0.4, y = target_pos.y + 0.2, z = target_pos.z - 0.4},
 				maxpos = {x = target_pos.x + 0.4, y = target_pos.y + 1.6, z = target_pos.z + 0.4},
@@ -54,12 +61,33 @@ minetest.register_craftitem("eg_settlers:medkit", {
 				gain = 0.8,
 				max_hear_distance = 16,
 			}, true)
-
-			if user and not minetest.settings:get_bool("creative_mode") then
-				itemstack:take_item()
-			end
 		end
 
+		if clicker and clicker:is_player() then
+			if not minetest.settings:get_bool("creative_mode") then
+				itemstack:take_item()
+				clicker:set_wielded_item(itemstack)
+			end
+		end
+		return true
+	else
+		if clicker and clicker:is_player() then
+			minetest.chat_send_player(clicker:get_player_name(), S("Target is already at full health."))
+		end
+		return true
+	end
+end
+
+minetest.register_craftitem("eg_settlers:medkit", {
+	description = S("Field Medkit") .. "\n" .. S("Right-click a settler or companion to heal them to full health."),
+	inventory_image = "eg_settlers_medkit.png",
+	on_use = function(itemstack, user, pointed_thing)
+		if pointed_thing and pointed_thing.type == "object" then
+			local target = pointed_thing.ref
+			if target and eg_settlers.use_medkit_on_entity(target, user, itemstack) then
+				return itemstack
+			end
+		end
 		return itemstack
 	end,
 })
@@ -74,3 +102,25 @@ minetest.register_craft({
 		"magic_materials:magic_root",
 	},
 })
+
+minetest.register_on_mods_loaded(function()
+	for name, entity in pairs(minetest.registered_entities) do
+		if entity.type == "npc" or name:find("mobs_npc:") or name:find("eg_settlers:") then
+			local old_on_rightclick = entity.on_rightclick
+			entity.on_rightclick = function(self, clicker)
+				if clicker and clicker:is_player() then
+					local item = clicker:get_wielded_item()
+					if item and item:get_name() == "eg_settlers:medkit" then
+						if eg_settlers.use_medkit_on_entity(self, clicker, item) then
+							return
+						end
+					end
+				end
+				if old_on_rightclick then
+					return old_on_rightclick(self, clicker)
+				end
+			end
+		end
+	end
+end)
+
