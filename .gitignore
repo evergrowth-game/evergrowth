@@ -30,6 +30,7 @@ research/
 
 # Local testing and debug files
 world.mt
+evergrowth.sh
 
 # Ignore all dotfiles and directories by default
 .*
