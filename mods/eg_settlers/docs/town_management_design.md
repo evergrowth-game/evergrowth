@@ -86,3 +86,16 @@ The **Town Dropbox (`eg_settlers:town_depot`)** serves as a centralized collecti
 *   **Automation Sink:** Players who use Techage or other automation mods to generate vast amounts of resources now have a "sink" for that wealth: they must produce enough food to keep their workforce operational.
 *   **Settlement Growth:** As the town grows, the food requirement increases linearly, forcing the player to expand their farms or trade for food from other sources.
 *   **Centralized Management:** Instead of feeding 20 NPCs individually, the player manages one central "Granary" (the Ledger), making the management task feel like a high-level "Mayor" role rather than a tedious chore.
+
+---
+
+## 5. Settler Healing & Medkit (`eg_settlers:medkit`)
+
+*   **Item & Recipe:**
+    *   Craftitem: `eg_settlers:medkit` with custom icon `eg_settlers_medkit.png`.
+    *   Shapeless recipe: 1x Leather (`mobs:leather`), 2x Cotton (`farming:cotton`), 1x Magic Root (`magic_materials:magic_root`).
+*   **Interaction & `on_rightclick` Interception:**
+    *   Registers `minetest.register_on_mods_loaded` hook wrapping `on_rightclick` on `mobs_npc:trader`, `mobs_npc:npc`, and `eg_settlers:*` entities.
+    *   Right-clicking an injured settler or companion executes `eg_settlers.use_medkit_on_entity()` to instantly restore maximum health (`self.health` and `object:set_hp()`), play green particle spawner and audio effects, and consume 1 medkit stack.
+    *   Intercepts and returns `true` before calling original `on_rightclick`, preventing the trader or dialogue interface from opening.
+
