@@ -79,7 +79,7 @@ function eg_settlers.use_medkit_on_entity(self_or_obj, clicker, itemstack)
 end
 
 minetest.register_craftitem("eg_settlers:medkit", {
-	description = S("Field Medkit") .. "\n" .. S("Right-click a settler or companion to heal them to full health."),
+	description = S("Medkit") .. "\n" .. S("Right-click a settler or companion to heal them to full health."),
 	inventory_image = "eg_settlers_medkit.png",
 	on_use = function(itemstack, user, pointed_thing)
 		if pointed_thing and pointed_thing.type == "object" then

@@ -28,8 +28,8 @@ local chapters = {
 	},
 	{
 		id = "defenses",
-		title = "6. Town Defenses",
-		text = "Towns can be defended by recruiting Guards. Guards are a unique profession that have a larger patrol radius of 45 blocks and stay awake all night to fight monsters. \n\nAdditionally, the Sentinel Ward Stone is a magical defense structure. Once placed, it emits an aura that automatically detects and deals 10 damage to any hostile within a 15-block radius every second."
+		title = "6. Town Defenses & Healing",
+		text = "Towns can be defended by recruiting Guards. Guards are a unique profession that have a larger patrol radius of 45 blocks and stay awake all night to fight monsters. \n\nAdditionally, the Sentinel Ward Stone is a magical defense structure. Once placed, it emits an aura that automatically detects and deals 10 damage to any hostile within a 15-block radius every second. \n\nTo heal injured settlers or companions, right-click them with a Medkit (shapeless craft: 1 Leather, 2 Cotton, 1 Magic Root) to instantly restore them to full health."
 	},
 }
 
