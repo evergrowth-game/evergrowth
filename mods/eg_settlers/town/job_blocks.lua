@@ -196,8 +196,8 @@ eg_settlers.register_job_block("guard", {
     description = "Guard's Watchtower Beacon",
     cost = 8,
     tiles = {"default_wood.png", "default_steel_block.png", "default_bronze_block.png"},
-    selection_box = { type = "fixed", fixed = {-0.5, -0.5, -0.4, 0.5, 1.05, 0.4} },
-    collision_box = { type = "fixed", fixed = {-0.5, -0.5, -0.4, 0.5, 1.05, 0.4} },
+    selection_box = { type = "fixed", fixed = {-0.5, -0.5, -0.4, 0.5, 1.4, 0.4} },
+    collision_box = { type = "fixed", fixed = {-0.5, -0.5, -0.4, 0.5, 1.4, 0.4} },
 })
 
 eg_settlers.register_job_block("rancher", {
