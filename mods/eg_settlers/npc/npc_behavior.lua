@@ -25,20 +25,35 @@ for _, entity_name in ipairs(target_entities) do
         
         local old_on_die = base_entity.on_die
         base_entity.on_die = function(self, pos)
-            if self.is_villager and self.home_pos then
-                minetest.load_area(self.home_pos, self.home_pos)
-                local deed_meta = minetest.get_meta(self.home_pos)
-                if deed_meta and deed_meta:get_int("occupied") == 1 then
-                    local deed_node = minetest.get_node(self.home_pos)
-                    if deed_node and deed_node.name == "eg_settlers:housing_deed" then
-                        deed_meta:set_int("occupied", 0)
-                        deed_meta:set_string("resident_name", "")
-                        deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+            if self.is_villager then
+                if self.home_pos then
+                    minetest.load_area(self.home_pos, self.home_pos)
+                    local bed_meta = minetest.get_meta(self.home_pos)
+                    if bed_meta then
+                        local owner = bed_meta:get_string("owner")
+                        if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
+                            bed_meta:set_string("assigned_settler", "")
+                            eg_settlers.update_bed_infotext(self.home_pos)
+                        end
+                    end
+                end
+                if self.job_pos then
+                    minetest.load_area(self.job_pos, self.job_pos)
+                    local job_meta = minetest.get_meta(self.job_pos)
+                    if job_meta and job_meta:get_int("occupied") == 1 then
+                        job_meta:set_int("occupied", 0)
+                        job_meta:set_string("resident_name", "")
                         
-                        local sid = deed_meta:get_string("settlement_id")
+                        local jnode = minetest.get_node(self.job_pos)
+                        local def = minetest.registered_nodes[jnode.name]
+                        if def and def.description then
+                            local desc = def.description:match("([^\n]+)")
+                            job_meta:set_string("infotext", desc .. " (" .. S("Vacant") .. ")")
+                        end
+                        
+                        local sid = job_meta:get_string("settlement_id")
                         if sid and sid ~= "" then
-                            eg_settlers.db.unregister_resident(sid, self.home_pos)
-                            deed_meta:set_string("settlement_id", "")
+                            eg_settlers.db.unregister_resident(sid, self.job_pos)
                         end
                     end
                 end
@@ -291,20 +306,35 @@ for _, entity_name in ipairs(target_entities) do
                     local formatted_prof = prof:gsub("^%l", string.upper)
                     meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
 
-                    -- Mark old Deed as vacant
+                    -- Mark old Job Block as vacant and Bed as unassigned
                     if self.home_pos then
                         minetest.load_area(self.home_pos, self.home_pos)
-                        local deed_node = minetest.get_node(self.home_pos)
-                        if deed_node.name == "eg_settlers:housing_deed" then
-                            local deed_meta = minetest.get_meta(self.home_pos)
-                            deed_meta:set_int("occupied", 0)
-                            deed_meta:set_string("resident_name", "")
-                            deed_meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+                        local bed_meta = minetest.get_meta(self.home_pos)
+                        if bed_meta then
+                            local owner = bed_meta:get_string("owner")
+                            if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
+                                bed_meta:set_string("assigned_settler", "")
+                                eg_settlers.update_bed_infotext(self.home_pos)
+                            end
+                        end
+                    end
+                    if self.job_pos then
+                        minetest.load_area(self.job_pos, self.job_pos)
+                        local job_meta = minetest.get_meta(self.job_pos)
+                        if job_meta and job_meta:get_int("occupied") == 1 then
+                            job_meta:set_int("occupied", 0)
+                            job_meta:set_string("resident_name", "")
                             
-                            local sid = deed_meta:get_string("settlement_id")
+                            local jnode = minetest.get_node(self.job_pos)
+                            local def = minetest.registered_nodes[jnode.name]
+                            if def and def.description then
+                                local desc = def.description:match("([^\n]+)")
+                                job_meta:set_string("infotext", desc .. " (" .. S("Vacant") .. ")")
+                            end
+                            
+                            local sid = job_meta:get_string("settlement_id")
                             if sid and sid ~= "" then
-                                eg_settlers.db.unregister_resident(sid, self.home_pos)
-                                deed_meta:set_string("settlement_id", "")
+                                eg_settlers.db.unregister_resident(sid, self.job_pos)
                             end
                         end
                     end
