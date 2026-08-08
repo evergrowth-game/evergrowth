@@ -179,7 +179,7 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (4-Material Setup)
+    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (Attached Shield & Non-Flickering Crossbars)
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
             (-0.5, -0.5,  -0.4,   0.5,  -0.35,  0.4),    # full-width heavy wooden base slab
@@ -187,11 +187,11 @@ MODELS = {
             ( 0.35,-0.35, -0.06,  0.45,  0.85,  0.06),   # tall right timber post
             (-0.47, 0.85, -0.08, -0.33,  0.92,  0.08),   # left timber post cap
             ( 0.33, 0.85, -0.08,  0.47,  0.92,  0.08),   # right timber post cap
-            (-0.45, 0.55, -0.05,  0.45,  0.65,  0.05),   # upper hanger crossbar
-            (-0.45,-0.05, -0.05,  0.45,  0.05,  0.05),   # lower crossbar ledge
+            (-0.35, 0.55, -0.05,  0.35,  0.65,  0.05),   # upper crossbar (fitted between posts)
+            (-0.35,-0.05, -0.05,  0.35,  0.05,  0.05),   # lower crossbar (fitted between posts)
         ]),
         ("Mat2_Steel", [
-            # Tapered 3-tier spearhead tip (right post, Y = 1.10 -> 1.44)
+            # Tapered 3-tier spearhead tip (right post)
             ( 0.34, 1.10, -0.11,  0.42,  1.22, -0.03),   # spear socket base
             ( 0.36, 1.22, -0.10,  0.40,  1.34, -0.04),   # spear mid blade
             ( 0.37, 1.34, -0.09,  0.39,  1.44, -0.05),   # spear point tip
@@ -201,8 +201,10 @@ MODELS = {
             (-0.45, 0.35, -0.11, -0.25,  0.40, -0.01),   # wide steel sword crossguard
             (-0.39, 0.52, -0.09, -0.31,  0.58, -0.03),   # steel sword pommel cap
 
-            # Shield border rim plate (center)
+            # Shield border rim plate & MOUNTING BRACKETS TO WOODEN FRAME
             (-0.2,  0.0,  -0.22,  0.2,   0.6,  -0.16),   # outer shield steel border rim plate
+            (-0.18, 0.25, -0.16, -0.12,  0.35, -0.05),   # left steel mounting bracket attached to frame
+            ( 0.12, 0.25, -0.16,  0.18,  0.35, -0.05),   # right steel mounting bracket attached to frame
         ]),
         ("Mat3_Bronze", [
             (-0.16, 0.04, -0.26,  0.16,  0.56, -0.22),   # inner bronze shield face plate
