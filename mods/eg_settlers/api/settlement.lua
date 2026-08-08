@@ -109,11 +109,54 @@ minetest.register_craft({
 --------------------------------------------------
 -- Bed Management & Unassigned Scanner
 --------------------------------------------------
+function eg_settlers.get_partner_bed_pos(pos)
+    local node = minetest.get_node(pos)
+    local group = minetest.get_item_group(node.name, "bed")
+    if group == 0 then return nil end
+    
+    local dir = minetest.facedir_to_dir(node.param2 or 0)
+    if not dir then return nil end
+    
+    local partner_pos
+    if group == 2 then
+        -- Top bed node half: partner bottom node is subtract dir
+        partner_pos = vector.subtract(pos, dir)
+    else
+        -- Bottom bed node half: partner top node is add dir
+        partner_pos = vector.add(pos, dir)
+    end
+    
+    local pnode = minetest.get_node(partner_pos)
+    if minetest.get_item_group(pnode.name, "bed") > 0 then
+        return partner_pos
+    end
+    return nil
+end
+
 function eg_settlers.update_bed_infotext(pos)
     local meta = minetest.get_meta(pos)
     local owner = meta:get_string("owner")
     local reserved = meta:get_string("player_reserved") == "true"
     local assigned = meta:get_string("assigned_settler")
+
+    if assigned == "" and owner == "" and not reserved then
+        local ppos = eg_settlers.get_partner_bed_pos(pos)
+        if ppos then
+            local pmeta = minetest.get_meta(ppos)
+            local powner = pmeta:get_string("owner")
+            local preserved = pmeta:get_string("player_reserved") == "true"
+            local passigned = pmeta:get_string("assigned_settler")
+            if passigned ~= "" then
+                assigned = passigned
+                meta:set_string("assigned_settler", assigned)
+            elseif preserved or powner ~= "" then
+                owner = powner
+                reserved = preserved
+                meta:set_string("owner", owner)
+                if reserved then meta:set_string("player_reserved", "true") end
+            end
+        end
+    end
 
     if reserved or (owner ~= "" and assigned == "") then
         meta:set_string("infotext", S("Player Bed (Owner: ") .. (owner ~= "" and owner or "Player") .. ")")

@@ -81,11 +81,8 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         bmeta:set_string("assigned_settler", npc_name or prof_id)
         eg_settlers.update_bed_infotext(bed_pos)
 
-        local bed_node = minetest.get_node(bed_pos)
-        local dir = minetest.facedir_to_dir(bed_node.param2 or 0)
-        local partner_pos = vector.add(bed_pos, dir)
-        local partner_node = minetest.get_node(partner_pos)
-        if minetest.get_item_group(partner_node.name, "bed") > 0 then
+        local partner_pos = eg_settlers.get_partner_bed_pos(bed_pos)
+        if partner_pos then
             local pmeta = minetest.get_meta(partner_pos)
             pmeta:set_string("assigned_settler", npc_name or prof_id)
             eg_settlers.update_bed_infotext(partner_pos)
