@@ -33,7 +33,16 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
             return itemstack
         end
 
-        -- 2. Bed Requirement (Dual Tethering)
+        -- 2. Total Bed & Population Check
+        local total_beds = eg_settlers.get_total_beds_count(under_pos, 200)
+        local total_settlers = eg_settlers.get_total_settlers_count(under_pos, 200)
+
+        if total_settlers >= total_beds then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("[eg_settlers] Housing cap reached (") .. total_settlers .. S(" settlers / ") .. total_beds .. S(" beds). Build and place another bed first."))
+            return itemstack
+        end
+
         local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
         local bed_pos = eg_settlers.find_unassigned_bed(under_pos, 200)
         if not bed_pos then

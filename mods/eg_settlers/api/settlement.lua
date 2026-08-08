@@ -124,6 +124,32 @@ function eg_settlers.update_bed_infotext(pos)
     end
 end
 
+function eg_settlers.get_total_beds_count(pos, radius)
+    radius = radius or 200
+    local p1 = vector.subtract(pos, radius)
+    local p2 = vector.add(pos, radius)
+    local beds = minetest.find_nodes_in_area(p1, p2, {"group:bed_bottom"})
+    if #beds == 0 then
+        beds = minetest.find_nodes_in_area(p1, p2, {"group:bed"})
+        return math.floor(#beds / 2)
+    end
+    return #beds
+end
+
+function eg_settlers.get_total_settlers_count(pos, radius)
+    radius = radius or 200
+    local count = 0
+    for _, obj in pairs(minetest.luaentities) do
+        if obj.name and obj.name:find("^eg_settlers:") then
+            local epos = obj.object:get_pos()
+            if epos and vector.distance(epos, pos) <= radius then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
 function eg_settlers.find_unassigned_bed(pos, radius)
     radius = radius or 30
     local p1 = vector.subtract(pos, radius)
