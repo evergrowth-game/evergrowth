@@ -246,25 +246,20 @@ MODELS = {
         ]),
     ],
 
-    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with sticks and slender axe
+    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with default steel axe item & stick items
     "eg_settlers_job_lumberjack.obj": [
         ("Mat1_Bark", [
             (-0.45,-0.5, -0.45,  0.45,  0.15,  0.45),   # log stump bark body
-            (-0.35, 0.2, -0.3,  -0.15,  0.28, -0.22),   # wooden stick 1 bark (left)
-            ( 0.12, 0.2,  0.1,   0.38,  0.28,  0.18),   # wooden stick 2 bark (right)
-            (-0.25, 0.2,  0.22,  0.15,  0.28,  0.3),    # wooden stick 3 bark (back)
         ]),
         ("Mat2_Top", [
-            (-0.45, 0.15,-0.45,  0.45,  0.2,   0.45),   # log top ring face
-            (-0.37, 0.2, -0.3,  -0.13,  0.28, -0.22),   # stick 1 end cuts
-            ( 0.1,  0.2,  0.1,   0.4,   0.28,  0.18),   # stick 2 end cuts
-            (-0.27, 0.2,  0.22,  0.17,  0.28,  0.3),    # stick 3 end cuts
+            (-0.45, 0.15,-0.45,  0.45,  0.18,  0.45),   # log top ring face
         ]),
-        ("Mat3_Steel", [
-            (-0.03, 0.18,-0.18,  0.03,  0.42,  0.02),   # slender steel axe head blade
+        ("Mat3_Axe", [
+            (-0.25, 0.18,-0.01,  0.25,  0.68,  0.01),   # default steel axe item sprite plate
         ]),
-        ("Mat4_Handle", [
-            (-0.02, 0.25, 0.0,   0.02,  0.72,  0.06),   # slender vertical axe handle shaft
+        ("Mat4_Stick", [
+            (-0.35, 0.181,-0.3, -0.1,  0.183, -0.05),   # stick item 1 plate
+            ( 0.1,  0.181, 0.05, 0.35, 0.183,  0.3),    # stick item 2 plate
         ]),
     ],
 
