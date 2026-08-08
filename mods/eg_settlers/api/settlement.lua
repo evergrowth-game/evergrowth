@@ -159,12 +159,38 @@ function eg_settlers.find_unassigned_bed(pos, radius)
     return nil
 end
 
--- Hook player sleeping across all registered bed nodes to mark as player reserved
+-- Hook player sleeping and bed destruction across registered bed nodes
 minetest.register_on_mods_loaded(function()
     for name, def in pairs(minetest.registered_nodes) do
         if minetest.get_item_group(name, "bed") > 0 then
             local orig_on_rightclick = def.on_rightclick
+            local orig_can_dig = def.can_dig
             minetest.override_item(name, {
+                can_dig = function(pos, player)
+                    local meta = minetest.get_meta(pos)
+                    local assigned = meta:get_string("assigned_settler")
+                    if assigned ~= "" and player and player:is_player() then
+                        if player:get_player_control().sneak then
+                            -- Unassign settler home_pos from active entity memory
+                            for _, obj in pairs(minetest.luaentities) do
+                                if obj.name and obj.name:find("^eg_settlers:") then
+                                    if obj.assigned_name == assigned or (obj.home_pos and vector.equals(obj.home_pos, pos)) then
+                                        obj.home_pos = nil
+                                    end
+                                end
+                            end
+                            return true
+                        end
+                        minetest.chat_send_player(player:get_player_name(),
+                            minetest.get_translator("eg_settlers")("[eg_settlers] Bed is assigned to ") .. assigned .. ". Relocate settler or hold Sneak to mine.")
+                        return false
+                    end
+                    if orig_can_dig then
+                        return orig_can_dig(pos, player)
+                    end
+                    return true
+                end,
+
                 on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
                     if clicker and clicker:is_player() then
                         local meta = minetest.get_meta(pos)
