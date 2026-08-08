@@ -392,7 +392,6 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
         if #parts == 3 then
             local pos = {x=tonumber(parts[1]), y=tonumber(parts[2]), z=tonumber(parts[3])}
             local meta = minetest.get_meta(pos)
-            local inv = meta:get_inventory()
             local pname = player:get_player_name()
             local sid = meta:get_string("settlement_id")
             local authorized = false
@@ -414,12 +413,11 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             
             -- Buy Hiring Contract (Tab 2)
             if fields.buy_hiring_contract then
-                local payment_stack = inv:get_stack("contract_payment", 1)
-                if payment_stack:get_name() == "default:gold_lump" and payment_stack:get_count() >= 5 then
-                    payment_stack:take_item(5)
-                    inv:set_stack("contract_payment", 1, payment_stack)
+                local p_inv = player:get_inventory()
+                local cost_stack = ItemStack("default:gold_lump 5")
+                if p_inv:contains_item("main", cost_stack) then
+                    p_inv:remove_item("main", cost_stack)
                     local item = "eg_settlers:hiring_contract"
-                    local p_inv = player:get_inventory()
                     if p_inv:room_for_item("main", item) then
                         p_inv:add_item("main", item)
                     else
@@ -428,7 +426,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     minetest.chat_send_player(pname, S("Purchased 1x Hiring Contract!"))
                     minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 2))
                 else
-                    minetest.chat_send_player(pname, S("Not enough gold lumps in payment slot! Requires 5 Gold Lumps."))
+                    minetest.chat_send_player(pname, S("Not enough gold lumps in inventory! Requires 5 Gold Lumps."))
                 end
                 return true
             end
@@ -454,12 +452,11 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     local jdef = eg_settlers.registered_job_blocks[prof_id]
 
                     if jdef then
-                        local payment_stack = inv:get_stack("contract_payment", 1)
-                        if payment_stack:get_name() == "default:gold_lump" and payment_stack:get_count() >= jdef.cost then
-                            payment_stack:take_item(jdef.cost)
-                            inv:set_stack("contract_payment", 1, payment_stack)
+                        local p_inv = player:get_inventory()
+                        local cost_stack = ItemStack("default:gold_lump " .. jdef.cost)
+                        if p_inv:contains_item("main", cost_stack) then
+                            p_inv:remove_item("main", cost_stack)
                             local item = jdef.name
-                            local p_inv = player:get_inventory()
                             if p_inv:room_for_item("main", item) then
                                 p_inv:add_item("main", item)
                             else
@@ -468,7 +465,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                             minetest.chat_send_player(pname, S("Purchased 1x ") .. jdef.description .. "!")
                             minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 3))
                         else
-                            minetest.chat_send_player(pname, S("Not enough gold lumps in payment slot! Need: ") .. jdef.cost)
+                            minetest.chat_send_player(pname, S("Not enough gold lumps in inventory! Need: ") .. jdef.cost .. " Gold Lumps.")
                         end
                     end
                 end
@@ -479,6 +476,8 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
             
             -- Bounties (now Tab 1)
             if fields.submit_bounty then
+                local meta = minetest.get_meta(pos)
+                local inv = meta:get_inventory()
                 local b_id = meta:get_string("bounty_id")
                 if b_id ~= "" and bounty_requests[b_id] then
                     local b = bounty_requests[b_id]
