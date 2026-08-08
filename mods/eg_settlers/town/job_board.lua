@@ -92,7 +92,7 @@ local function get_job_board_formspec(pos, tab_index)
     local status = sid ~= "" and minetest.colorize("#00FF00", S("Connected")) or minetest.colorize("#FF0000", S("Unlinked"))
     
     local formspec = "size[10,10]" ..
-        "tabheader[0,0;job_tabs;Bounties,Contracts;" .. tab_index .. ";true;false]"
+        "tabheader[0,0;job_tabs;Bounties,Contracts,Workstations;" .. tab_index .. ";true;false]"
         
     if tab_index == 1 then
         -- Bounties: Paper theme
@@ -131,32 +131,42 @@ local function get_job_board_formspec(pos, tab_index)
             "listring[nodemeta:" .. pos_str .. ";bounty_input]" ..
             "listring[current_player;main]"
     elseif tab_index == 2 then
-        -- Contracts: Paper theme
-        local seekers_str = meta:get_string("seekers")
-        local seekers = {}
-        if seekers_str ~= "" then
-            seekers = minetest.deserialize(seekers_str) or {}
-        end
-        
+        -- Contracts: Dispenses eg_settlers:hiring_contract
         formspec = formspec ..
             "box[0,0;10,10;#EFE4B0]" ..
             "label[0.5,0.5;" .. minetest.colorize("#222222", S("Town Status:")) .. " " .. status .. "]" ..
-            "label[0.5,1.5;" .. minetest.colorize("#222222", S("── Daily Seekers ──")) .. "]"
-            
-        local y = 2.5
-        for i, s in ipairs(seekers) do
-            local contract_item = "eg_settlers:contract_" .. s.id
-            formspec = formspec .. string.format("item_image[0.5,%f;1,1;%s]", y - 0.2, contract_item)
-            formspec = formspec .. string.format("label[1.6,%f;%s]", y + 0.1, minetest.colorize("#222222", s.name))
-            
-            formspec = formspec .. string.format("item_image[4,%f;1,1;default:gold_lump]", y - 0.2)
-            formspec = formspec .. string.format("label[5.1,%f;%s]", y + 0.1, minetest.colorize("#222222", "x" .. s.cost))
-            
-            formspec = formspec .. string.format("button[6.5,%f;2,0.8;recruit_%d;%s]", y - 0.1, i, S("Recruit"))
-            y = y + 1.2
-        end
-        
+            "label[0.5,1.5;" .. minetest.colorize("#222222", S("── Hiring Contract Procurement ──")) .. "]" ..
+            "item_image[0.5,2.5;1,1;eg_settlers:hiring_contract]" ..
+            "label[1.6,2.8;" .. minetest.colorize("#222222", S("Unified Hiring Contract (Place on any Job Block)")) .. "]" ..
+            "item_image[4,3.5;1,1;default:gold_lump]" ..
+            "label[5.1,3.8;" .. minetest.colorize("#222222", "x5 Gold Lumps") .. "]" ..
+            "button[6.5,3.6;2.5,0.8;buy_hiring_contract;" .. S("Purchase") .. "]" ..
+            "label[8,0.5;" .. minetest.colorize("#222222", S("Payment:")) .. "]" ..
+            "list[nodemeta:" .. pos_str .. ";contract_payment;8,1;1,1;]" ..
+            "list[current_player;main;1,6.5;8,3.5;]" ..
+            "listring[nodemeta:" .. pos_str .. ";contract_payment]" ..
+            "listring[current_player;main]"
+    elseif tab_index == 3 then
+        -- Workstations: Buy Job Blocks
         formspec = formspec ..
+            "box[0,0;10,10;#EFE4B0]" ..
+            "label[0.5,0.5;" .. minetest.colorize("#222222", S("Town Status:")) .. " " .. status .. "]" ..
+            "label[0.5,1.5;" .. minetest.colorize("#222222", S("── Workstation Nodes (Job Blocks) ──")) .. "]" ..
+            "textlist[0.5,2.2;6.8,3.8;workstation_list;"
+        
+        local job_list = {}
+        for prof_id, jdef in pairs(eg_settlers.registered_job_blocks) do
+            table.insert(job_list, prof_id)
+        end
+        table.sort(job_list)
+
+        local list_items = {}
+        for _, prof_id in ipairs(job_list) do
+            local jdef = eg_settlers.registered_job_blocks[prof_id]
+            table.insert(list_items, minetest.formspec_escape(jdef.description .. " (" .. jdef.cost .. " Gold)"))
+        end
+        formspec = formspec .. table.concat(list_items, ",") .. ";1;false]" ..
+            "button[7.5,3.5;2,0.8;buy_workstation;" .. S("Purchase") .. "]" ..
             "label[8,0.5;" .. minetest.colorize("#222222", S("Payment:")) .. "]" ..
             "list[nodemeta:" .. pos_str .. ";contract_payment;8,1;1,1;]" ..
             "list[current_player;main;1,6.5;8,3.5;]" ..
@@ -166,6 +176,7 @@ local function get_job_board_formspec(pos, tab_index)
     
     return formspec
 end
+
 
 minetest.register_node("eg_settlers:job_board", {
     description = S("Job Board"),
@@ -401,39 +412,70 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                 return true
             end
             
-            -- Contracts (now Tab 2)
-            for k, v in pairs(fields) do
-                if string.sub(k, 1, 8) == "recruit_" then
-                    local idx = tonumber(string.sub(k, 9))
-                    local seekers_str = meta:get_string("seekers")
-                    if seekers_str ~= "" then
-                        local seekers = minetest.deserialize(seekers_str)
-                        if seekers and seekers[idx] then
-                            local s = seekers[idx]
-                            local payment_stack = inv:get_stack("contract_payment", 1)
-                            if payment_stack:get_name() == "default:gold_lump" and payment_stack:get_count() >= s.cost then
-                                payment_stack:take_item(s.cost)
-                                inv:set_stack("contract_payment", 1, payment_stack)
-                                
-                                local contract_item = "eg_settlers:contract_" .. s.id
-                                local p_inv = player:get_inventory()
-                                if p_inv:room_for_item("main", contract_item) then
-                                    p_inv:add_item("main", contract_item)
-                                else
-                                    minetest.item_drop(ItemStack(contract_item), player, pos)
-                                end
-                                minetest.chat_send_player(pname, S("Recruited: ") .. s.name)
-                                
-                                table.remove(seekers, idx)
-                                meta:set_string("seekers", minetest.serialize(seekers))
-                                minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 2))
+            -- Buy Hiring Contract (Tab 2)
+            if fields.buy_hiring_contract then
+                local payment_stack = inv:get_stack("contract_payment", 1)
+                if payment_stack:get_name() == "default:gold_lump" and payment_stack:get_count() >= 5 then
+                    payment_stack:take_item(5)
+                    inv:set_stack("contract_payment", 1, payment_stack)
+                    local item = "eg_settlers:hiring_contract"
+                    local p_inv = player:get_inventory()
+                    if p_inv:room_for_item("main", item) then
+                        p_inv:add_item("main", item)
+                    else
+                        minetest.item_drop(ItemStack(item), player, pos)
+                    end
+                    minetest.chat_send_player(pname, S("Purchased 1x Hiring Contract!"))
+                    minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 2))
+                else
+                    minetest.chat_send_player(pname, S("Not enough gold lumps in payment slot! Requires 5 Gold Lumps."))
+                end
+                return true
+            end
+
+            -- Buy Workstation (Tab 3)
+            if fields.workstation_list or fields.buy_workstation then
+                local evt = minetest.explode_textlist_event(fields.workstation_list or "")
+                if evt.index and evt.index > 0 then
+                    meta:set_int("selected_workstation_idx", evt.index)
+                end
+
+                if fields.buy_workstation or (evt.type == "DCL") then
+                    local job_list = {}
+                    for prof_id, jdef in pairs(eg_settlers.registered_job_blocks) do
+                        table.insert(job_list, prof_id)
+                    end
+                    table.sort(job_list)
+
+                    local sel_idx = meta:get_int("selected_workstation_idx")
+                    if sel_idx < 1 or sel_idx > #job_list then sel_idx = 1 end
+                    
+                    local prof_id = job_list[sel_idx]
+                    local jdef = eg_settlers.registered_job_blocks[prof_id]
+
+                    if jdef then
+                        local payment_stack = inv:get_stack("contract_payment", 1)
+                        if payment_stack:get_name() == "default:gold_lump" and payment_stack:get_count() >= jdef.cost then
+                            payment_stack:take_item(jdef.cost)
+                            inv:set_stack("contract_payment", 1, payment_stack)
+                            local item = jdef.name
+                            local p_inv = player:get_inventory()
+                            if p_inv:room_for_item("main", item) then
+                                p_inv:add_item("main", item)
                             else
-                                minetest.chat_send_player(pname, S("Not enough gold lumps in the payment slot! Need: ") .. s.cost)
+                                minetest.item_drop(ItemStack(item), player, pos)
                             end
+                            minetest.chat_send_player(pname, S("Purchased 1x ") .. jdef.description .. "!")
+                            minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 3))
+                        else
+                            minetest.chat_send_player(pname, S("Not enough gold lumps in payment slot! Need: ") .. jdef.cost)
                         end
                     end
                 end
+                return true
             end
+
+
             
             -- Bounties (now Tab 1)
             if fields.submit_bounty then

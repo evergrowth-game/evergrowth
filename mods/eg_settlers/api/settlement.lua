@@ -12,8 +12,9 @@
 local S = minetest.get_translator("eg_settlers")
 
 -- Housing Deed Node
+-- Housing Deed Node (Deprecated for Villagers; Retained for Companions)
 minetest.register_node("eg_settlers:housing_deed", {
-    description = S("Housing Deed") .. "\n" .. S("Sneak+Right-Click with an empty hand to clear if resident is missing."),
+    description = S("Housing Deed (Companions Only)") .. "\n" .. S("Workstations (Job Blocks) are now required for villager contracts."),
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
     inventory_image = "default_sign_steel.png^[multiply:#FFD700",
@@ -38,19 +39,13 @@ minetest.register_node("eg_settlers:housing_deed", {
         local meta = minetest.get_meta(pos)
         meta:set_int("occupied", 0)
         meta:set_string("resident_name", "")
-        meta:set_string("infotext", S("Housing Deed (Vacant) - Use a Contract here"))
+        meta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
     end,
     
     after_place_node = function(pos, placer, itemstack, pointed_thing)
         if placer and placer:is_player() then
             local meta = minetest.get_meta(pos)
             meta:set_string("owner", placer:get_player_name())
-            
-            local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-            if not sid then
-                minetest.chat_send_player(placer:get_player_name(),
-                    S("[eg_settlers] No Town Ledger found nearby. If you assign a resident here, they will not be part of a settlement."))
-            end
         end
     end,
 
@@ -86,8 +81,7 @@ minetest.register_node("eg_settlers:housing_deed", {
             if player:get_player_control().sneak then
                 return true
             end
-            minetest.chat_send_player(name,
-                S("Relocate the resident first, or hold Sneak while mining to forcefully break this deed."))
+            minetest.chat_send_player(name, S("Relocate the companion first, or hold Sneak while mining."))
             return false
         end
         return true
@@ -99,30 +93,8 @@ minetest.register_node("eg_settlers:housing_deed", {
 
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
         if not clicker or not clicker:is_player() then return itemstack end
-        
-        local meta = minetest.get_meta(pos)
-        
-        -- If player is holding an item, check if it's a Contract
-        if not itemstack:is_empty() then
-            local item_name = itemstack:get_name()
-            -- Only manually trigger on_place for our specific contracts
-            if string.match(item_name, "^eg_settlers:contract_") then
-                local def = itemstack:get_definition()
-                if def and def.on_place then
-                    return def.on_place(itemstack, clicker, pointed_thing)
-                end
-            end
-            -- For all other items (like signs), return to consume the click.
-            return itemstack
-        end
-        
-        -- If hand is empty, explicitly inform the player the resident is alive
-        if meta:get_int("occupied") == 1 then
-            minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] Resident is alive. Use a Relocation Contract to move them."))
-        else
-            minetest.chat_send_player(clicker:get_player_name(), S("[eg_settlers] This Deed is vacant. Use a Contract on it to assign a resident."))
-        end
-        
+        minetest.chat_send_player(clicker:get_player_name(),
+            S("[eg_settlers] Housing Deeds are deprecated for villagers. Use profession Workstations (Job Blocks) for villager contracts."))
         return itemstack
     end,
 })
@@ -133,3 +105,338 @@ minetest.register_craft({
         {"default:paper", "dye:black"},
     }
 })
+
+--------------------------------------------------
+-- Bed Management & Unassigned Scanner
+--------------------------------------------------
+function eg_settlers.get_partner_bed_pos(pos)
+    local node = minetest.get_node(pos)
+    local group = minetest.get_item_group(node.name, "bed")
+    if group == 0 then return nil end
+    
+    local dir = minetest.facedir_to_dir(node.param2 or 0)
+    if not dir then return nil end
+    
+    local partner_pos
+    if group == 2 then
+        -- Top bed node half: partner bottom node is subtract dir
+        partner_pos = vector.subtract(pos, dir)
+    else
+        -- Bottom bed node half: partner top node is add dir
+        partner_pos = vector.add(pos, dir)
+    end
+    
+    local pnode = minetest.get_node(partner_pos)
+    if minetest.get_item_group(pnode.name, "bed") > 0 then
+        return partner_pos
+    end
+    return nil
+end
+
+function eg_settlers.update_bed_infotext(pos)
+    local meta = minetest.get_meta(pos)
+    local owner = meta:get_string("owner")
+    local reserved = meta:get_string("player_reserved") == "true"
+    local assigned = meta:get_string("assigned_settler")
+
+    if assigned == "" and owner == "" and not reserved then
+        local ppos = eg_settlers.get_partner_bed_pos(pos)
+        if ppos then
+            local pmeta = minetest.get_meta(ppos)
+            local powner = pmeta:get_string("owner")
+            local preserved = pmeta:get_string("player_reserved") == "true"
+            local passigned = pmeta:get_string("assigned_settler")
+            if passigned ~= "" then
+                assigned = passigned
+                meta:set_string("assigned_settler", assigned)
+            elseif preserved or powner ~= "" then
+                owner = powner
+                reserved = preserved
+                meta:set_string("owner", owner)
+                if reserved then meta:set_string("player_reserved", "true") end
+            end
+        end
+    end
+
+    if reserved or (owner ~= "" and assigned == "") then
+        meta:set_string("infotext", S("Player Bed (Owner: ") .. (owner ~= "" and owner or "Player") .. ")")
+    elseif assigned ~= "" then
+        meta:set_string("infotext", S("Settler Bed (Assigned: ") .. assigned .. ")")
+    else
+        meta:set_string("infotext", S("Settler Bed (Unassigned)"))
+    end
+end
+
+function eg_settlers.get_total_beds_count(pos, radius)
+    radius = radius or 200
+    local p1 = vector.subtract(pos, radius)
+    local p2 = vector.add(pos, radius)
+    local beds = minetest.find_nodes_in_area(p1, p2, {"group:bed_bottom"})
+    if #beds == 0 then
+        beds = minetest.find_nodes_in_area(p1, p2, {"group:bed"})
+        return math.floor(#beds / 2)
+    end
+    return #beds
+end
+
+function eg_settlers.get_total_settlers_count(pos, radius)
+    radius = radius or 200
+    local count = 0
+    local tracked = {}
+
+    -- 1. Count living active entities and track all associated identifiers
+    for _, obj in pairs(minetest.luaentities) do
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) then
+            local epos = obj.object and obj.object:get_pos()
+            if epos and vector.distance(epos, pos) <= radius then
+                count = count + 1
+                if obj.nametag then tracked[obj.nametag] = true end
+                if obj.game_name then tracked[obj.game_name] = true end
+                if obj.job_pos then tracked[minetest.pos_to_string(obj.job_pos)] = true end
+                if obj.home_pos then tracked[minetest.pos_to_string(obj.home_pos)] = true end
+            end
+        end
+    end
+
+    -- 2. Check occupied workstation nodes for unloaded settlers vs stale metadata
+    local p1 = vector.subtract(pos, radius)
+    local p2 = vector.add(pos, radius)
+    for name, def in pairs(minetest.registered_nodes) do
+        if name:find("^eg_settlers:job_block_") then
+            local nodes = minetest.find_nodes_in_area(p1, p2, {name})
+            for _, npos in ipairs(nodes) do
+                local meta = minetest.get_meta(npos)
+                if meta:get_int("occupied") == 1 then
+                    local rname = meta:get_string("resident_name")
+                    local npos_str = minetest.pos_to_string(npos)
+                    local home_str = meta:get_string("home_pos")
+                    
+                    if not (tracked[rname] or tracked[npos_str] or (home_str ~= "" and tracked[home_str])) then
+                        -- Check if assigned bed exists in world to verify if settler is in unloaded chunk
+                        local home_pos = minetest.string_to_pos(home_str)
+                        local bed_exists = false
+                        if home_pos then
+                            local hnode = minetest.get_node(home_pos)
+                            if minetest.get_item_group(hnode.name, "bed") > 0 then
+                                bed_exists = true
+                            end
+                        end
+
+                        if bed_exists then
+                            count = count + 1
+                            tracked[npos_str] = true
+                        else
+                            -- Auto-clean stale workstation metadata from killed/cleared entities
+                            meta:set_int("occupied", 0)
+                            meta:set_string("resident_name", "")
+                            meta:set_string("home_pos", "")
+                            if def and def.description then
+                                local desc = def.description:match("([^\n]+)")
+                                meta:set_string("infotext", desc .. " (" .. minetest.get_translator("eg_settlers")("Vacant") .. ")")
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return count
+end
+
+function eg_settlers.find_unassigned_bed(pos, radius)
+    radius = radius or 30
+    local p1 = vector.subtract(pos, radius)
+    local p2 = vector.add(pos, radius)
+    
+    local beds = minetest.find_nodes_in_area(p1, p2, {"group:bed_bottom"})
+    if #beds == 0 then
+        beds = minetest.find_nodes_in_area(p1, p2, {"group:bed"})
+    end
+
+    -- Collect all home_pos currently assigned to living settlers in memory
+    local assigned_home_positions = {}
+    for _, obj in pairs(minetest.luaentities) do
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
+            assigned_home_positions[minetest.pos_to_string(obj.home_pos)] = true
+        end
+    end
+
+    for _, bed_pos in ipairs(beds) do
+        local meta = minetest.get_meta(bed_pos)
+        local owner = meta:get_string("owner")
+        local reserved = meta:get_string("player_reserved") == "true"
+        local assigned = meta:get_string("assigned_settler")
+        
+        local partner_occupied = false
+        local node = minetest.get_node(bed_pos)
+        local dir = minetest.facedir_to_dir(node.param2 or 0)
+        local partner_pos = vector.add(bed_pos, dir)
+        local partner_node = minetest.get_node(partner_pos)
+        if minetest.get_item_group(partner_node.name, "bed") > 0 then
+            local pmeta = minetest.get_meta(partner_pos)
+            if pmeta:get_string("assigned_settler") ~= "" or pmeta:get_string("owner") ~= "" or pmeta:get_string("player_reserved") == "true" then
+                partner_occupied = true
+            end
+        end
+
+        local pos_str = minetest.pos_to_string(bed_pos)
+        local partner_str = minetest.pos_to_string(partner_pos)
+        local entity_assigned = assigned_home_positions[pos_str] or assigned_home_positions[partner_str]
+
+        if not reserved and owner == "" and assigned == "" and not partner_occupied and not entity_assigned then
+            return bed_pos
+        end
+    end
+    return nil
+end
+
+-- LBM to automatically initialize unassigned bed infotext on world/chunk load
+minetest.register_lbm({
+    name = "eg_settlers:init_bed_infotext",
+    nodenames = {"group:bed"},
+    run_at_every_load = true,
+    action = function(pos, node)
+        local meta = minetest.get_meta(pos)
+        if meta:get_string("infotext") == "" then
+            eg_settlers.update_bed_infotext(pos)
+        end
+    end,
+})
+
+-- Hook player placement, sleeping, and bed destruction across registered bed nodes
+minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack, pointed_thing)
+    if minetest.get_item_group(newnode.name, "bed") > 0 then
+        eg_settlers.update_bed_infotext(pos)
+    end
+end)
+
+minetest.register_on_mods_loaded(function()
+    for name, def in pairs(minetest.registered_nodes) do
+        if minetest.get_item_group(name, "bed") > 0 then
+            local orig_on_rightclick = def.on_rightclick
+            local orig_on_destruct = def.on_destruct
+            local orig_on_place = def.on_place
+            minetest.override_item(name, {
+                on_place = function(itemstack, placer, pointed_thing)
+                    local res = orig_on_place and orig_on_place(itemstack, placer, pointed_thing) or itemstack
+                    if pointed_thing then
+                        if pointed_thing.above then eg_settlers.update_bed_infotext(pointed_thing.above) end
+                        if pointed_thing.under then eg_settlers.update_bed_infotext(pointed_thing.under) end
+                    end
+                    return res
+                end,
+                on_destruct = function(pos)
+                    -- Clear home_pos from any living settler entity assigned to this bed coordinate
+                    for _, obj in pairs(minetest.luaentities) do
+                        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
+                            if vector.equals(obj.home_pos, pos) or vector.distance(obj.home_pos, pos) <= 1.5 then
+                                obj.home_pos = nil
+                            end
+                        end
+                    end
+                    if orig_on_destruct then
+                        orig_on_destruct(pos)
+                    end
+                end,
+
+                on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+                    if clicker and clicker:is_player() then
+                        local meta = minetest.get_meta(pos)
+                        meta:set_string("owner", clicker:get_player_name())
+                        meta:set_string("player_reserved", "true")
+                        local assigned = meta:get_string("assigned_settler")
+                        if assigned and assigned ~= "" then
+                            meta:set_string("assigned_settler", "")
+                        end
+                        eg_settlers.update_bed_infotext(pos)
+                    end
+                    if orig_on_rightclick then
+                        return orig_on_rightclick(pos, node, clicker, itemstack, pointed_thing)
+                    end
+                end
+            })
+        end
+    end
+end)
+
+
+--------------------------------------------------
+-- Environmental Validation Checks
+--------------------------------------------------
+function eg_settlers.validate_job_block_environment(pos, profession)
+    if profession == "farmer" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 5), vector.add(pos, 5),
+            {"group:soil", "group:food", "farming:soil_wet", "farming:wheat_8"}
+        )
+        if count < 4 then
+            return false, S("Farmer requires at least 4 soil or crop nodes within 5 blocks.")
+        end
+    elseif profession == "smith" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 3), vector.add(pos, 3),
+            {"default:furnace", "default:furnace_active", "group:anvil"}
+        )
+        if count < 1 then
+            return false, S("Blacksmith requires a furnace or anvil within 3 blocks.")
+        end
+    elseif profession == "carpenter" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 4), vector.add(pos, 4),
+            {"group:wood", "group:tree"}
+        )
+        if count < 4 then
+            return false, S("Carpenter requires at least 4 wood or tree blocks within 4 blocks.")
+        end
+    elseif profession == "librarian" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 4), vector.add(pos, 4),
+            {"default:bookshelf"}
+        )
+        if count < 4 then
+            return false, S("Librarian requires at least 4 bookshelves within 4 blocks.")
+        end
+    elseif profession == "miner" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 5), vector.add(pos, 5),
+            {"group:stone"}
+        )
+        if count < 4 then
+            return false, S("Miner requires at least 4 stone blocks within 5 blocks.")
+        end
+    elseif profession == "merchant" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 4), vector.add(pos, 4),
+            {"group:chest"}
+        )
+        if count < 1 then
+            return false, S("Merchant requires at least 1 chest within 4 blocks.")
+        end
+    elseif profession == "rancher" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 5), vector.add(pos, 5),
+            {"group:fence", "farming:straw"}
+        )
+        if count < 3 then
+            return false, S("Rancher requires fences or straw blocks within 5 blocks.")
+        end
+    elseif profession == "fisher" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 5), vector.add(pos, 5),
+            {"group:water"}
+        )
+        if count < 4 then
+            return false, S("Fisher requires water nodes within 5 blocks.")
+        end
+    elseif profession == "lumberjack" then
+        local count = #minetest.find_nodes_in_area(
+            vector.subtract(pos, 8), vector.add(pos, 8),
+            {"group:tree"}
+        )
+        if count < 3 then
+            return false, S("Lumberjack requires tree trunks within 8 blocks.")
+        end
+    end
+    return true, nil
+end
+

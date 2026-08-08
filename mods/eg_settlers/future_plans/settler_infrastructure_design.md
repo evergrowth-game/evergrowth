@@ -128,8 +128,36 @@ Introduce population caps tied to Town Ledger tiers or town infrastructure progr
 
 ---
 
-### E. Job Board Recruitment Shift
-Shift contract acquisition primarily to the `job_board.lua` recruitment tab (costing `default:gold_lump`), or adjust contract recipes to require mid-tier town materials (e.g., Ink & Quill, Wax Seal, Gold Ingot) instead of basic craft items.
+### E. Dual Tethering & Nighttime Shelter (Job Block + Bed Node)
+To ensure settlers are never exposed to outdoor hostiles or weather at night while working at outdoor Job Blocks (e.g. Lumberjack Stump, Fisher Barrel), settlers use **Dual Tethering**:
+
+* **Dual Tether Metadata:**
+  * **`job_pos`**: Position of assigned Job Block workstation (daytime active location: 06:00–18:00).
+  * **`home_pos`**: Position of assigned Bed node (`group:bed`) inside a shelter (nighttime indoor location: 18:00–06:00).
+
+* **Recruitment Bed Requirement:**
+  * Applying a `eg_settlers:hiring_contract` to a Job Block requires an **unassigned Bed node** (`group:bed`) within settlement radius. If no unassigned Bed exists, contract placement fails.
+  * When placed, the contract binds the settler to both `job_pos` and `home_pos`.
+
+* **Nighttime Behavior (Alternative 1 - Indoor Standing Shelter):**
+  * **06:00–18:00 (Daytime):** Settler pathfinds to and wanders around `job_pos` (Job Block).
+  * **18:00–06:00 (Nighttime):** Settler returns/teleports to `home_pos` (Bed node) inside shelter, setting state to `stand` with zero velocity until daybreak.
+
+---
+
+### F. Job Board Procurement Hub & Starter Kit
+Instead of crafting contracts and workstations on the player's 3x3 crafting grid, acquisition is integrated directly into town management infrastructure:
+
+* **Town Ledger Starter Kit:**
+  * When a player places a Town Ledger (`eg_settlers:town_ledger`), `after_place_node` populates the placing player's inventory (`placer:get_inventory()`) with:
+    * `1x eg_settlers:job_block_farmer` (Seed Silo)
+    * `1x eg_settlers:hiring_contract`
+  * If the player's inventory is full, items drop at the placer's position. This bootstraps initial town setup with zero gold requirements.
+
+* **Job Board Management & Procurement:**
+  * **Contracts Tab:** Dispenses `eg_settlers:hiring_contract` in exchange for Gold Lumps (`default:gold_lump`).
+  * **Workstations Tab:** Dispenses profession-specific Job Blocks (`eg_settlers:job_block_<profession>`) in exchange for Gold Lumps / Gold Ingots.
+  * Standard 3x3 grid recipes (`minetest.register_craft`) for contracts and job blocks are omitted.
 
 ---
 
@@ -141,14 +169,8 @@ Replace the 18 per-profession contract items (`eg_settlers:contract_guard`, `eg_
 * When placed on a job block, the contract reads the target node's registered name to derive the profession (e.g., `eg_settlers:job_block_smith` → `"smith"`).
 * The spawned NPC is tethered to the job block the same way current contracts tether to Housing Deeds, with the job block storing `occupied`, `resident_name`, `profession`, and `settlement_id` metadata.
 
-#### Recipe
-A single mid-tier recipe replaces all 18 trivial `paper + <item>` recipes:
-```
-default:paper + default:gold_ingot → eg_settlers:hiring_contract
-```
-
 #### Job Board Integration
-The Job Board's Contracts tab (`job_board.lua`, tab 2) currently dispenses per-profession contract items (`eg_settlers:contract_<id>`). Under the unified model, the Job Board dispenses `eg_settlers:hiring_contract` regardless of the selected seeker — the profession is determined at placement time by the target job block, not at acquisition time.
+The Job Board's Contracts tab (`job_board.lua`) dispenses `eg_settlers:hiring_contract` regardless of the selected seeker — the profession is determined at placement time by the target job block, not at acquisition time.
 
 #### Items NOT Modified
 * **Companion Contracts** (`contract_companion_male`, `contract_companion_female`, `contract_companion_relocation`) — these are a separate mechanic and remain unchanged.

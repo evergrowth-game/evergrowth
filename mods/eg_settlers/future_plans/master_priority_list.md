@@ -22,17 +22,23 @@ This document consolidates all planned features, multiplayer fixes, and infrastr
 ## Phase 2: Settler Infrastructure, Job Blocks & Unified Contracts
 *Overhauling villager housing, workstation nodes, environment validation, population caps, and contract consolidation. For full technical specs, see [settler_infrastructure_design.md](settler_infrastructure_design.md).*
 
-5. **Job Block Workstations:**
+5. **Dual Tethering (Workstation + Bed Node):**
+   * Settlers hold two tether positions: `job_pos` (Job Block for 06:00–18:00 daytime work) and `home_pos` (Bed node `group:bed` for 18:00–06:00 indoor night standing shelter).
+   * Contract placement requires 1 unassigned Bed node (`group:bed`) within town radius in addition to the Job Block workstation.
+6. **Town Ledger Starter Kit & Job Board Procurement:**
+   * **Starter Kit:** Placing a `town_ledger` populates the placer's inventory with `1x eg_settlers:job_block_farmer` and `1x eg_settlers:hiring_contract` to bootstrap initial setup without gold requirements.
+   * **Job Board Hub:** All subsequent Job Blocks and `eg_settlers:hiring_contract` items are purchased directly through the Job Board UI (Workstations & Contracts tabs) for gold. Grid crafting recipes (`minetest.register_craft`) are omitted.
+7. **Job Block Workstations:**
    * Replace generic Housing Deeds with 18 profession-specific Workstation Nodes (Job Blocks) that occupy physical 3D space in workshops.
    * Housing Deeds are retained exclusively for Companion NPCs; Job Blocks replace Housing Deeds in their entirety for all villager professions, functioning identically as tethering nodes.
-6. **Unified Hiring Contract:**
+8. **Unified Hiring Contract:**
    * Replace 18 per-profession contract items with a single `eg_settlers:hiring_contract`.
    * Contracts are placed directly on Job Blocks to derive the profession; free-standing spawning is removed.
-7. **Environmental Validation Checks:**
+9. **Environmental Validation Checks:**
    * Validate surrounding infrastructure (e.g. soil for farmers, furnaces for smiths) before contracts accept placement.
-8. **Population Cap & Progression Tiers:**
-   * Enforce `Population Cap = Registered Job Blocks` (no bed tracking required).
-   * Implement town progression tiers (Outpost, Hamlet, Village) tied to infrastructure nodes (Ledger, Granary, Depot, Ward Stone, Job Board).
+10. **Population Cap & Progression Tiers:**
+    * Enforce `Population Cap = Registered Job Blocks` (requiring assigned beds).
+    * Implement town progression tiers (Outpost, Hamlet, Village) tied to infrastructure nodes (Ledger, Granary, Depot, Ward Stone, Job Board).
 
 ## Phase 3: Settlement Integrity & Security
 *Systems to protect the town from griefers and provide transparency to the owner.*
