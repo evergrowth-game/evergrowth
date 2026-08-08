@@ -179,24 +179,26 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — Armory Stand & Weapon Hanger
+    # 9. GUARD'S WATCHTOWER BEACON — Armory Stand & Weapon Hanger (Wider & Staggered Z-Depths)
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
-            (-0.4, -0.5,  -0.3,   0.4,  -0.35,  0.3),    # wooden base plate
-            (-0.08,-0.35, -0.08,  0.08,  0.5,   0.08),   # central vertical post
-            (-0.38, 0.28, -0.06,  0.38,  0.36,  0.06),   # shoulder hanger crossbar
-            ( 0.2, -0.35, -0.08,  0.25,  0.75, -0.03),   # wooden spear shaft
+            (-0.5, -0.5,  -0.35,  0.5,  -0.35,  0.35),   # full-width wooden base slab
+            (-0.45,-0.35, -0.05, -0.35,  0.5,   0.05),   # left vertical timber post
+            ( 0.35,-0.35, -0.05,  0.45,  0.5,   0.05),   # right vertical timber post
+            (-0.45, 0.25, -0.05,  0.45,  0.35,  0.05),   # upper hanger crossbar
+            (-0.45,-0.1,  -0.05,  0.45, -0.02,  0.05),   # lower weapon rest ledge
+            ( 0.3, -0.35, -0.1,   0.35,  0.75, -0.04),   # wooden spear shaft (on right post)
         ]),
         ("Mat2_Steel", [
-            ( 0.18, 0.75, -0.1,   0.27,  1.0,  -0.01),   # steel spear tip blade
-            (-0.3, -0.25, -0.08, -0.22,  0.3,  -0.04),   # steel sword blade (hanging left)
-            (-0.38, 0.3,  -0.1,  -0.14,  0.34, -0.02),   # wide steel sword crossguard
-            (-0.28, 0.42, -0.08, -0.24,  0.46, -0.04),   # steel sword pommel
-            (-0.24,-0.08, -0.14,  0.24,  0.38, -0.12),   # outer shield steel border rim
+            ( 0.28, 0.75, -0.11,  0.37,  1.05, -0.03),   # steel spearhead blade tip (Layer 1)
+            (-0.36,-0.25, -0.09, -0.3,   0.35, -0.03),   # steel sword blade hanging on left (Layer 2)
+            (-0.44, 0.35, -0.11, -0.22,  0.4,  -0.01),   # wide steel sword crossguard (Layer 2)
+            (-0.35, 0.45, -0.09, -0.31,  0.5,  -0.03),   # steel sword pommel cap (Layer 2)
+            (-0.2, -0.08, -0.22,  0.2,   0.38, -0.16),   # outer shield steel rim plate (Layer 3)
         ]),
         ("Mat3_Bronze", [
-            (-0.18,-0.04, -0.16,  0.18,  0.34, -0.13),   # inner bronze shield face
-            (-0.07, 0.1,  -0.18,  0.07,  0.2,  -0.15),   # raised bronze shield boss dome
+            (-0.16,-0.04, -0.26,  0.16,  0.34, -0.22),   # inner bronze shield face (Layer 4)
+            (-0.07, 0.1,  -0.3,   0.07,  0.2,  -0.26),   # raised bronze shield boss dome (Layer 5)
         ]),
     ],
 
