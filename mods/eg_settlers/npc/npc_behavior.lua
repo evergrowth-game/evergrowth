@@ -105,29 +105,37 @@ for _, entity_name in ipairs(target_entities) do
                         local current_time = minetest.get_timeofday() * 24000
                         local is_night = (current_time > 18500 or current_time < 4500) and self.evergrowth_profession ~= "guard"
                         
-                        -- Defensive check: verify Deed still exists at home_pos
+                        -- Defensive check: verify Job Block / Deed still exists
+                        if self.job_pos then
+                            local jnode = minetest.get_node(self.job_pos)
+                            if jnode.name ~= "ignore" and minetest.get_item_group(jnode.name, "job_block") == 0 and jnode.name ~= "eg_settlers:housing_deed" then
+                                self.job_pos = nil
+                            end
+                        end
+
                         if self.home_pos then
-                            local deed_node = minetest.get_node(self.home_pos)
-                            if deed_node.name ~= "ignore" and deed_node.name ~= "eg_settlers:housing_deed" then
+                            local hnode = minetest.get_node(self.home_pos)
+                            if hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") == 0 and hnode.name ~= "eg_settlers:housing_deed" then
                                 self.home_pos = nil
                             end
                         end
                         
-                        -- Schedule: Nighttime return home, Daytime wander
+                        -- Schedule: Nighttime return home bed shelter, Daytime active at job workstation
                         if is_night then
-                            if self.home_pos then
-                                local dist_home = vector.distance(pos, self.home_pos)
+                            local night_target = self.home_pos or self.job_pos
+                            if night_target then
+                                local dist_home = vector.distance(pos, night_target)
                                 if dist_home > 3 then
                                     -- Teleport safely by finding an adjacent non-solid coordinate
-                                    local dest = {x = self.home_pos.x, y = self.home_pos.y, z = self.home_pos.z}
+                                    local dest = {x = night_target.x, y = night_target.y, z = night_target.z}
                                     local offsets = {
                                         {x=0, y=0, z=1}, {x=0, y=0, z=-1},
                                         {x=1, y=0, z=0}, {x=-1, y=0, z=0},
-                                        {x=0, y=0, z=0} -- fallback to exact deed pos
+                                        {x=0, y=0, z=0}
                                     }
                                     
                                     for _, off in ipairs(offsets) do
-                                        local test_pos = {x = self.home_pos.x + off.x, y = self.home_pos.y + off.y, z = self.home_pos.z + off.z}
+                                        local test_pos = {x = night_target.x + off.x, y = night_target.y + off.y, z = night_target.z + off.z}
                                         local head_pos = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
                                         
                                         local node1 = minetest.get_node(test_pos)
@@ -148,7 +156,7 @@ for _, entity_name in ipairs(target_entities) do
                                     self:set_animation("stand")
                                     self:set_velocity(0)
                                 else
-                                    -- Arrived
+                                    -- Arrived at bed shelter
                                     if self.order ~= "stand" then
                                         self.order = "stand"
                                         if self.stop_attack then self:stop_attack() end
@@ -157,7 +165,6 @@ for _, entity_name in ipairs(target_entities) do
                                     end
                                 end
                             else
-                                -- Fallback if home_pos is missing
                                 self.order = "stand"
                             end
                         else
@@ -166,19 +173,20 @@ for _, entity_name in ipairs(target_entities) do
                                 self.order = "wander"
                             end
                             
-                            -- Anti-Wander check (Tether)
-                            if self.home_pos then
+                            -- Anti-Wander check (Workstation Tether)
+                            local day_target = self.job_pos or self.home_pos
+                            if day_target then
                                 local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
-                                if vector.distance(pos, self.home_pos) > tether_radius then
-                                    -- Force walk directly back to tether (bypassing limits)
+                                if vector.distance(pos, day_target) > tether_radius then
                                     self.order = "go_home"
                                     self.state = "walk"
-                                    self:yaw_to_pos(self.home_pos)
+                                    self:yaw_to_pos(day_target)
                                     self:set_velocity(self.walk_velocity)
                                     self:set_animation("walk")
                                 end
                             end
                         end
+
                         
                         -- Player Interaction (Look & Greet)
                         if interacting_player and not is_night then
