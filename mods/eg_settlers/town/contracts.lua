@@ -1,5 +1,8 @@
+local S = minetest.get_translator("eg_settlers")
+
 minetest.register_craftitem("eg_settlers:hiring_contract", {
     description = S("Hiring Contract") .. "\n" ..
+
                   S("Place on a Workstation Node (Job Block) to hire a settler.") .. "\n" ..
                   S("Requires an unassigned bed within settlement bounds."),
     inventory_image = "default_paper.png^(default_gold_lump.png^[resize:16x16)",
