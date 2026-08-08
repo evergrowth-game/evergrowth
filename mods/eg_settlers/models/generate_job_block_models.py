@@ -262,7 +262,7 @@ MODELS = {
             (-0.01, 0.18,-0.25,  0.01,  0.48, -0.22),   # sharp cutting bit edge point
         ]),
         ("Mat4_Handle", [
-            (-0.025, 0.35, 0.01, 0.025, 0.82,  0.06),   # 3cm thin wooden axe handle shaft
+            (-0.025, 0.38, -0.01, 0.025, 0.82,  0.03),   # handle centered inside eye socket (Z = [-0.01, 0.03])
         ]),
     ],
 
