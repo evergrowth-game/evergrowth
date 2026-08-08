@@ -33,6 +33,14 @@ for _, entity_name in ipairs(target_entities) do
                         local owner = bed_meta:get_string("owner")
                         if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
                             bed_meta:set_string("assigned_settler", "")
+                            local ppos = eg_settlers.get_partner_bed_pos(self.home_pos)
+                            if ppos then
+                                local pmeta = minetest.get_meta(ppos)
+                                if pmeta then
+                                    pmeta:set_string("assigned_settler", "")
+                                    eg_settlers.update_bed_infotext(ppos)
+                                end
+                            end
                             eg_settlers.update_bed_infotext(self.home_pos)
                         end
                     end
