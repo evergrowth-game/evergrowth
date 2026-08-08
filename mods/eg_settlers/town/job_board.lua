@@ -141,18 +141,14 @@ local function get_job_board_formspec(pos, tab_index)
             "item_image[4,3.5;1,1;default:gold_lump]" ..
             "label[5.1,3.8;" .. minetest.colorize("#222222", "x5 Gold Lumps") .. "]" ..
             "button[6.5,3.6;2.5,0.8;buy_hiring_contract;" .. S("Purchase") .. "]" ..
-            "label[8,0.5;" .. minetest.colorize("#222222", S("Payment:")) .. "]" ..
-            "list[nodemeta:" .. pos_str .. ";contract_payment;8,1;1,1;]" ..
-            "list[current_player;main;1,6.5;8,3.5;]" ..
-            "listring[nodemeta:" .. pos_str .. ";contract_payment]" ..
-            "listring[current_player;main]"
+            "list[current_player;main;1,6.5;8,3.5;]"
     elseif tab_index == 3 then
         -- Workstations: Buy Job Blocks
         formspec = formspec ..
             "box[0,0;10,10;#EFE4B0]" ..
             "label[0.5,0.5;" .. minetest.colorize("#222222", S("Town Status:")) .. " " .. status .. "]" ..
             "label[0.5,1.5;" .. minetest.colorize("#222222", S("── Workstation Nodes (Job Blocks) ──")) .. "]" ..
-            "textlist[0.5,2.2;6.8,3.8;workstation_list;"
+            "textlist[0.5,2.2;6.5,3.8;workstation_list;"
         
         local job_list = {}
         for prof_id, jdef in pairs(eg_settlers.registered_job_blocks) do
@@ -165,13 +161,22 @@ local function get_job_board_formspec(pos, tab_index)
             local jdef = eg_settlers.registered_job_blocks[prof_id]
             table.insert(list_items, minetest.formspec_escape(jdef.description .. " (" .. jdef.cost .. " Gold)"))
         end
-        formspec = formspec .. table.concat(list_items, ",") .. ";1;false]" ..
-            "button[7.5,3.5;2,0.8;buy_workstation;" .. S("Purchase") .. "]" ..
-            "label[8,0.5;" .. minetest.colorize("#222222", S("Payment:")) .. "]" ..
-            "list[nodemeta:" .. pos_str .. ";contract_payment;8,1;1,1;]" ..
-            "list[current_player;main;1,6.5;8,3.5;]" ..
-            "listring[nodemeta:" .. pos_str .. ";contract_payment]" ..
-            "listring[current_player;main]"
+
+        local sel_idx = meta:get_int("selected_workstation_idx")
+        if sel_idx < 1 or sel_idx > #job_list then sel_idx = 1 end
+        local sel_prof = job_list[sel_idx]
+        local sel_jdef = sel_prof and eg_settlers.registered_job_blocks[sel_prof]
+        local sel_item = sel_jdef and sel_jdef.name or ""
+
+        formspec = formspec .. table.concat(list_items, ",") .. ";" .. sel_idx .. ";false]"
+        
+        if sel_item ~= "" then
+            formspec = formspec .. "item_image[7.5,2.0;1.5,1.5;" .. sel_item .. "]"
+        end
+
+        formspec = formspec ..
+            "button[7.2,3.8;2.2,0.8;buy_workstation;" .. S("Purchase") .. "]" ..
+            "list[current_player;main;1,6.5;8,3.5;]"
     end
     
     return formspec
