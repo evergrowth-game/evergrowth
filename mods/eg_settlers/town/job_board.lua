@@ -473,6 +473,8 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                             minetest.chat_send_player(pname, S("Not enough gold lumps in inventory! Need: ") .. jdef.cost .. " Gold Lumps.")
                         end
                     end
+                elseif evt.type == "CHG" then
+                    minetest.show_formspec(pname, formname, get_job_board_formspec(pos, 3))
                 end
                 return true
             end
