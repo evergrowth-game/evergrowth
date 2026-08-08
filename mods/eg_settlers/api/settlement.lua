@@ -139,32 +139,59 @@ end
 function eg_settlers.get_total_settlers_count(pos, radius)
     radius = radius or 200
     local count = 0
-    local tracked_names = {}
+    local tracked = {}
+
+    -- 1. Count living active entities and track all associated identifiers
     for _, obj in pairs(minetest.luaentities) do
         if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) then
             local epos = obj.object and obj.object:get_pos()
             if epos and vector.distance(epos, pos) <= radius then
                 count = count + 1
-                if obj.nametag then
-                    tracked_names[obj.nametag] = true
-                end
+                if obj.nametag then tracked[obj.nametag] = true end
+                if obj.game_name then tracked[obj.game_name] = true end
+                if obj.job_pos then tracked[minetest.pos_to_string(obj.job_pos)] = true end
+                if obj.home_pos then tracked[minetest.pos_to_string(obj.home_pos)] = true end
             end
         end
     end
 
-    -- Also check occupied workstation nodes for unloaded settlers
+    -- 2. Check occupied workstation nodes for unloaded settlers vs stale metadata
     local p1 = vector.subtract(pos, radius)
     local p2 = vector.add(pos, radius)
-    for name, _ in pairs(minetest.registered_nodes) do
+    for name, def in pairs(minetest.registered_nodes) do
         if name:find("^eg_settlers:job_block_") then
             local nodes = minetest.find_nodes_in_area(p1, p2, {name})
             for _, npos in ipairs(nodes) do
                 local meta = minetest.get_meta(npos)
                 if meta:get_int("occupied") == 1 then
                     local rname = meta:get_string("resident_name")
-                    if rname ~= "" and not tracked_names[rname] then
-                        count = count + 1
-                        tracked_names[rname] = true
+                    local npos_str = minetest.pos_to_string(npos)
+                    local home_str = meta:get_string("home_pos")
+                    
+                    if not (tracked[rname] or tracked[npos_str] or (home_str ~= "" and tracked[home_str])) then
+                        -- Check if assigned bed exists in world to verify if settler is in unloaded chunk
+                        local home_pos = minetest.string_to_pos(home_str)
+                        local bed_exists = false
+                        if home_pos then
+                            local hnode = minetest.get_node(home_pos)
+                            if minetest.get_item_group(hnode.name, "bed") > 0 then
+                                bed_exists = true
+                            end
+                        end
+
+                        if bed_exists then
+                            count = count + 1
+                            tracked[npos_str] = true
+                        else
+                            -- Auto-clean stale workstation metadata from killed/cleared entities
+                            meta:set_int("occupied", 0)
+                            meta:set_string("resident_name", "")
+                            meta:set_string("home_pos", "")
+                            if def and def.description then
+                                local desc = def.description:match("([^\n]+)")
+                                meta:set_string("infotext", desc .. " (" .. minetest.get_translator("eg_settlers")("Vacant") .. ")")
+                            end
+                        end
                     end
                 end
             end
