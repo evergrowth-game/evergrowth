@@ -413,39 +413,6 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
--- Trade Blocking Override
-local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
-for _, entity_name in ipairs(target_entities) do
-    local base_entity = minetest.registered_entities[entity_name]
-    if base_entity then
-        local old_on_rightclick = base_entity.on_rightclick
-        base_entity.on_rightclick = function(self, clicker)
-            if clicker and clicker:is_player() and clicker:get_player_control().sneak then
-                if old_on_rightclick then
-                    return old_on_rightclick(self, clicker)
-                end
-                return
-            end
-            
-            -- Only block if it's a villager with a home
-            if self.is_villager and self.home_pos then
-                local meta = minetest.get_meta(self.home_pos)
-                local sid = meta:get_string("settlement_id")
-                if sid and sid ~= "" then
-                    if not eg_settlers.db.is_satiated(sid) then
-                        if clicker and clicker:is_player() then
-                            minetest.chat_send_player(clicker:get_player_name(), "<" .. (self.game_name or "Villager") .. "> " .. S("The town is starving... I have nothing to trade."))
-                        end
-                        return
-                    end
-                end
-            end
-            if old_on_rightclick then
-                return old_on_rightclick(self, clicker)
-            end
-        end
-    end
-end
 
 -- LBM for Retroactive Deed Registration
 minetest.register_lbm({

@@ -36,6 +36,7 @@ for _, entity_name in ipairs(target_entities) do
                         local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
                         if sid then
                             eg_settlers.db.record_crime(sid, pname, "assault")
+                            minetest.chat_send_player(pname, minetest.colorize("#FF5555", S("[eg_settlers] You committed an assault! Pay your fine at the Town Ledger before merchants will trade with you.")))
                             
                             -- Guard Distress Alarm (35 nodes)
                             local objs = minetest.get_objects_inside_radius(pos, 35)
@@ -74,7 +75,7 @@ for _, entity_name in ipairs(target_entities) do
                     local death_cause = "Environment"
                     local killer_name = "Environment"
                     
-                    if self.last_puncher and minetest.is_valid_object(self.last_puncher) and self.last_punch_time and (os.time() - self.last_punch_time <= 10) then
+                    if self.last_puncher and self.last_puncher.get_pos and self.last_puncher:get_pos() and self.last_punch_time and (os.time() - self.last_punch_time <= 10) then
                         if self.last_puncher:is_player() then
                             death_cause = "Player"
                             killer_name = self.last_puncher:get_player_name()
@@ -103,6 +104,7 @@ for _, entity_name in ipairs(target_entities) do
                         
                         if death_cause == "Player" and killer_name ~= "Environment" then
                             eg_settlers.db.record_crime(sid, killer_name, "murder")
+                            minetest.chat_send_player(killer_name, minetest.colorize("#FF0000", S("[eg_settlers] You committed murder! A capital fine of 200 Gold Lumps has been levied at the Town Ledger.")))
                         end
                     end
                 end
@@ -326,6 +328,18 @@ for _, entity_name in ipairs(target_entities) do
     base_entity.on_activate = function(self, staticdata, dtime)
         if old_on_activate then old_on_activate(self, staticdata, dtime) end
 
+        if self.is_villager then
+            self.evergrowth_nametag_mode = true
+            if not self.game_name or self.game_name == "" then
+                if self.nametag and self.nametag ~= "" then
+                    self.game_name = self.nametag
+                end
+            end
+            if self.game_name then
+                self.nametag = self.game_name
+            end
+        end
+
         if self.base_texture then
             self.object:set_properties({textures = self.base_texture})
         end
@@ -454,7 +468,13 @@ for _, entity_name in ipairs(target_entities) do
                     local sid = nil
                     if self.home_pos then
                         local deed_meta = minetest.get_meta(self.home_pos)
-                        sid = deed_meta:get_string("settlement_id")
+                        local s = deed_meta:get_string("settlement_id")
+                        if s and s ~= "" then sid = s end
+                    end
+                    if not sid and self.job_pos then
+                        local job_meta = minetest.get_meta(self.job_pos)
+                        local s = job_meta:get_string("settlement_id")
+                        if s and s ~= "" then sid = s end
                     end
                     if not sid then
                         local pos = self.object:get_pos()
