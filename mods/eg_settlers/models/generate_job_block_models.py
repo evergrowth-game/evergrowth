@@ -183,19 +183,20 @@ MODELS = {
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
             (-0.4, -0.5,  -0.3,   0.4,  -0.35,  0.3),    # wooden base plate
-            (-0.1, -0.35, -0.1,   0.1,   0.5,   0.1),    # central vertical post
-            (-0.35, 0.3,  -0.08,  0.35,  0.42,  0.08),   # upper shoulder hanger bar
-            (-0.35,-0.1,  -0.12,  0.35, -0.02,  0.12),   # lower weapon rest ledge
+            (-0.08,-0.35, -0.08,  0.08,  0.5,   0.08),   # central vertical post
+            (-0.38, 0.28, -0.06,  0.38,  0.36,  0.06),   # shoulder hanger crossbar
+            ( 0.2, -0.35, -0.08,  0.25,  0.75, -0.03),   # wooden spear shaft
         ]),
         ("Mat2_Steel", [
-            (-0.25,-0.2,  -0.15, -0.18,  0.35, -0.1),    # steel sword blade (left)
-            (-0.3,  0.32, -0.16, -0.13,  0.37, -0.09),   # sword crossguard (left)
-            ( 0.18,-0.35, -0.12,  0.24,  0.85, -0.06),   # spear shaft (right)
-            ( 0.16, 0.85, -0.14,  0.26,  1.05, -0.04),   # steel spear head tip
+            ( 0.18, 0.75, -0.1,   0.27,  1.0,  -0.01),   # steel spear tip blade
+            (-0.3, -0.25, -0.08, -0.22,  0.3,  -0.04),   # steel sword blade (hanging left)
+            (-0.38, 0.3,  -0.1,  -0.14,  0.34, -0.02),   # wide steel sword crossguard
+            (-0.28, 0.42, -0.08, -0.24,  0.46, -0.04),   # steel sword pommel
+            (-0.24,-0.08, -0.14,  0.24,  0.38, -0.12),   # outer shield steel border rim
         ]),
         ("Mat3_Bronze", [
-            (-0.2,  0.0,  -0.16,  0.2,   0.35, -0.12),   # compact heraldic shield plate
-            (-0.08, 0.12, -0.19,  0.08,  0.23, -0.16),   # central bronze shield boss
+            (-0.18,-0.04, -0.16,  0.18,  0.34, -0.13),   # inner bronze shield face
+            (-0.07, 0.1,  -0.18,  0.07,  0.2,  -0.15),   # raised bronze shield boss dome
         ]),
     ],
 
