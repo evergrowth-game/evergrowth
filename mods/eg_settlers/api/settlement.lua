@@ -134,6 +134,14 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         beds = minetest.find_nodes_in_area(p1, p2, {"group:bed"})
     end
 
+    -- Collect all home_pos currently assigned to living settlers in memory
+    local assigned_home_positions = {}
+    for _, obj in pairs(minetest.luaentities) do
+        if obj.name and obj.name:find("^eg_settlers:") and obj.home_pos then
+            assigned_home_positions[minetest.pos_to_string(obj.home_pos)] = true
+        end
+    end
+
     for _, bed_pos in ipairs(beds) do
         local meta = minetest.get_meta(bed_pos)
         local owner = meta:get_string("owner")
@@ -152,7 +160,11 @@ function eg_settlers.find_unassigned_bed(pos, radius)
             end
         end
 
-        if not reserved and owner == "" and assigned == "" and not partner_occupied then
+        local pos_str = minetest.pos_to_string(bed_pos)
+        local partner_str = minetest.pos_to_string(partner_pos)
+        local entity_assigned = assigned_home_positions[pos_str] or assigned_home_positions[partner_str]
+
+        if not reserved and owner == "" and assigned == "" and not partner_occupied and not entity_assigned then
             return bed_pos
         end
     end
@@ -164,31 +176,20 @@ minetest.register_on_mods_loaded(function()
     for name, def in pairs(minetest.registered_nodes) do
         if minetest.get_item_group(name, "bed") > 0 then
             local orig_on_rightclick = def.on_rightclick
-            local orig_can_dig = def.can_dig
+            local orig_on_destruct = def.on_destruct
             minetest.override_item(name, {
-                can_dig = function(pos, player)
-                    local meta = minetest.get_meta(pos)
-                    local assigned = meta:get_string("assigned_settler")
-                    if assigned ~= "" and player and player:is_player() then
-                        if player:get_player_control().sneak then
-                            -- Unassign settler home_pos from active entity memory
-                            for _, obj in pairs(minetest.luaentities) do
-                                if obj.name and obj.name:find("^eg_settlers:") then
-                                    if obj.assigned_name == assigned or (obj.home_pos and vector.equals(obj.home_pos, pos)) then
-                                        obj.home_pos = nil
-                                    end
-                                end
+                on_destruct = function(pos)
+                    -- Clear home_pos from any living settler entity assigned to this bed coordinate
+                    for _, obj in pairs(minetest.luaentities) do
+                        if obj.name and obj.name:find("^eg_settlers:") and obj.home_pos then
+                            if vector.equals(obj.home_pos, pos) or vector.distance(obj.home_pos, pos) <= 1.5 then
+                                obj.home_pos = nil
                             end
-                            return true
                         end
-                        minetest.chat_send_player(player:get_player_name(),
-                            minetest.get_translator("eg_settlers")("[eg_settlers] Bed is assigned to ") .. assigned .. ". Relocate settler or hold Sneak to mine.")
-                        return false
                     end
-                    if orig_can_dig then
-                        return orig_can_dig(pos, player)
+                    if orig_on_destruct then
+                        orig_on_destruct(pos)
                     end
-                    return true
                 end,
 
                 on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
