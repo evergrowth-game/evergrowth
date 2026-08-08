@@ -247,6 +247,19 @@ function eg_settlers.find_unassigned_bed(pos, radius)
     return nil
 end
 
+-- LBM to automatically initialize unassigned bed infotext on world/chunk load
+minetest.register_lbm({
+    name = "eg_settlers:init_bed_infotext",
+    nodenames = {"group:bed"},
+    run_at_every_load = true,
+    action = function(pos, node)
+        local meta = minetest.get_meta(pos)
+        if meta:get_string("infotext") == "" then
+            eg_settlers.update_bed_infotext(pos)
+        end
+    end,
+})
+
 -- Hook player placement, sleeping, and bed destruction across registered bed nodes
 minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack, pointed_thing)
     if minetest.get_item_group(newnode.name, "bed") > 0 then
@@ -259,7 +272,16 @@ minetest.register_on_mods_loaded(function()
         if minetest.get_item_group(name, "bed") > 0 then
             local orig_on_rightclick = def.on_rightclick
             local orig_on_destruct = def.on_destruct
+            local orig_on_place = def.on_place
             minetest.override_item(name, {
+                on_place = function(itemstack, placer, pointed_thing)
+                    local res = orig_on_place and orig_on_place(itemstack, placer, pointed_thing) or itemstack
+                    if pointed_thing then
+                        if pointed_thing.above then eg_settlers.update_bed_infotext(pointed_thing.above) end
+                        if pointed_thing.under then eg_settlers.update_bed_infotext(pointed_thing.under) end
+                    end
+                    return res
+                end,
                 on_destruct = function(pos)
                     -- Clear home_pos from any living settler entity assigned to this bed coordinate
                     for _, obj in pairs(minetest.luaentities) do
