@@ -1,93 +1,95 @@
-local S = minetest.get_translator("eg_settlers")
-
-local function register_contract(name, profession, recipe_item, description, custom_texture)
-    local item_name = "eg_settlers:contract_" .. name
-    
-    local tex_name = custom_texture
-    if not tex_name then
-        tex_name = recipe_item:gsub(":", "_"):gsub(" ", "_") .. ".png"
-    end
-
-    minetest.register_craftitem(item_name, {
-        description = S(description) .. "\n" .. S("Use on a Housing Deed to assign a resident.") .. "\n" .. S("Sneak+Right-Click an assigned resident to relocate them."),
-        inventory_image = "default_paper.png^(" .. tex_name .. "^[resize:16x16)",
-        on_place = function(itemstack, placer, pointed_thing)
-            if pointed_thing.type ~= "node" then return itemstack end
-            
-            local under_pos = pointed_thing.under
-            local under_node = minetest.get_node(under_pos)
-            
-            if under_node.name == "eg_settlers:housing_deed" then
-                -- Deed-based: spawn as tethered villager
-                local deed_meta = minetest.get_meta(under_pos)
-                if deed_meta:get_int("occupied") == 1 then
-                    minetest.chat_send_player(placer:get_player_name(),
-                        S("This house already has a resident."))
-                    return itemstack
-                end
-                
-                local spawn_pos = pointed_thing.above
-                local npc_name = eg_settlers.spawn_trader(
-                    spawn_pos, profession, true, {home_pos = under_pos})
-                
-                deed_meta:set_int("occupied", 1)
-                deed_meta:set_string("resident_name", npc_name or profession)
-                deed_meta:set_string("profession", profession)
-                deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or profession))
-                
-                local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
-                if sid then
-                    deed_meta:set_string("settlement_id", sid)
-                    eg_settlers.db.register_resident(sid, under_pos, npc_name or profession, profession)
-                end
-            else
-                -- Free-standing: spawn without tethering (original behavior)
-                local pos = pointed_thing.above
-                local node = minetest.get_node(pos)
-                local def = minetest.registered_nodes[node.name]
-                if not def or not (node.name == "air" or def.buildable_to) then
-                    return
-                end
-                eg_settlers.spawn_trader(pos, profession)
-            end
-            
-            minetest.sound_play("default_place_node_hard", {pos = pointed_thing.above, gain = 1.0}, true)
-            
-            if not minetest.settings:get_bool("creative_mode") then
-                itemstack:take_item()
-            end
+minetest.register_craftitem("eg_settlers:hiring_contract", {
+    description = S("Hiring Contract") .. "\n" ..
+                  S("Place on a Workstation Node (Job Block) to hire a settler.") .. "\n" ..
+                  S("Requires an unassigned bed within settlement bounds."),
+    inventory_image = "default_paper.png^(default_gold_lump.png^[resize:16x16)",
+    on_place = function(itemstack, placer, pointed_thing)
+        if pointed_thing.type ~= "node" then return itemstack end
+        
+        local under_pos = pointed_thing.under
+        local under_node = minetest.get_node(under_pos)
+        local prof_id = string.match(under_node.name, "^eg_settlers:job_block_(.+)$")
+        
+        if not prof_id then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("[eg_settlers] Hiring Contracts must be placed directly on a Workstation Node (Job Block)."))
             return itemstack
-        end,
-    })
+        end
 
-    -- Register Recipe
-    minetest.register_craft({
-        output = item_name,
-        recipe = {
-            {"default:paper", recipe_item},
-        }
-    })
-end
+        local block_meta = minetest.get_meta(under_pos)
+        if block_meta:get_int("occupied") == 1 then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("[eg_settlers] This workstation is already occupied by ") .. block_meta:get_string("resident_name") .. ".")
+            return itemstack
+        end
 
--- Register all contracts
-register_contract("guard", "guard", "default:sword_steel", "Guard's Contract", "default_tool_steelsword.png")
-register_contract("farmer", "farmer", "farming:wheat", "Farmer's Contract")
-register_contract("rancher", "rancher", "mobs:leather", "Rancher's Contract")
-register_contract("smith", "smith", "default:steel_ingot", "Blacksmith's Contract")
-register_contract("merchant", "merchant", "default:glass", "Merchant's Contract")
-register_contract("brewer", "brewer", "farming:bread", "Brewer's Contract")
-register_contract("lumberjack", "lumberjack", "default:wood", "Lumberjack's Contract", "default_tool_woodaxe.png")
-register_contract("miner", "miner", "default:coal_lump", "Miner's Contract")
-register_contract("librarian", "librarian", "default:book", "Librarian's Contract")
-register_contract("mage", "mage", "default:mese_crystal", "Mage's Contract")
-register_contract("technologist", "technologist", "techage:electric_cable", "Technologist's Contract", "basic_materials_copper_wire.png")
-register_contract("gunsmith", "gunsmith", "tnt:gunpowder", "Gunsmith's Contract", "bweapons_firearms_pack_pistol.png")
-register_contract("carpenter", "carpenter", "xdecor:workbench", "Carpenter's Contract", "xdecor_hammer.png")
-register_contract("automobile_mechanic", "automobile_mechanic", "automobiles_lib:wheel", "Automobile Mechanic's Contract", "techage_inv_wrench.png")
-register_contract("aircraft_mechanic", "aircraft_mechanic", "airutils:repair_tool", "Aircraft Mechanic's Contract")
-register_contract("nautical_mechanic", "nautical_mechanic", "motorboat:hull", "Nautical Mechanic's Contract", "motorboat_inv.png")
-register_contract("fisher", "fisher", "ethereal:fishing_rod", "Fisher's Contract")
-register_contract("roboticist", "roboticist", "maidroid_tool:capture_rod", "Roboticist's Contract")
+        -- 1. Environmental Validation
+        local valid, err_msg = eg_settlers.validate_job_block_environment(under_pos, prof_id)
+        if not valid then
+            minetest.chat_send_player(placer:get_player_name(), S("[eg_settlers] Infrastructure check failed: ") .. err_msg)
+            return itemstack
+        end
+
+        -- 2. Bed Requirement (Dual Tethering)
+        local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
+        local bed_pos = eg_settlers.find_unassigned_bed(under_pos, 200)
+        if not bed_pos then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("[eg_settlers] No unassigned bed found within settlement radius. Build and place a bed first."))
+            return itemstack
+        end
+
+        -- 3. Population Cap Check
+        if sid then
+            local current_residents = eg_settlers.db.get_resident_count(sid)
+            local cap = eg_settlers.db.get_population_cap(sid)
+            if current_residents >= cap then
+                minetest.chat_send_player(placer:get_player_name(),
+                    S("[eg_settlers] Settlement population cap reached (") .. current_residents .. "/" .. cap .. S("). Upgrade town infrastructure."))
+                return itemstack
+            end
+        end
+
+        -- Spawn Villager
+        local spawn_pos = pointed_thing.above
+        local npc_name = eg_settlers.spawn_trader(spawn_pos, prof_id, true, {
+            home_pos = bed_pos,
+            job_pos = under_pos,
+        })
+
+        -- Bind Job Block & Bed Metadata
+        block_meta:set_int("occupied", 1)
+        block_meta:set_string("resident_name", npc_name or prof_id)
+        block_meta:set_string("profession", prof_id)
+        block_meta:set_string("job_pos", minetest.pos_to_string(under_pos))
+        block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
+        block_meta:set_string("infotext", S("Workstation: ") .. prof_id:sub(1,1):upper() .. prof_id:sub(2) .. "\n" .. S("Resident: ") .. (npc_name or prof_id))
+
+        local bed_meta = minetest.get_meta(bed_pos)
+        bed_meta:set_string("assigned_settler", npc_name or prof_id)
+        eg_settlers.update_bed_infotext(bed_pos)
+
+        if sid then
+            block_meta:set_string("settlement_id", sid)
+            eg_settlers.db.register_resident(sid, under_pos, npc_name or prof_id, prof_id)
+        end
+
+        minetest.sound_play("default_place_node_hard", {pos = spawn_pos, gain = 1.0}, true)
+
+        if not minetest.settings:get_bool("creative_mode") then
+            itemstack:take_item()
+        end
+        return itemstack
+    end,
+})
+
+minetest.register_craft({
+    output = "eg_settlers:hiring_contract",
+    recipe = {
+        {"default:paper", "default:gold_ingot"},
+    }
+})
+
 
 
 -- Companion Contracts
@@ -206,17 +208,26 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
 
         local under_pos = pointed_thing.under
         local under_node = minetest.get_node(under_pos)
+        local prof_id = string.match(under_node.name, "^eg_settlers:job_block_(.+)$")
 
-        if under_node.name ~= "eg_settlers:housing_deed" then
+        if not prof_id then
             minetest.chat_send_player(placer:get_player_name(),
-                S("Use this on a Housing Deed to place the villager."))
+                S("Use this on a Workstation Node (Job Block) to place the villager."))
             return itemstack
         end
 
-        local deed_meta = minetest.get_meta(under_pos)
-        if deed_meta:get_int("occupied") == 1 then
+        local block_meta = minetest.get_meta(under_pos)
+        if block_meta:get_int("occupied") == 1 then
             minetest.chat_send_player(placer:get_player_name(),
-                S("This house already has a resident."))
+                S("This workstation already has a resident."))
+            return itemstack
+        end
+
+        -- Verify bed availability
+        local bed_pos = eg_settlers.find_unassigned_bed(under_pos, 200)
+        if not bed_pos then
+            minetest.chat_send_player(placer:get_player_name(),
+                S("No unassigned bed found within settlement bounds."))
             return itemstack
         end
 
@@ -227,24 +238,32 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
             texture = meta:get_string("texture"),
             health = meta:get_int("health"),
             trades = (trades_str ~= "") and minetest.deserialize(trades_str) or nil,
-            home_pos = under_pos,
+            home_pos = bed_pos,
+            job_pos = under_pos,
         }
         local profession = meta:get_string("profession")
-        if profession == "" then profession = "merchant" end
+        if profession == "" then profession = prof_id end
 
         local spawn_pos = pointed_thing.above
         local npc_name = eg_settlers.spawn_trader(spawn_pos, profession, true, override_data)
 
-        deed_meta:set_int("occupied", 1)
-        deed_meta:set_string("resident_name", npc_name or "Villager")
-        deed_meta:set_string("profession", profession)
-        deed_meta:set_string("infotext", S("Resident: ") .. (npc_name or "Villager"))
+        block_meta:set_int("occupied", 1)
+        block_meta:set_string("resident_name", npc_name or "Villager")
+        block_meta:set_string("profession", profession)
+        block_meta:set_string("job_pos", minetest.pos_to_string(under_pos))
+        block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
+        block_meta:set_string("infotext", S("Workstation: ") .. profession .. "\n" .. S("Resident: ") .. (npc_name or "Villager"))
+
+        local bed_meta = minetest.get_meta(bed_pos)
+        bed_meta:set_string("assigned_settler", npc_name or "Villager")
+        eg_settlers.update_bed_infotext(bed_pos)
 
         local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
         if sid then
-            deed_meta:set_string("settlement_id", sid)
+            block_meta:set_string("settlement_id", sid)
             eg_settlers.db.register_resident(sid, under_pos, npc_name or "Villager", profession)
         end
+
 
         minetest.sound_play("default_place_node_hard", {pos = spawn_pos, gain = 1.0}, true)
 

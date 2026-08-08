@@ -13,14 +13,15 @@ local chapters = {
 	},
 	{
 		id = "housing",
-		title = "3. Housing Deeds & Tethers",
-		text = "Housing Deeds act as tethers for your settlers. Once a deed is placed, you must use a Contract on it to assign a resident. \n\nSettlers follow a strict day/night schedule. During the day, they will wander the town. At night, they will return to their deed. If a settler goes missing or dies, their deed can be cleared by Sneak+Right-Clicking it with an empty hand."
+		title = "3. Workstations & Bed Tethering",
+		text = "Settlers require both a Workstation (Job Block) and a Bed inside town bounds. \n\nSettlers follow a dual-tether schedule: during daytime (06:00–18:00) they work near their assigned Job Block workstation. At night (18:00–06:00), they return to their assigned bed for indoor shelter. Sleeping in a bed designates it as a Player Bed, reserving it from settler assignments."
 	},
 	{
 		id = "contracts",
-		title = "4. Contracts, Professions & Companions",
-		text = "Settlers are recruited using Contracts. Different contracts provide different professions, such as Farmers, Miners, and Roboticists, and each offers unique trade opportunities.\n\nRelocation: You can relocate a settler by Sneak+Right-Clicking one that is bound to a deed, which will create a unique Relocation Contract for that specific settler.\n\nCompanions are a completely different type of NPC that are purely ornamental and do not trade. You can customize a companion's appearance using the Wardrobe Wand."
+		title = "4. Hiring Contracts, Workstations & Companions",
+		text = "Settlers are recruited using the unified Hiring Contract placed directly onto a Workstation Node (Job Block). Job Blocks and Hiring Contracts can be purchased at the Job Board for Gold Lumps. \n\nEnvironmental Requirements: Workstations must be placed near required infrastructure (e.g. wet soil for farmers, furnaces for smiths, bookshelves for librarians) before accepting a contract.\n\nRelocation: You can relocate a settler by Sneak+Right-Clicking them, generating a Relocation Contract to place on a new Workstation.\n\nCompanions are ornamental NPCs assigned using Companion Contracts on Housing Deeds."
 	},
+
 	{
 		id = "jobs",
 		title = "5. Job Board & Passive Income",
