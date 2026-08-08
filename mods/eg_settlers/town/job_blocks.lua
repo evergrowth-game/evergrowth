@@ -220,9 +220,9 @@ eg_settlers.register_job_block("fisher", {
 eg_settlers.register_job_block("lumberjack", {
     description = "Lumberjack's Chopping Stump",
     cost = 5,
-    tiles = {"default_tree.png", "default_tree_top.png"},
-    selection_box = { type = "fixed", fixed = {-0.4, -0.5, -0.4, 0.4, 0.4, 0.4} },
-    collision_box = { type = "fixed", fixed = {-0.4, -0.5, -0.4, 0.4, 0.4, 0.4} },
+    tiles = {"default_tree.png", "default_tree_top.png", "default_steel_block.png"},
+    selection_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.3, 0.45} },
+    collision_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.3, 0.45} },
 })
 
 eg_settlers.register_job_block("technologist", {
@@ -237,7 +237,7 @@ eg_settlers.register_job_block("technologist", {
 eg_settlers.register_job_block("gunsmith", {
     description = "Gunsmith's Ordnance Locker",
     cost = 15,
-    tiles = {"default_steel_block.png^[multiply:#354B35", "default_chest_front.png^[multiply:#354B35"},
+    tiles = {"default_steel_block.png^[multiply:#5A735A", "default_chest_front.png^[multiply:#5A735A"},
     selection_box = { type = "fixed", fixed = {-0.43, -0.5, -0.38, 0.43, 1.0, 0.38} },
     collision_box = { type = "fixed", fixed = {-0.43, -0.5, -0.38, 0.43, 1.0, 0.38} },
 })

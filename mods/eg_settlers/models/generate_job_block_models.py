@@ -179,15 +179,20 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — 1.5-block stone & copper brazier tower
+    # 9. GUARD'S WATCHTOWER BEACON — wide 4-legged timber watchtower brazier
     "eg_settlers_job_guard.obj": [
         ("Mat1_Stone", [
-            (-0.4, -0.5, -0.4,   0.4,  -0.2,   0.4),    # stone base
-            (-0.18,-0.2, -0.18,  0.18,  0.3,   0.18),   # stone pillar
+            (-0.45,-0.5, -0.45,  0.45, -0.3,   0.45),   # wide stone foundation slab
+            (-0.4, -0.3, -0.4,  -0.3,   0.4,  -0.3),    # corner post FL
+            ( 0.3, -0.3, -0.4,   0.4,   0.4,  -0.3),    # corner post FR
+            (-0.4, -0.3,  0.3,  -0.3,   0.4,   0.4),    # corner post BL
+            ( 0.3, -0.3,  0.3,   0.4,   0.4,   0.4),    # corner post BR
+            (-0.4,  0.0, -0.4,   0.4,   0.08, -0.3),    # cross-beam F
+            (-0.4,  0.0,  0.3,   0.4,   0.08,  0.4),    # cross-beam B
         ]),
         ("Mat2_Fire", [
-            (-0.35, 0.3, -0.35,  0.35,  0.5,   0.35),   # copper fire bowl
-            (-0.2,  0.5, -0.2,   0.2,   0.9,   0.2),    # beacon flame top
+            (-0.42, 0.4, -0.42,  0.42,  0.55,  0.42),   # wide copper brazier basin
+            (-0.25, 0.55,-0.25,  0.25,  0.85,  0.25),   # beacon fire flame
         ]),
     ],
 
@@ -220,15 +225,17 @@ MODELS = {
         ]),
     ],
 
-    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with axe
+    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with steel axe wedged in top
     "eg_settlers_job_lumberjack.obj": [
         ("Mat1_Bark", [
-            (-0.4, -0.5, -0.4,   0.4,   0.05,  0.4),    # stump
+            (-0.45,-0.5, -0.45,  0.45,  0.05,  0.45),   # log stump body
         ]),
         ("Mat2_Top", [
-            (-0.4,  0.05,-0.4,   0.4,   0.1,   0.4),    # top rings
-            (-0.05, 0.1, -0.05,  0.05,  0.4,   0.05),   # axe handle
-            (-0.15, 0.2, -0.02,  0.15,  0.35,  0.02),   # axe head
+            (-0.45, 0.05,-0.45,  0.45,  0.1,   0.45),   # log top rings
+            (-0.04, 0.22, 0.04,  0.04,  0.28,  0.45),   # wooden axe handle extension
+        ]),
+        ("Mat3_Steel", [
+            (-0.25, 0.1, -0.04,  0.05,  0.3,   0.04),   # steel axe head blade
         ]),
     ],
 
