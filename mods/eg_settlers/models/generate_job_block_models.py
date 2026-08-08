@@ -246,17 +246,22 @@ MODELS = {
         ]),
     ],
 
-    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with steel axe wedged in top
+    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with realistic felling axe & woodchips
     "eg_settlers_job_lumberjack.obj": [
         ("Mat1_Bark", [
-            (-0.45,-0.5, -0.45,  0.45,  0.05,  0.45),   # log stump body
+            (-0.45,-0.5, -0.45,  0.45,  0.2,   0.45),   # tall tree trunk bark body (0.7m tall)
         ]),
         ("Mat2_Top", [
-            (-0.45, 0.05,-0.45,  0.45,  0.1,   0.45),   # log top rings
-            (-0.04, 0.22, 0.04,  0.04,  0.28,  0.45),   # wooden axe handle extension
+            (-0.45, 0.2, -0.45,  0.45,  0.25,  0.45),   # log top ring surface
+            (-0.35, 0.25,-0.3,  -0.15,  0.29, -0.1),    # woodchip pile 1
+            ( 0.15, 0.25, 0.1,   0.3,   0.29,  0.25),   # woodchip pile 2
         ]),
         ("Mat3_Steel", [
-            (-0.25, 0.1, -0.04,  0.05,  0.3,   0.04),   # steel axe head blade
+            (-0.06, 0.2, -0.06,  0.06,  0.42,  0.06),   # rear poll / eye socket wedged into log
+            (-0.04, 0.15,-0.25,  0.04,  0.45, -0.06),   # flared steel cutting blade bit front
+        ]),
+        ("Mat4_Handle", [
+            (-0.04, 0.35, 0.0,   0.04,  0.72,  0.45),   # diagonal dark mahogany axe handle
         ]),
     ],
 
