@@ -118,7 +118,16 @@ local function get_formspec(sid, player_name, tab_index)
         local criminal_list = ""
         local records = s.criminal_records or {}
         for pname, rec in pairs(records) do
-            local line = string.format("%s - Assaults: %d, Murders: %d", pname, rec.assault_count or 0, rec.murder_count or 0)
+            local days_rem, mins_rem = eg_settlers.db.get_decay_time_estimate(sid, pname)
+            local assault_str = string.format("Assaults: %d", rec.assault_count or 0)
+            if rec.assault_count and rec.assault_count > 0 then
+                assault_str = assault_str .. string.format(" (Decays in ~%dd / ~%dm)", days_rem, mins_rem)
+            end
+            local murder_str = string.format("Murders: %d", rec.murder_count or 0)
+            if rec.murder_count and rec.murder_count > 0 then
+                murder_str = murder_str .. " (Permanent)"
+            end
+            local line = string.format("%s - %s, %s", pname, assault_str, murder_str)
             if criminal_list == "" then
                 criminal_list = minetest.formspec_escape(line)
             else

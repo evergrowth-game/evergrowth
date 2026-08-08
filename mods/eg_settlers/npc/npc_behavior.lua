@@ -484,7 +484,11 @@ for _, entity_name in ipairs(target_entities) do
                     end
                     
                     if sid and eg_settlers.db.is_criminal(sid, name) then
+                        local days_rem, mins_rem = eg_settlers.db.get_decay_time_estimate(sid, name)
                         local msg = S("Criminals are not welcome in this settlement! Pay your fines at the Town Ledger before trading.")
+                        if days_rem > 0 then
+                            msg = msg .. " " .. string.format(S("(Assault decay in ~%d in-game days / ~%dm)"), days_rem, mins_rem)
+                        end
                         minetest.chat_send_player(name, minetest.colorize("#FF0000", msg))
                         return
                     end
