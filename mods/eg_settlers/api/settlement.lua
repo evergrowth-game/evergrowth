@@ -140,21 +140,19 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         local reserved = meta:get_string("player_reserved") == "true"
         local assigned = meta:get_string("assigned_settler")
         
-        local partner_assigned = false
-        local neighbors = minetest.find_nodes_in_area(
-            vector.subtract(bed_pos, 1),
-            vector.add(bed_pos, 1),
-            {"group:bed"}
-        )
-        for _, npos in ipairs(neighbors) do
-            local nmeta = minetest.get_meta(npos)
-            if nmeta:get_string("assigned_settler") ~= "" or nmeta:get_string("owner") ~= "" or nmeta:get_string("player_reserved") == "true" then
-                partner_assigned = true
-                break
+        local partner_occupied = false
+        local node = minetest.get_node(bed_pos)
+        local dir = minetest.facedir_to_dir(node.param2 or 0)
+        local partner_pos = vector.add(bed_pos, dir)
+        local partner_node = minetest.get_node(partner_pos)
+        if minetest.get_item_group(partner_node.name, "bed") > 0 then
+            local pmeta = minetest.get_meta(partner_pos)
+            if pmeta:get_string("assigned_settler") ~= "" or pmeta:get_string("owner") ~= "" or pmeta:get_string("player_reserved") == "true" then
+                partner_occupied = true
             end
         end
 
-        if not reserved and owner == "" and assigned == "" and not partner_assigned then
+        if not reserved and owner == "" and assigned == "" and not partner_occupied then
             return bed_pos
         end
     end

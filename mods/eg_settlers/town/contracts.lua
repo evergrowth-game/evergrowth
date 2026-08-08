@@ -68,15 +68,18 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
         block_meta:set_string("infotext", S("Workstation: ") .. prof_id:sub(1,1):upper() .. prof_id:sub(2) .. "\n" .. S("Resident: ") .. (npc_name or prof_id))
 
-        local neighbors = minetest.find_nodes_in_area(
-            vector.subtract(bed_pos, 1),
-            vector.add(bed_pos, 1),
-            {"group:bed"}
-        )
-        for _, npos in ipairs(neighbors) do
-            local bmeta = minetest.get_meta(npos)
-            bmeta:set_string("assigned_settler", npc_name or prof_id)
-            eg_settlers.update_bed_infotext(npos)
+        local bmeta = minetest.get_meta(bed_pos)
+        bmeta:set_string("assigned_settler", npc_name or prof_id)
+        eg_settlers.update_bed_infotext(bed_pos)
+
+        local bed_node = minetest.get_node(bed_pos)
+        local dir = minetest.facedir_to_dir(bed_node.param2 or 0)
+        local partner_pos = vector.add(bed_pos, dir)
+        local partner_node = minetest.get_node(partner_pos)
+        if minetest.get_item_group(partner_node.name, "bed") > 0 then
+            local pmeta = minetest.get_meta(partner_pos)
+            pmeta:set_string("assigned_settler", npc_name or prof_id)
+            eg_settlers.update_bed_infotext(partner_pos)
         end
 
         if sid then
