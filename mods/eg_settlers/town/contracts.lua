@@ -54,7 +54,7 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         end
 
         -- Spawn Villager
-        local spawn_pos = pointed_thing.above
+        local spawn_pos = {x = pointed_thing.above.x, y = pointed_thing.above.y + 0.5, z = pointed_thing.above.z}
         local npc_name = eg_settlers.spawn_trader(spawn_pos, prof_id, true, {
             home_pos = bed_pos,
             job_pos = under_pos,
