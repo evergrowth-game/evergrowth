@@ -195,10 +195,9 @@ eg_settlers.register_job_block("merchant", {
 eg_settlers.register_job_block("guard", {
     description = "Guard's Watchtower Beacon",
     cost = 8,
-    tiles = {"default_cobble.png", "default_copper_block.png"},
-    light_source = 10,
-    selection_box = { type = "fixed", fixed = {-0.4, -0.5, -0.4, 0.4, 0.9, 0.4} },
-    collision_box = { type = "fixed", fixed = {-0.4, -0.5, -0.4, 0.4, 0.9, 0.4} },
+    tiles = {"default_wood.png", "default_steel_block.png", "default_bronze_block.png"},
+    selection_box = { type = "fixed", fixed = {-0.45, -0.5, -0.35, 0.45, 1.0, 0.35} },
+    collision_box = { type = "fixed", fixed = {-0.45, -0.5, -0.35, 0.45, 1.0, 0.35} },
 })
 
 eg_settlers.register_job_block("rancher", {

@@ -179,20 +179,25 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — wide 4-legged timber watchtower brazier
+    # 9. GUARD'S WATCHTOWER BEACON — Armory Weapon Rack & Shield Stand
     "eg_settlers_job_guard.obj": [
-        ("Mat1_Stone", [
-            (-0.45,-0.5, -0.45,  0.45, -0.3,   0.45),   # wide stone foundation slab
-            (-0.4, -0.3, -0.4,  -0.3,   0.4,  -0.3),    # corner post FL
-            ( 0.3, -0.3, -0.4,   0.4,   0.4,  -0.3),    # corner post FR
-            (-0.4, -0.3,  0.3,  -0.3,   0.4,   0.4),    # corner post BL
-            ( 0.3, -0.3,  0.3,   0.4,   0.4,   0.4),    # corner post BR
-            (-0.4,  0.0, -0.4,   0.4,   0.08, -0.3),    # cross-beam F
-            (-0.4,  0.0,  0.3,   0.4,   0.08,  0.4),    # cross-beam B
+        ("Mat1_Wood", [
+            (-0.45, -0.5,  -0.35,  0.45, -0.35,  0.35),   # heavy wooden base slab
+            (-0.35, -0.35, -0.15, -0.25,  0.5,   0.15),   # left vertical timber post
+            ( 0.25, -0.35, -0.15,  0.35,  0.5,   0.15),   # right vertical timber post
+            (-0.4,   0.25, -0.1,   0.4,   0.35,  0.1),    # weapon crossbar rail
         ]),
-        ("Mat2_Fire", [
-            (-0.42, 0.4, -0.42,  0.42,  0.55,  0.42),   # wide copper brazier basin
-            (-0.25, 0.55,-0.25,  0.25,  0.85,  0.25),   # beacon fire flame
+        ("Mat2_Steel", [
+            (-0.3,  -0.2,  -0.22,  0.3,   0.4,  -0.16),   # mounted round shield plate
+            (-0.32, -0.35,  0.1,  -0.28,  0.7,   0.14),   # spear shaft extension
+            (-0.34,  0.7,   0.08, -0.26,  0.95,  0.16),   # steel spear head tip
+            ( 0.2,   0.0,  -0.12,  0.25,  0.8,  -0.08),   # steel sword blade
+            ( 0.1,   0.15, -0.14,  0.35,  0.2,  -0.06),   # steel sword crossguard
+        ]),
+        ("Mat3_Bronze", [
+            (-0.15,  0.0,  -0.26,  0.15,  0.2,  -0.22),   # bronze shield center boss dome
+            (-0.38,  0.25, -0.12, -0.23,  0.35, -0.08),   # left iron bracket
+            ( 0.23,  0.25, -0.12,  0.38,  0.35, -0.08),   # right iron bracket
         ]),
     ],
 
