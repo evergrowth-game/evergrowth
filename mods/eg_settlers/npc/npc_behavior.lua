@@ -141,12 +141,13 @@ for _, entity_name in ipairs(target_entities) do
                             if night_target then
                                 local dist_home = vector.distance(pos, night_target)
                                 if dist_home > 3 then
-                                    -- Teleport safely by finding an adjacent non-solid coordinate
-                                    local dest = {x = night_target.x, y = night_target.y, z = night_target.z}
+                                    -- Teleport safely by finding an elevated non-solid coordinate above/adjacent to bed
+                                    local dest = {x = night_target.x, y = night_target.y + 0.5, z = night_target.z}
                                     local offsets = {
-                                        {x=0, y=0, z=1}, {x=0, y=0, z=-1},
-                                        {x=1, y=0, z=0}, {x=-1, y=0, z=0},
-                                        {x=0, y=0, z=0}
+                                        {x=0, y=0.5, z=0},
+                                        {x=0, y=1.0, z=0},
+                                        {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
+                                        {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
                                     }
                                     
                                     for _, off in ipairs(offsets) do
