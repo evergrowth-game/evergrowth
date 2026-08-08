@@ -18,14 +18,15 @@ function eg_settlers.register_job_block(prof_id, def)
     
     minetest.register_node(node_name, {
         description = S(def.description) .. "\n" .. S("Workstation Node - Place a Hiring Contract on this block."),
-        drawtype = def.drawtype or "nodebox",
+        drawtype = "mesh",
+        mesh = def.mesh or ("eg_settlers_job_" .. prof_id .. ".obj"),
         tiles = def.tiles,
         paramtype = "light",
         paramtype2 = def.paramtype2 or "facedir",
         sunlight_propagates = true,
         light_source = def.light_source or 0,
-        node_box = def.node_box,
-        selection_box = def.selection_box or def.node_box,
+        selection_box = def.selection_box or { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.45, 0.45} },
+        collision_box = def.collision_box or { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.45, 0.45} },
         groups = node_groups,
 
         on_construct = function(pos)
@@ -125,68 +126,29 @@ function eg_settlers.register_job_block(prof_id, def)
     }
 end
 
----- Register 18 Job Blocks with detailed 3D multi-box workstation geometry
+-- Register 18 Job Blocks with 3D OBJ Mesh Models & Multi-Material Textures
 eg_settlers.register_job_block("farmer", {
     description = "Farmer's Seed Silo",
     cost = 5,
-    tiles = {"default_wood.png", "default_wood.png", "default_wood.png^default_chest_front.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.3, -0.5, -0.3, 0.3, 0.3, 0.3},
-            {-0.35, 0.3, -0.35, 0.35, 0.45, 0.35},
-            {-0.2, 0.45, -0.2, 0.2, 0.5, 0.2},
-            {-0.35, -0.5, -0.35, 0.35, -0.4, 0.35},
-        }
-    },
+    tiles = {"default_wood.png", "default_dry_grass.png"},
 })
 
 eg_settlers.register_job_block("smith", {
     description = "Blacksmith's Quenching Trough",
     cost = 10,
-    tiles = {"default_water.png", "default_stone_brick.png", "default_stone_brick.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.5, -0.5, -0.5, 0.5, -0.3, 0.5},
-            {-0.5, -0.3, -0.5, 0.5, 0.1, -0.35},
-            {-0.5, -0.3, 0.35, 0.5, 0.1, 0.5},
-            {-0.5, -0.3, -0.35, -0.35, 0.1, 0.35},
-            {0.35, -0.3, -0.35, 0.5, 0.1, 0.35},
-            {-0.35, -0.3, -0.35, 0.35, -0.05, 0.35},
-        }
-    },
+    tiles = {"default_stone_brick.png", "default_water.png"},
 })
 
 eg_settlers.register_job_block("carpenter", {
     description = "Carpenter's Drafting Table",
     cost = 8,
-    tiles = {"default_wood.png^default_paper.png", "default_wood.png", "default_wood.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, -0.35, 0.2, -0.35},
-            {0.35, -0.5, -0.45, 0.45, 0.2, -0.35},
-            {-0.45, -0.5, 0.35, -0.35, 0.2, 0.45},
-            {0.35, -0.5, 0.35, 0.45, 0.2, 0.45},
-            {-0.5, 0.2, -0.5, 0.5, 0.3, 0.5},
-            {-0.3, 0.3, -0.3, 0.3, 0.32, 0.3},
-        }
-    },
+    tiles = {"default_wood.png", "default_paper.png"},
 })
 
 eg_settlers.register_job_block("librarian", {
     description = "Librarian's Archive Cabinet",
     cost = 8,
-    tiles = {"default_bookshelf.png", "default_wood.png", "default_wood.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.3, 0.4, 0.5, 0.3},
-            {-0.45, 0.4, -0.35, 0.45, 0.5, 0.35},
-            {-0.35, -0.5, -0.25, 0.35, -0.45, 0.25},
-        }
-    },
+    tiles = {"default_wood.png", "default_bookshelf.png"},
 })
 
 eg_settlers.register_job_block("mage", {
@@ -194,215 +156,85 @@ eg_settlers.register_job_block("mage", {
     cost = 15,
     tiles = {"default_obsidian.png", "default_mese_block.png"},
     light_source = 8,
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, 0.45, -0.3, 0.45},
-            {-0.3, -0.3, -0.3, 0.3, 0.1, 0.3},
-            {-0.4, 0.1, -0.4, 0.4, 0.25, 0.4},
-            {-0.15, 0.25, -0.15, 0.15, 0.5, 0.15},
-        }
-    },
 })
 
 eg_settlers.register_job_block("brewer", {
     description = "Brewer's Fermentation Cask",
     cost = 8,
     tiles = {"default_wood.png", "default_steel_block.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.4, -0.3, -0.2, -0.3},
-            {0.3, -0.5, -0.4, 0.4, -0.2, -0.3},
-            {-0.4, -0.5, 0.3, -0.3, -0.2, 0.4},
-            {0.3, -0.5, 0.3, 0.4, -0.2, 0.4},
-            {-0.45, -0.2, -0.45, 0.45, 0.4, 0.45},
-            {-0.05, 0.0, -0.55, 0.05, 0.1, -0.45},
-        }
-    },
 })
 
 eg_settlers.register_job_block("miner", {
     description = "Miner's Ore Cart",
     cost = 8,
-    tiles = {"default_coal_block.png", "default_steel_block.png", "default_cobble.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.35, -0.35, -0.3, 0.35},
-            {0.35, -0.5, -0.35, 0.45, -0.3, 0.35},
-            {-0.4, -0.3, -0.4, 0.4, -0.2, 0.4},
-            {-0.45, -0.2, -0.45, 0.45, 0.2, 0.45},
-            {-0.35, 0.2, -0.35, 0.35, 0.35, 0.35},
-        }
-    },
+    tiles = {"default_steel_block.png", "default_coal_block.png"},
 })
 
 eg_settlers.register_job_block("merchant", {
     description = "Merchant's Counter",
     cost = 10,
-    tiles = {"default_chest_top.png", "default_wood.png", "default_gold_block.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, 0.45, 0.1, 0.45},
-            {-0.5, 0.1, -0.5, 0.5, 0.25, 0.5},
-            {0.1, 0.25, -0.2, 0.35, 0.45, 0.0},
-            {0.05, 0.38, -0.35, 0.4, 0.42, 0.15},
-        }
-    },
+    tiles = {"default_wood.png", "default_gold_block.png"},
 })
 
 eg_settlers.register_job_block("guard", {
     description = "Guard's Watchtower Beacon",
     cost = 8,
-    tiles = {"default_copper_block.png", "default_cobble.png", "default_furnace_fire_fg.png"},
+    tiles = {"default_cobble.png", "default_copper_block.png"},
     light_source = 10,
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.4, 0.4, -0.3, 0.4},
-            {-0.15, -0.3, -0.15, 0.15, 0.1, 0.15},
-            {-0.35, 0.1, -0.35, 0.35, 0.3, 0.35},
-            {-0.2, 0.3, -0.2, 0.2, 0.5, 0.2},
-        }
-    },
 })
 
 eg_settlers.register_job_block("rancher", {
     description = "Rancher's Feed Trough",
     cost = 5,
-    tiles = {"farming_straw.png", "default_wood.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.5, -0.5, -0.4, 0.5, -0.3, 0.4},
-            {-0.5, -0.3, -0.4, 0.5, 0.1, -0.25},
-            {-0.5, -0.3, 0.25, 0.5, 0.1, 0.4},
-            {-0.5, -0.3, -0.25, -0.35, 0.1, 0.25},
-            {0.35, -0.3, -0.25, 0.5, 0.1, 0.25},
-            {-0.35, -0.3, -0.25, 0.35, 0.0, 0.25},
-        }
-    },
+    tiles = {"default_wood.png", "farming_straw.png"},
 })
 
 eg_settlers.register_job_block("fisher", {
     description = "Fisher's Fish Barrel",
     cost = 5,
-    tiles = {"default_water.png", "default_wood.png", "default_steel_block.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.4, 0.4, 0.3, 0.4},
-            {-0.42, -0.3, -0.42, 0.42, -0.2, 0.42},
-            {-0.42, 0.0, -0.42, 0.42, 0.1, 0.42},
-            {-0.32, 0.25, -0.32, 0.32, 0.32, 0.32},
-        }
-    },
+    tiles = {"default_wood.png", "default_steel_block.png"},
 })
 
 eg_settlers.register_job_block("lumberjack", {
     description = "Lumberjack's Chopping Stump",
     cost = 5,
-    tiles = {"default_tree_top.png", "default_tree.png", "default_steel_block.png", "default_wood.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, 0.45, 0.1, 0.45},
-            {-0.1, 0.1, -0.05, 0.1, 0.35, 0.05},
-            {-0.05, 0.2, -0.3, 0.05, 0.3, 0.2},
-        }
-    },
+    tiles = {"default_tree.png", "default_tree_top.png"},
 })
 
 eg_settlers.register_job_block("technologist", {
     description = "Technologist's Server Rack",
     cost = 15,
-    tiles = {"default_steel_block.png", "default_copper_block.png", "default_mese_block.png"},
+    tiles = {"default_steel_block.png", "default_copper_block.png"},
     light_source = 4,
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.35, 0.4, 0.45, 0.35},
-            {-0.35, -0.4, -0.38, 0.35, -0.1, -0.35},
-            {-0.35, 0.0, -0.38, 0.35, 0.3, -0.35},
-            {-0.42, 0.45, -0.37, 0.42, 0.5, 0.37},
-        }
-    },
 })
 
 eg_settlers.register_job_block("gunsmith", {
     description = "Gunsmith's Ordnance Locker",
     cost = 15,
     tiles = {"default_steel_block.png^[multiply:#354B35", "default_chest_front.png^[multiply:#354B35"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.4, 0.45, 0.45, 0.4},
-            {-0.48, 0.45, -0.43, 0.48, 0.5, 0.43},
-            {-0.3, -0.4, -0.43, -0.05, 0.3, -0.4},
-            {0.05, -0.4, -0.43, 0.3, 0.3, -0.4},
-        }
-    },
 })
 
 eg_settlers.register_job_block("automobile_mechanic", {
     description = "Automobile Mechanic's Tool Chest",
     cost = 15,
-    tiles = {"default_chest_front.png^[multiply:#B22222", "default_chest_top.png^[multiply:#B22222", "default_steel_block.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.4, -0.5, -0.3, 0.4, -0.4, 0.3},
-            {-0.45, -0.4, -0.35, 0.45, 0.3, 0.35},
-            {-0.48, 0.3, -0.38, 0.48, 0.45, 0.38},
-            {-0.5, 0.25, -0.2, -0.45, 0.35, 0.2},
-        }
-    },
+    tiles = {"default_chest_front.png^[multiply:#B22222", "default_steel_block.png"},
 })
 
 eg_settlers.register_job_block("aircraft_mechanic", {
     description = "Aircraft Mechanic's Canister Rack",
     cost = 15,
     tiles = {"default_steel_block.png^[multiply:#DAA520", "default_copper_block.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.4, 0.45, -0.3, 0.4},
-            {-0.35, -0.3, -0.25, -0.05, 0.4, 0.25},
-            {0.05, -0.3, -0.25, 0.35, 0.4, 0.25},
-            {-0.45, -0.3, -0.05, 0.45, 0.2, 0.05},
-        }
-    },
 })
 
 eg_settlers.register_job_block("nautical_mechanic", {
     description = "Nautical Mechanic's Chain Post",
     cost = 15,
     tiles = {"default_steel_block.png^[multiply:#4682B4", "default_stone.png"},
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, 0.45, -0.3, 0.45},
-            {-0.2, -0.3, -0.2, 0.2, 0.4, 0.2},
-            {-0.25, 0.2, -0.25, 0.25, 0.3, 0.25},
-            {-0.4, 0.0, -0.05, 0.4, 0.1, 0.05},
-        }
-    },
 })
 
 eg_settlers.register_job_block("roboticist", {
     description = "Roboticist's Charging Alcove",
     cost = 20,
-    tiles = {"default_copper_block.png", "default_steel_block.png", "default_mese_block.png"},
+    tiles = {"default_steel_block.png", "default_copper_block.png"},
     light_source = 6,
-    node_box = {
-        type = "fixed",
-        fixed = {
-            {-0.45, -0.5, -0.45, 0.45, -0.35, 0.45},
-            {-0.45, -0.35, -0.45, -0.25, 0.5, 0.45},
-            {0.25, -0.35, -0.45, 0.45, 0.5, 0.45},
-            {-0.25, 0.3, -0.45, 0.25, 0.5, 0.45},
-        }
-    },
 })
