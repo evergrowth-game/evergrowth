@@ -246,7 +246,7 @@ MODELS = {
         ]),
     ],
 
-    # 12. LUMBERJACK'S CHOPPING STUMP — tree stump with 3D steel axe & wooden sticks
+    # 12. LUMBERJACK'S CHOPPING STUMP — sharp axe bit embedded into log top
     "eg_settlers_job_lumberjack.obj": [
         ("Mat1_Bark", [
             (-0.45,-0.5, -0.45,  0.45,  0.2,   0.45),   # log stump bark body (0.7m height)
@@ -257,12 +257,12 @@ MODELS = {
             (-0.45, 0.2, -0.45,  0.45,  0.25,  0.45),   # log top ring surface
         ]),
         ("Mat3_Steel", [
-            (-0.04, 0.25,-0.04,  0.04,  0.42,  0.06),   # axe poll / eye socket
-            (-0.02, 0.20,-0.22,  0.02,  0.46, -0.04),   # axe blade body
-            (-0.01, 0.18,-0.25,  0.01,  0.48, -0.22),   # sharp cutting bit edge point
+            (-0.01, 0.16,-0.22,  0.01,  0.30, -0.04),   # sharp steel cutting bit embedded in log
+            (-0.02, 0.30,-0.18,  0.02,  0.38, -0.02),   # steel axe head body
+            (-0.04, 0.35,-0.06,  0.04,  0.45,  0.06),   # top poll / eye socket
         ]),
         ("Mat4_Handle", [
-            (-0.025, 0.35, 0.01, 0.025, 0.82,  0.06),   # 3cm thin wooden axe handle shaft
+            (-0.025, 0.40, 0.0,  0.025, 0.85,  0.05),   # 3cm thin wooden axe handle extending upward
         ]),
     ],
 
