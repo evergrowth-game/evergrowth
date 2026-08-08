@@ -349,7 +349,7 @@ MODELS = {
         ]),
         ("Mat2_Charge", [
             (-0.3, -0.5, -0.35,  0.3,  -0.4,   0.25),   # floor charging pad
-            (-0.2,  0.2, -0.43,  0.2,   0.5,  -0.4),    # glowing power core screen
+            (-0.2,  0.2,  0.20,  0.2,   0.5,   0.25),   # copper power core screen (mounted flush to rear backboard)
         ]),
     ],
 }
