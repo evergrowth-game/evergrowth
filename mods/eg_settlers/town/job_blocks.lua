@@ -219,9 +219,9 @@ eg_settlers.register_job_block("fisher", {
 eg_settlers.register_job_block("lumberjack", {
     description = "Lumberjack's Chopping Stump",
     cost = 5,
-    tiles = {"default_tree.png", "default_tree_top.png", "default_tool_steelaxe.png", "default_stick.png"},
-    selection_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.7, 0.45} },
-    collision_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.7, 0.45} },
+    tiles = {"default_tree.png", "default_tree_top.png", "default_steel_block.png", "default_junglewood.png"},
+    selection_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.82, 0.45} },
+    collision_box = { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.82, 0.45} },
 })
 
 eg_settlers.register_job_block("technologist", {
