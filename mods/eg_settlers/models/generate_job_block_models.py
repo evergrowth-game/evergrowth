@@ -179,7 +179,7 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (Tapered Spear Tip & Uncovered Sword)
+    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (4-Material Setup)
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
             (-0.5, -0.5,  -0.4,   0.5,  -0.35,  0.4),    # full-width heavy wooden base slab
@@ -189,26 +189,28 @@ MODELS = {
             ( 0.33, 0.85, -0.08,  0.47,  0.92,  0.08),   # right timber post cap
             (-0.45, 0.55, -0.05,  0.45,  0.65,  0.05),   # upper hanger crossbar
             (-0.45,-0.05, -0.05,  0.45,  0.05,  0.05),   # lower crossbar ledge
-            ( 0.35,-0.35, -0.1,   0.41,  1.1,  -0.04),   # wooden spear shaft (right post)
-            (-0.38, 0.40, -0.09, -0.32,  0.52, -0.03),   # WOODEN SWORD HILT GRIP (left post)
         ]),
         ("Mat2_Steel", [
             # Tapered 3-tier spearhead tip (right post, Y = 1.10 -> 1.44)
-            ( 0.34, 1.10, -0.11,  0.42,  1.22, -0.03),   # spear socket base (8cm wide)
-            ( 0.36, 1.22, -0.10,  0.40,  1.34, -0.04),   # spear mid blade (4cm wide)
-            ( 0.37, 1.34, -0.09,  0.39,  1.44, -0.05),   # spear point tip (2cm wide point)
+            ( 0.34, 1.10, -0.11,  0.42,  1.22, -0.03),   # spear socket base
+            ( 0.36, 1.22, -0.10,  0.40,  1.34, -0.04),   # spear mid blade
+            ( 0.37, 1.34, -0.09,  0.39,  1.44, -0.05),   # spear point tip
 
-            # Sword assembly (left post, X = -0.45 -> -0.25, fully uncovered)
-            (-0.37,-0.3,  -0.09, -0.33,  0.35, -0.03),   # steel sword blade (hanging left)
+            # Sword assembly (left post)
+            (-0.37,-0.3,  -0.09, -0.33,  0.35, -0.03),   # steel sword blade
             (-0.45, 0.35, -0.11, -0.25,  0.40, -0.01),   # wide steel sword crossguard
             (-0.39, 0.52, -0.09, -0.31,  0.58, -0.03),   # steel sword pommel cap
 
-            # Shield border rim plate (center, X = -0.20 -> 0.20)
+            # Shield border rim plate (center)
             (-0.2,  0.0,  -0.22,  0.2,   0.6,  -0.16),   # outer shield steel border rim plate
         ]),
         ("Mat3_Bronze", [
             (-0.16, 0.04, -0.26,  0.16,  0.56, -0.22),   # inner bronze shield face plate
             (-0.07, 0.22, -0.30,  0.07,  0.38, -0.26),   # raised bronze shield boss dome
+        ]),
+        ("Mat4_Handle", [
+            ( 0.35,-0.35, -0.1,   0.41,  1.1,  -0.04),   # dark mahogany spear shaft
+            (-0.38, 0.40, -0.09, -0.32,  0.52, -0.03),   # dark leather sword hilt grip
         ]),
     ],
 
