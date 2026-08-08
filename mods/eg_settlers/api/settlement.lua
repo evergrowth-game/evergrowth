@@ -247,7 +247,13 @@ function eg_settlers.find_unassigned_bed(pos, radius)
     return nil
 end
 
--- Hook player sleeping and bed destruction across registered bed nodes
+-- Hook player placement, sleeping, and bed destruction across registered bed nodes
+minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack, pointed_thing)
+    if minetest.get_item_group(newnode.name, "bed") > 0 then
+        eg_settlers.update_bed_infotext(pos)
+    end
+end)
+
 minetest.register_on_mods_loaded(function()
     for name, def in pairs(minetest.registered_nodes) do
         if minetest.get_item_group(name, "bed") > 0 then
@@ -257,7 +263,7 @@ minetest.register_on_mods_loaded(function()
                 on_destruct = function(pos)
                     -- Clear home_pos from any living settler entity assigned to this bed coordinate
                     for _, obj in pairs(minetest.luaentities) do
-                        if obj.name and obj.name:find("^eg_settlers:") and obj.home_pos then
+                        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
                             if vector.equals(obj.home_pos, pos) or vector.distance(obj.home_pos, pos) <= 1.5 then
                                 obj.home_pos = nil
                             end
