@@ -179,7 +179,7 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (Attached Shield & Non-Flickering Crossbars)
+    # 9. GUARD'S WATCHTOWER BEACON — Concept A Armory Stand (Central Backboard & Non-Flickering Sword Hilt)
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
             (-0.5, -0.5,  -0.4,   0.5,  -0.35,  0.4),    # full-width heavy wooden base slab
@@ -187,8 +187,9 @@ MODELS = {
             ( 0.35,-0.35, -0.06,  0.45,  0.85,  0.06),   # tall right timber post
             (-0.47, 0.85, -0.08, -0.33,  0.92,  0.08),   # left timber post cap
             ( 0.33, 0.85, -0.08,  0.47,  0.92,  0.08),   # right timber post cap
-            (-0.35, 0.55, -0.05,  0.35,  0.65,  0.05),   # upper crossbar (fitted between posts)
-            (-0.35,-0.05, -0.05,  0.35,  0.05,  0.05),   # lower crossbar (fitted between posts)
+            (-0.35, 0.55, -0.05,  0.35,  0.65,  0.05),   # upper crossbar
+            (-0.35,-0.05, -0.05,  0.35,  0.05,  0.05),   # lower crossbar
+            (-0.15, 0.05, -0.05,  0.15,  0.55,  0.05),   # central wooden mounting backboard
         ]),
         ("Mat2_Steel", [
             # Tapered 3-tier spearhead tip (right post)
@@ -196,15 +197,15 @@ MODELS = {
             ( 0.36, 1.22, -0.10,  0.40,  1.34, -0.04),   # spear mid blade
             ( 0.37, 1.34, -0.09,  0.39,  1.44, -0.05),   # spear point tip
 
-            # Sword assembly (left post)
-            (-0.37,-0.3,  -0.09, -0.33,  0.35, -0.03),   # steel sword blade
-            (-0.45, 0.35, -0.11, -0.25,  0.40, -0.01),   # wide steel sword crossguard
-            (-0.39, 0.52, -0.09, -0.31,  0.58, -0.03),   # steel sword pommel cap
+            # Sword assembly (left post - shifted forward along Z to Z = [-0.14, -0.08])
+            (-0.37,-0.3,  -0.12, -0.33,  0.35, -0.08),   # steel sword blade
+            (-0.43, 0.35, -0.14, -0.27,  0.40, -0.06),   # wide steel sword crossguard (no post intersection)
+            (-0.39, 0.52, -0.12, -0.31,  0.58, -0.08),   # steel sword pommel cap
 
-            # Shield border rim plate & MOUNTING BRACKETS TO WOODEN FRAME
+            # Shield border rim plate & MOUNTING BRACKETS ATTACHED TO CENTRAL BACKBOARD
             (-0.2,  0.0,  -0.22,  0.2,   0.6,  -0.16),   # outer shield steel border rim plate
-            (-0.18, 0.25, -0.16, -0.12,  0.35, -0.05),   # left steel mounting bracket attached to frame
-            ( 0.12, 0.25, -0.16,  0.18,  0.35, -0.05),   # right steel mounting bracket attached to frame
+            (-0.14, 0.25, -0.16, -0.08,  0.35, -0.05),   # left steel bracket mounted to backboard
+            ( 0.08, 0.25, -0.16,  0.14,  0.35, -0.05),   # right steel bracket mounted to backboard
         ]),
         ("Mat3_Bronze", [
             (-0.16, 0.04, -0.26,  0.16,  0.56, -0.22),   # inner bronze shield face plate
@@ -212,7 +213,7 @@ MODELS = {
         ]),
         ("Mat4_Handle", [
             ( 0.35,-0.35, -0.1,   0.41,  1.1,  -0.04),   # dark mahogany spear shaft
-            (-0.38, 0.40, -0.09, -0.32,  0.52, -0.03),   # dark leather sword hilt grip
+            (-0.38, 0.40, -0.12, -0.32,  0.52, -0.08),   # dark leather sword hilt grip
         ]),
     ],
 
