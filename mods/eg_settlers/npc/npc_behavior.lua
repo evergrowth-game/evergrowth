@@ -488,6 +488,8 @@ for _, entity_name in ipairs(target_entities) do
                         local msg = S("Criminals are not welcome in this settlement! Pay your fines at the Town Ledger before trading.")
                         if days_rem > 0 then
                             msg = msg .. " " .. string.format(S("(Assault decay in ~%d in-game days / ~%dm)"), days_rem, mins_rem)
+                        elseif mins_rem > 0 then
+                            msg = msg .. " " .. string.format(S("(Assault decay in ~%dm)"), mins_rem)
                         end
                         minetest.chat_send_player(name, minetest.colorize("#FF0000", msg))
                         return

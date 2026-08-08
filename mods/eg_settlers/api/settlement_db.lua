@@ -396,11 +396,11 @@ function eg_settlers.db.get_decay_time_estimate(settlement_id, player_name)
         if rec and rec.assault_count and rec.assault_count > 0 then
             local gametime = minetest.get_gametime()
             local time_diff = math.max(0, gametime - (s.last_tick_gametime or gametime))
-            local days_passed = math.floor(time_diff / 1200)
-            local days_in_cycle = days_passed % 3
-            local days_remaining = 3 - days_in_cycle
-            local sec_into_current_day = time_diff % 1200
-            local sec_remaining = (days_remaining * 1200) - sec_into_current_day
+            local total_sec_cycle = 3600 -- 3 in-game days = 3600 seconds
+            local sec_into_cycle = time_diff % total_sec_cycle
+            local sec_remaining = total_sec_cycle - sec_into_cycle
+            
+            local days_remaining = math.floor(sec_remaining / 1200)
             local mins_remaining = math.max(1, math.ceil(sec_remaining / 60))
             return days_remaining, mins_remaining
         end
