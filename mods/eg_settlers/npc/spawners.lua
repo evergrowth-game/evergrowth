@@ -102,7 +102,9 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
             end
             if is_villager then
                 ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
+                ent.job_pos = override_data.job_pos
             end
+
             
             if override_data and override_data.trades then
                 ent.trades = override_data.trades

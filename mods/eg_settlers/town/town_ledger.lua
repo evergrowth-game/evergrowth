@@ -22,6 +22,7 @@ local function get_formspec(sid, player_name, tab_index)
     
     if tab_index == 1 or not is_auth then
         local status_text = s.satiated == 1 and minetest.colorize("#00FF00", S("● Well-Fed")) or minetest.colorize("#FF0000", S("● Starving"))
+        local tier_num, tier_name, tier_cap = eg_settlers.db.get_town_tier(sid)
         
         local roster_list = ""
         for pos_str, res in pairs(s.residents) do
@@ -43,8 +44,9 @@ local function get_formspec(sid, player_name, tab_index)
         end
         
         formspec = formspec ..
-            "label[0.5,2;" .. S("Population:") .. " " .. resident_count .. " " .. S("residents") .. "]" ..
+            "label[0.5,2;" .. S("Tier:") .. " " .. tier_name .. " (" .. resident_count .. "/" .. tier_cap .. " " .. S("residents") .. ")]" ..
             "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]"
+
             
         if is_owner then
             formspec = formspec .. "button[6.5,2;1.5,1;disband_prompt;" .. S("Disband") .. "]"
@@ -172,8 +174,22 @@ minetest.register_node("eg_settlers:town_ledger", {
                 eg_settlers.db.mark_dirty()
                 meta:set_string("owner", s.owner)
             end
+
+            -- Starter Kit: Award 1x Farmer Job Block + 1x Hiring Contract
+            local inv = placer:get_inventory()
+            local items = {"eg_settlers:job_block_farmer", "eg_settlers:hiring_contract"}
+            for _, item in ipairs(items) do
+                if inv:room_for_item("main", item) then
+                    inv:add_item("main", item)
+                else
+                    minetest.item_drop(ItemStack(item), placer, pos)
+                end
+            end
+            minetest.chat_send_player(placer:get_player_name(),
+                S("[eg_settlers] Starter Kit received: 1x Farmer's Seed Silo and 1x Hiring Contract!"))
         end
     end,
+
     
     can_dig = function(pos, player)
         local meta = minetest.get_meta(pos)

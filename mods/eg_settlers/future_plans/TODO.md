@@ -18,25 +18,34 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Restrict villager relocation/removal to town owners and associates.
 
 ## Phase 2: Settler Infrastructure, Job Blocks & Unified Contracts
-- [ ] **Job Block Registration & Workstation Nodes**
-  - [ ] Implement `town/job_blocks.lua` helper and register 18 job blocks.
-  - [ ] Job blocks replace Housing Deeds for all 18 villager professions, functioning identically as tethering nodes.
-  - [ ] Retain `housing_deed` exclusively for Companion NPCs (`contract_companion_male`, etc.).
-  - [ ] Store `occupied`, `resident_name`, `profession`, `settlement_id` metadata.
-- [ ] **Unified Hiring Contract**
-  - [ ] Replace 18 contract craftitems with single `eg_settlers:hiring_contract`.
-  - [ ] Update `on_place` to derive profession from target job block.
-  - [ ] Update `contract_villager_relocation` to target job blocks.
-  - [ ] Adapt `job_board.lua` Contracts tab to dispense `hiring_contract`.
-  - [ ] Register item aliases in `api/aliases.lua` for backward compatibility.
-  - [ ] Deprecate `housing_deed` on_rightclick message for villagers and update NPC pathfinding to job blocks.
-  - [ ] Update `docs/guide_content.lua`.
-- [ ] **Environmental Validation Checks**
-  - [ ] Implement `validate_job_block_environment(pos, profession)` in `api/settlement.lua`.
-  - [ ] Enforce environmental requirements before contract placement.
-- [ ] **Population Cap & Town Progression Tiers**
-  - [ ] Enforce `Population Cap = Registered Job Blocks` in `town_ledger.lua` (no bed tracking).
-  - [ ] Implement Town Progression Tiers (Outpost, Hamlet, Village) tied to infrastructure nodes.
+- [x] **Dual Tethering (Job Block + Bed Node)**
+  - [x] Add Bed node (`group:bed`) unassigned scanner in `api/settlement.lua`.
+  - [x] Update `hiring_contract` `on_place` to verify unassigned bed availability and store both `job_pos` and `home_pos` metadata.
+  - [x] Update `npc_behavior.lua` day/night cycle: daytime active at `job_pos` (06:00–18:00), nighttime standing shelter at `home_pos` bed (18:00–06:00).
+- [x] **Town Ledger Starter Kit**
+  - [x] Update `town_ledger.lua` `after_place_node` to award `1x job_block_farmer` + `1x hiring_contract` directly to placer inventory (dropping if full).
+- [x] **Job Board Procurement Hub (No 3x3 Grid Recipes)**
+  - [x] Add Workstations tab to `job_board.lua` formspec to purchase 18 Job Blocks for gold.
+  - [x] Adapt Contracts tab in `job_board.lua` to dispense `hiring_contract` for gold.
+- [x] **Job Block Registration & Workstation Nodes**
+  - [x] Implement `town/job_blocks.lua` helper and register 18 job blocks.
+  - [x] Job blocks replace Housing Deeds for all 18 villager professions, functioning as workstation nodes.
+  - [x] Retain `housing_deed` exclusively for Companion NPCs (`contract_companion_male`, etc.).
+  - [x] Store `occupied`, `resident_name`, `profession`, `settlement_id`, `job_pos`, `home_pos` metadata.
+- [x] **Unified Hiring Contract**
+  - [x] Replace 18 contract craftitems with single `eg_settlers:hiring_contract`.
+  - [x] Update `on_place` to derive profession from target job block, verify bed, and check environment.
+  - [x] Update `contract_villager_relocation` to target job blocks.
+  - [x] Register item aliases in `api/aliases.lua` for backward compatibility.
+  - [x] Deprecate `housing_deed` on_rightclick message for villagers.
+  - [x] Update `docs/guide_content.lua`.
+- [x] **Environmental Validation Checks**
+  - [x] Implement `validate_job_block_environment(pos, profession)` in `api/settlement.lua`.
+  - [x] Enforce environmental requirements before contract placement.
+- [x] **Population Cap & Town Progression Tiers**
+  - [x] Enforce `Population Cap = Registered Job Blocks` (requiring assigned beds).
+  - [x] Implement Town Progression Tiers (Outpost, Hamlet, Village) tied to infrastructure nodes.
+
 
 ## Phase 3: Settlement Integrity & Security
 - [ ] **Incident Logging (Graveyard)**

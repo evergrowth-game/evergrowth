@@ -245,6 +245,32 @@ function eg_settlers.db.get_resident_count(settlement_id)
     return count
 end
 
+function eg_settlers.db.get_town_tier(settlement_id)
+    local s = db_data.settlements[settlement_id]
+    if not s then return 1, S("Outpost") end
+    
+    local pos = s.ledger_pos
+    local r = 200
+    local has_granary = #minetest.find_nodes_in_area(vector.subtract(pos, r), vector.add(pos, r), {"eg_settlers:town_granary"}) > 0
+    local has_depot = #minetest.find_nodes_in_area(vector.subtract(pos, r), vector.add(pos, r), {"eg_settlers:town_depot"}) > 0
+    local has_ward = #minetest.find_nodes_in_area(vector.subtract(pos, r), vector.add(pos, r), {"eg_settlers:ward_stone"}) > 0
+    local has_board = #minetest.find_nodes_in_area(vector.subtract(pos, r), vector.add(pos, r), {"eg_settlers:job_board"}) > 0
+
+    if has_depot and has_ward and has_board then
+        return 3, S("Village"), 20
+    elseif has_granary then
+        return 2, S("Hamlet"), 8
+    else
+        return 1, S("Outpost"), 3
+    end
+end
+
+function eg_settlers.db.get_population_cap(settlement_id)
+    local tier_num, tier_name, tier_cap = eg_settlers.db.get_town_tier(settlement_id)
+    return tier_cap
+end
+
+
 function eg_settlers.db.add_food(settlement_id, points)
     local s = db_data.settlements[settlement_id]
     if s and points > 0 then
