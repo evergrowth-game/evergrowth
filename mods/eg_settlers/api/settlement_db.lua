@@ -28,7 +28,7 @@ function eg_settlers.db.load()
             db_data = data
             db_data.settlements = db_data.settlements or {}
             db_data.next_id = db_data.next_id or 1
-            -- Migration hook for legacy unowned settlements
+            -- Migration hook for legacy unowned settlements and Phase 3 integrity data
             for id, s in pairs(db_data.settlements) do
                 local updated = false
                 if not s.owner then
@@ -37,6 +37,18 @@ function eg_settlers.db.load()
                 end
                 if not s.associates then
                     s.associates = {}
+                    updated = true
+                end
+                if not s.death_log then
+                    s.death_log = {}
+                    updated = true
+                end
+                if not s.historical_fallen_count then
+                    s.historical_fallen_count = 0
+                    updated = true
+                end
+                if not s.criminal_records then
+                    s.criminal_records = {}
                     updated = true
                 end
                 if updated then
@@ -89,7 +101,10 @@ function eg_settlers.db.create_settlement(ledger_pos, name, owner)
         last_tick_gametime = minetest.get_gametime(),
         residents = {},
         owner = owner or "",
-        associates = {}
+        associates = {},
+        death_log = {},
+        historical_fallen_count = 0,
+        criminal_records = {}
     }
     eg_settlers.db.mark_dirty()
     return id
@@ -299,7 +314,121 @@ function eg_settlers.db.process_daily_tick(settlement_id, time_diff)
         end
         
         s.last_tick_gametime = s.last_tick_gametime + (total_days * 1200)
+        eg_settlers.db.decay_reputation_tick(settlement_id, capped_days)
         eg_settlers.db.mark_dirty()
+    end
+end
+
+function eg_settlers.db.log_death(settlement_id, death_info)
+    local s = db_data.settlements[settlement_id]
+    if s then
+        s.death_log = s.death_log or {}
+        s.historical_fallen_count = s.historical_fallen_count or 0
+        
+        local entry = {
+            id = string.format("death_%d_%04d", os.time(), math.random(1, 9999)),
+            settler_name = death_info.settler_name or "Unknown Settler",
+            profession = death_info.profession or "Settler",
+            skin = death_info.skin or "",
+            pos = death_info.pos and {x = death_info.pos.x, y = death_info.pos.y, z = death_info.pos.z} or {x=0, y=0, z=0},
+            cause = death_info.cause or "Unknown",
+            killer = death_info.killer or "Unknown",
+            timestamp = os.time(),
+            status = death_info.status or "Unburied"
+        }
+        
+        table.insert(s.death_log, 1, entry)
+        
+        while #s.death_log > 25 do
+            table.remove(s.death_log)
+            s.historical_fallen_count = s.historical_fallen_count + 1
+        end
+        
+        eg_settlers.db.mark_dirty()
+        return entry.id
+    end
+    return nil
+end
+
+function eg_settlers.db.record_crime(settlement_id, player_name, crime_type)
+    if not player_name or player_name == "" then return end
+    local s = db_data.settlements[settlement_id]
+    if s then
+        s.criminal_records = s.criminal_records or {}
+        local rec = s.criminal_records[player_name] or { assault_count = 0, murder_count = 0, last_offense_time = os.time() }
+        if crime_type == "assault" then
+            rec.assault_count = rec.assault_count + 1
+        elseif crime_type == "murder" then
+            rec.murder_count = rec.murder_count + 1
+        end
+        rec.last_offense_time = os.time()
+        s.criminal_records[player_name] = rec
+        eg_settlers.db.mark_dirty()
+    end
+end
+
+function eg_settlers.db.is_criminal(settlement_id, player_name)
+    if not player_name or player_name == "" then return false end
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records then
+        local rec = s.criminal_records[player_name]
+        if rec then
+            if (rec.murder_count and rec.murder_count > 0) or (rec.assault_count and rec.assault_count > 0) then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.get_criminal_record(settlement_id, player_name)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records and player_name then
+        return s.criminal_records[player_name]
+    end
+    return nil
+end
+
+function eg_settlers.db.pay_restitution(settlement_id, player_name, fine_type)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records and player_name then
+        local rec = s.criminal_records[player_name]
+        if rec then
+            if fine_type == "assault" then
+                rec.assault_count = 0
+            elseif fine_type == "murder" then
+                rec.murder_count = 0
+            end
+            if rec.assault_count <= 0 and rec.murder_count <= 0 then
+                s.criminal_records[player_name] = nil
+            end
+            eg_settlers.db.mark_dirty()
+            return true
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.decay_reputation_tick(settlement_id, days_passed)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records then
+        local ticks = math.max(1, days_passed or 1)
+        local decay_amount = math.floor(ticks / 3)
+        if decay_amount > 0 then
+            local updated = false
+            for pname, rec in pairs(s.criminal_records) do
+                if rec.assault_count and rec.assault_count > 0 then
+                    rec.assault_count = math.max(0, rec.assault_count - decay_amount)
+                    updated = true
+                    if rec.assault_count == 0 and (not rec.murder_count or rec.murder_count == 0) then
+                        s.criminal_records[pname] = nil
+                    end
+                end
+            end
+            if updated then
+                eg_settlers.db.mark_dirty()
+            end
+        end
     end
 end
 

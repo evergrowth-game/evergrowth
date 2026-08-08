@@ -23,9 +23,90 @@ for _, entity_name in ipairs(target_entities) do
         -- Disables active jumping to prevent them from vaulting over fences, while stepheight (1.1) still allows walking up steps/slabs
         base_entity.jump_height = 0
         
+        local old_on_punch = base_entity.on_punch
+        base_entity.on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
+            if puncher then
+                self.last_puncher = puncher
+                self.last_punch_time = os.time()
+                
+                if puncher:is_player() and self.is_villager then
+                    local pname = puncher:get_player_name()
+                    local pos = self.object:get_pos()
+                    if pos then
+                        local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                        if sid then
+                            eg_settlers.db.record_crime(sid, pname, "assault")
+                            
+                            -- Guard Distress Alarm (35 nodes)
+                            local objs = minetest.get_objects_inside_radius(pos, 35)
+                            for _, obj in ipairs(objs) do
+                                local ent = obj:get_luaentity()
+                                if ent and ent.is_villager and ent.evergrowth_profession == "guard" then
+                                    ent.attack = puncher
+                                    ent.state = "attack"
+                                end
+                            end
+                            
+                            -- NPC Panic Fleeing (20 nodes)
+                            local panic_objs = minetest.get_objects_inside_radius(pos, 20)
+                            for _, pobj in ipairs(panic_objs) do
+                                local pent = pobj:get_luaentity()
+                                if pent and pent.is_villager and pent.evergrowth_profession ~= "guard" and pobj ~= self.object then
+                                    pent.state = "runaway"
+                                    pent.attack = puncher
+                                    pent.runaway = true
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            if old_on_punch then
+                return old_on_punch(self, puncher, time_from_last_punch, tool_capabilities, dir)
+            end
+        end
+        
         local old_on_die = base_entity.on_die
         base_entity.on_die = function(self, pos)
             if self.is_villager then
+                pos = pos or self.object:get_pos()
+                if pos then
+                    local death_cause = "Environment"
+                    local killer_name = "Environment"
+                    
+                    if self.last_puncher and minetest.is_valid_object(self.last_puncher) and self.last_punch_time and (os.time() - self.last_punch_time <= 10) then
+                        if self.last_puncher:is_player() then
+                            death_cause = "Player"
+                            killer_name = self.last_puncher:get_player_name()
+                        else
+                            local pent = self.last_puncher:get_luaentity()
+                            death_cause = "Mob"
+                            killer_name = (pent and (pent.name or pent.game_name or pent.nametag)) or "Mob"
+                        end
+                    end
+                    
+                    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                    if sid then
+                        local sname = self.game_name or self.nametag or "Settler"
+                        local sprof = self.evergrowth_profession or "Settler"
+                        local sskin = (self.base_texture and self.base_texture[1]) or ""
+                        
+                        eg_settlers.db.log_death(sid, {
+                            settler_name = sname,
+                            profession = sprof,
+                            skin = sskin,
+                            pos = pos,
+                            cause = death_cause,
+                            killer = killer_name,
+                            status = "Unburied"
+                        })
+                        
+                        if death_cause == "Player" and killer_name ~= "Environment" then
+                            eg_settlers.db.record_crime(sid, killer_name, "murder")
+                        end
+                    end
+                end
+
                 if self.home_pos then
                     minetest.load_area(self.home_pos, self.home_pos)
                     local bed_meta = minetest.get_meta(self.home_pos)
@@ -370,15 +451,29 @@ for _, entity_name in ipairs(target_entities) do
             else
                 -- Not sneaking (normal interaction)
                 if self.is_villager then
-                    local can_trade = false
+                    local sid = nil
                     if self.home_pos then
                         local deed_meta = minetest.get_meta(self.home_pos)
-                        local sid = deed_meta:get_string("settlement_id")
-                        if sid and sid ~= "" then
-                            local settlement = eg_settlers.db.get_settlement(sid)
-                            if settlement and settlement.satiated == 1 then
-                                can_trade = true
-                            end
+                        sid = deed_meta:get_string("settlement_id")
+                    end
+                    if not sid then
+                        local pos = self.object:get_pos()
+                        if pos then
+                            sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                        end
+                    end
+                    
+                    if sid and eg_settlers.db.is_criminal(sid, name) then
+                        local msg = S("Criminals are not welcome in this settlement! Pay your fines at the Town Ledger before trading.")
+                        minetest.chat_send_player(name, minetest.colorize("#FF0000", msg))
+                        return
+                    end
+
+                    local can_trade = false
+                    if sid then
+                        local settlement = eg_settlers.db.get_settlement(sid)
+                        if settlement and settlement.satiated == 1 then
+                            can_trade = true
                         end
                     end
                     
