@@ -179,25 +179,23 @@ MODELS = {
         ]),
     ],
 
-    # 9. GUARD'S WATCHTOWER BEACON — Armory Weapon Rack & Shield Stand
+    # 9. GUARD'S WATCHTOWER BEACON — Armory Stand & Weapon Hanger
     "eg_settlers_job_guard.obj": [
         ("Mat1_Wood", [
-            (-0.45, -0.5,  -0.35,  0.45, -0.35,  0.35),   # heavy wooden base slab
-            (-0.35, -0.35, -0.15, -0.25,  0.5,   0.15),   # left vertical timber post
-            ( 0.25, -0.35, -0.15,  0.35,  0.5,   0.15),   # right vertical timber post
-            (-0.4,   0.25, -0.1,   0.4,   0.35,  0.1),    # weapon crossbar rail
+            (-0.4, -0.5,  -0.3,   0.4,  -0.35,  0.3),    # wooden base plate
+            (-0.1, -0.35, -0.1,   0.1,   0.5,   0.1),    # central vertical post
+            (-0.35, 0.3,  -0.08,  0.35,  0.42,  0.08),   # upper shoulder hanger bar
+            (-0.35,-0.1,  -0.12,  0.35, -0.02,  0.12),   # lower weapon rest ledge
         ]),
         ("Mat2_Steel", [
-            (-0.3,  -0.2,  -0.22,  0.3,   0.4,  -0.16),   # mounted round shield plate
-            (-0.32, -0.35,  0.1,  -0.28,  0.7,   0.14),   # spear shaft extension
-            (-0.34,  0.7,   0.08, -0.26,  0.95,  0.16),   # steel spear head tip
-            ( 0.2,   0.0,  -0.12,  0.25,  0.8,  -0.08),   # steel sword blade
-            ( 0.1,   0.15, -0.14,  0.35,  0.2,  -0.06),   # steel sword crossguard
+            (-0.25,-0.2,  -0.15, -0.18,  0.35, -0.1),    # steel sword blade (left)
+            (-0.3,  0.32, -0.16, -0.13,  0.37, -0.09),   # sword crossguard (left)
+            ( 0.18,-0.35, -0.12,  0.24,  0.85, -0.06),   # spear shaft (right)
+            ( 0.16, 0.85, -0.14,  0.26,  1.05, -0.04),   # steel spear head tip
         ]),
         ("Mat3_Bronze", [
-            (-0.15,  0.0,  -0.26,  0.15,  0.2,  -0.22),   # bronze shield center boss dome
-            (-0.38,  0.25, -0.12, -0.23,  0.35, -0.08),   # left iron bracket
-            ( 0.23,  0.25, -0.12,  0.38,  0.35, -0.08),   # right iron bracket
+            (-0.2,  0.0,  -0.16,  0.2,   0.35, -0.12),   # compact heraldic shield plate
+            (-0.08, 0.12, -0.19,  0.08,  0.23, -0.16),   # central bronze shield boss
         ]),
     ],
 
