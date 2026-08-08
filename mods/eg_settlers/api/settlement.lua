@@ -139,11 +139,34 @@ end
 function eg_settlers.get_total_settlers_count(pos, radius)
     radius = radius or 200
     local count = 0
+    local tracked_names = {}
     for _, obj in pairs(minetest.luaentities) do
-        if obj.name and obj.name:find("^eg_settlers:") then
-            local epos = obj.object:get_pos()
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) then
+            local epos = obj.object and obj.object:get_pos()
             if epos and vector.distance(epos, pos) <= radius then
                 count = count + 1
+                if obj.nametag then
+                    tracked_names[obj.nametag] = true
+                end
+            end
+        end
+    end
+
+    -- Also check occupied workstation nodes for unloaded settlers
+    local p1 = vector.subtract(pos, radius)
+    local p2 = vector.add(pos, radius)
+    for name, _ in pairs(minetest.registered_nodes) do
+        if name:find("^eg_settlers:job_block_") then
+            local nodes = minetest.find_nodes_in_area(p1, p2, {name})
+            for _, npos in ipairs(nodes) do
+                local meta = minetest.get_meta(npos)
+                if meta:get_int("occupied") == 1 then
+                    local rname = meta:get_string("resident_name")
+                    if rname ~= "" and not tracked_names[rname] then
+                        count = count + 1
+                        tracked_names[rname] = true
+                    end
+                end
             end
         end
     end
@@ -163,7 +186,7 @@ function eg_settlers.find_unassigned_bed(pos, radius)
     -- Collect all home_pos currently assigned to living settlers in memory
     local assigned_home_positions = {}
     for _, obj in pairs(minetest.luaentities) do
-        if obj.name and obj.name:find("^eg_settlers:") and obj.home_pos then
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
             assigned_home_positions[minetest.pos_to_string(obj.home_pos)] = true
         end
     end
