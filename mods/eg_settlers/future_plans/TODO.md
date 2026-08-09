@@ -60,10 +60,10 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
   - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
-## Phase 4: Quality of Life & Usability (Complete)
-- [x] **Visual Boundary Markers**
-  - [x] Toggle settlement boundary visualization by punching the Town Ledger or using the 'Boundaries' formspec button.
-  - [x] Use non-colliding glowing visual entities to avoid particle lag.
+## Phase 4: Quality of Life & Usability
+- [ ] **Visual Boundary Markers**
+  - [ ] Introduce a "Surveyor's Tool" to temporarily highlight town borders.
+  - [ ] Use non-colliding visual entities to avoid particle lag.
 
 ## Phase 5: Advanced Logistics & Trade Hubs
 - [ ] **Modular Trade Hubs**

@@ -9,7 +9,7 @@ local chapters = {
 	{
 		id = "ledger",
 		title = "2. The Town Ledger & Granary",
-		text = "The Town Ledger is the heart of your settlement. It tracks your total population, authorized player access, and the village's food supply. Punch the Town Ledger or click the 'Boundaries' button in its interface to toggle visual glowing boundary markers along the 200-block settlement territory perimeter.\n\nThe Town Granary is a separate block with an inventory, and accepts food items to store and distribute to settlers. Settlers consume food over time. If the Granary runs out of food, your town will begin to starve, and settlers will refuse to trade with you until it is restocked."
+		text = "The Town Ledger is the heart of your settlement. It tracks your total population and the village's food supply. \n\nThe Town Granary is a separate block with an inventory, and accepts food items to store and distribute to settlers. Settlers consume food over time. If the Granary runs out of food, your town will begin to starve, and settlers will refuse to trade with you until it is restocked."
 	},
 	{
 		id = "housing",
