@@ -160,20 +160,34 @@ for _, entity_name in ipairs(target_entities) do
 
                 if self.home_pos then
                     minetest.load_area(self.home_pos, self.home_pos)
-                    local bed_meta = minetest.get_meta(self.home_pos)
-                    if bed_meta then
-                        local owner = bed_meta:get_string("owner")
-                        if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
-                            bed_meta:set_string("assigned_settler", "")
-                            local ppos = eg_settlers.get_partner_bed_pos(self.home_pos)
-                            if ppos then
-                                local pmeta = minetest.get_meta(ppos)
-                                if pmeta then
-                                    pmeta:set_string("assigned_settler", "")
-                                    eg_settlers.update_bed_infotext(ppos)
+                    local hnode = minetest.get_node(self.home_pos)
+                    if hnode.name == "eg_settlers:housing_deed" then
+                        -- Housing deed: clear deed-specific metadata
+                        local dmeta = minetest.get_meta(self.home_pos)
+                        dmeta:set_int("occupied", 0)
+                        dmeta:set_string("resident_name", "")
+                        dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
+                        local sid = dmeta:get_string("settlement_id")
+                        if sid and sid ~= "" then
+                            eg_settlers.db.unregister_resident(sid, self.home_pos)
+                        end
+                    else
+                        -- Bed: clear bed-specific metadata
+                        local bed_meta = minetest.get_meta(self.home_pos)
+                        if bed_meta then
+                            local owner = bed_meta:get_string("owner")
+                            if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
+                                bed_meta:set_string("assigned_settler", "")
+                                local ppos = eg_settlers.get_partner_bed_pos(self.home_pos)
+                                if ppos then
+                                    local pmeta = minetest.get_meta(ppos)
+                                    if pmeta then
+                                        pmeta:set_string("assigned_settler", "")
+                                        eg_settlers.update_bed_infotext(ppos)
+                                    end
                                 end
+                                eg_settlers.update_bed_infotext(self.home_pos)
                             end
-                            eg_settlers.update_bed_infotext(self.home_pos)
                         end
                     end
                 end
@@ -459,15 +473,29 @@ for _, entity_name in ipairs(target_entities) do
                     local formatted_prof = prof:gsub("^%l", string.upper)
                     meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
 
-                    -- Mark old Job Block as vacant and Bed as unassigned
+                    -- Mark old Job Block as vacant and Bed/Deed as unassigned
                     if self.home_pos then
                         minetest.load_area(self.home_pos, self.home_pos)
-                        local bed_meta = minetest.get_meta(self.home_pos)
-                        if bed_meta then
-                            local owner = bed_meta:get_string("owner")
-                            if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
-                                bed_meta:set_string("assigned_settler", "")
-                                eg_settlers.update_bed_infotext(self.home_pos)
+                        local hnode = minetest.get_node(self.home_pos)
+                        if hnode.name == "eg_settlers:housing_deed" then
+                            -- Housing deed: clear deed-specific metadata
+                            local dmeta = minetest.get_meta(self.home_pos)
+                            dmeta:set_int("occupied", 0)
+                            dmeta:set_string("resident_name", "")
+                            dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
+                            local sid = dmeta:get_string("settlement_id")
+                            if sid and sid ~= "" then
+                                eg_settlers.db.unregister_resident(sid, self.home_pos)
+                            end
+                        else
+                            -- Bed: clear bed-specific metadata
+                            local bed_meta = minetest.get_meta(self.home_pos)
+                            if bed_meta then
+                                local owner = bed_meta:get_string("owner")
+                                if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
+                                    bed_meta:set_string("assigned_settler", "")
+                                    eg_settlers.update_bed_infotext(self.home_pos)
+                                end
                             end
                         end
                     end
