@@ -18,6 +18,7 @@ function eg_settlers.register_job_block(prof_id, def)
     
     minetest.register_node(node_name, {
         description = S(def.description) .. "\n" .. S("Workstation Node - Place a Hiring Contract on this block."),
+        groups = node_groups,
         drawtype = "mesh",
         mesh = def.mesh or ("eg_settlers_job_" .. prof_id .. ".obj"),
         tiles = def.tiles,

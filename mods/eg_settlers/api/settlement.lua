@@ -15,6 +15,7 @@ local S = minetest.get_translator("eg_settlers")
 -- Housing Deed Node (Deprecated for Villagers; Retained for Companions)
 minetest.register_node("eg_settlers:housing_deed", {
     description = S("Housing Deed (Companions Only)") .. "\n" .. S("Workstations (Job Blocks) are now required for villager contracts."),
+    groups = {choppy = 2, oddly_breakable_by_hand = 2},
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
     inventory_image = "default_sign_steel.png^[multiply:#FFD700",
