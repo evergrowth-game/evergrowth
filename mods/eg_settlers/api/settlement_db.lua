@@ -104,7 +104,8 @@ function eg_settlers.db.create_settlement(ledger_pos, name, owner)
         associates = {},
         death_log = {},
         historical_fallen_count = 0,
-        criminal_records = {}
+        criminal_records = {},
+        strike_records = {}
     }
     eg_settlers.db.mark_dirty()
     return id
@@ -406,6 +407,53 @@ function eg_settlers.db.get_decay_time_estimate(settlement_id, player_name)
         end
     end
     return 0, 0
+end
+
+function eg_settlers.db.register_punch(settlement_id, player_name, damage_dealt, is_weapon, is_owner)
+    local s = db_data.settlements[settlement_id]
+    if not s then return "assault" end
+    
+    s.strike_records = s.strike_records or {}
+    local rec = s.strike_records[player_name]
+    local now = minetest.get_gametime()
+    local window = is_owner and 300 or 180 -- 5 minutes for owner, 3 minutes for visitor
+    
+    damage_dealt = math.max(1, damage_dealt or 1)
+    
+    -- Heavy weapon hit (>= 4 HP damage) immediately escalates
+    if is_weapon and damage_dealt >= 4 then
+        s.strike_records[player_name] = { strike_count = 2, cumulative_damage = damage_dealt, last_punch_time = now }
+        eg_settlers.db.mark_dirty()
+        return "assault"
+    end
+
+    if not rec or (now - (rec.last_punch_time or 0)) > window then
+        -- New strike window
+        s.strike_records[player_name] = {
+            strike_count = 1,
+            cumulative_damage = damage_dealt,
+            last_punch_time = now
+        }
+        eg_settlers.db.mark_dirty()
+        return "warning"
+    else
+        -- Rapid input debounce (< 0.35s) to filter accidental double-clicks
+        if (now - (rec.last_punch_time or 0)) < 0.35 then
+            return "warning"
+        end
+
+        rec.strike_count = (rec.strike_count or 0) + 1
+        rec.cumulative_damage = (rec.cumulative_damage or 0) + damage_dealt
+        rec.last_punch_time = now
+        eg_settlers.db.mark_dirty()
+
+        -- Escalation condition: cumulative damage >= 4 HP OR 4 strikes within window
+        if rec.cumulative_damage >= 4 or rec.strike_count >= 4 then
+            return "assault"
+        else
+            return "warning"
+        end
+    end
 end
 
 function eg_settlers.db.pay_restitution(settlement_id, player_name, fine_type)
