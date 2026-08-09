@@ -63,7 +63,7 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         end
 
         -- Spawn Villager
-        local spawn_pos = {x = pointed_thing.above.x, y = pointed_thing.above.y + 0.5, z = pointed_thing.above.z}
+        local spawn_pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local npc_name = eg_settlers.spawn_trader(spawn_pos, prof_id, true, {
             home_pos = bed_pos,
             job_pos = under_pos,
@@ -117,7 +117,7 @@ minetest.register_craftitem("eg_settlers:contract_companion_male", {
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = pointed_thing.above
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local node = minetest.get_node(pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
@@ -144,7 +144,7 @@ minetest.register_craftitem("eg_settlers:contract_companion_female", {
     inventory_image = "default_paper.png^(default_apple.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = pointed_thing.above
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local node = minetest.get_node(pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
@@ -172,7 +172,7 @@ minetest.register_craftitem("eg_settlers:contract_companion_relocation", {
     groups = {not_in_creative_inventory = 1},
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = pointed_thing.above
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local node = minetest.get_node(pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
@@ -263,7 +263,7 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         local profession = meta:get_string("profession")
         if profession == "" then profession = prof_id end
 
-        local spawn_pos = pointed_thing.above
+        local spawn_pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local npc_name = eg_settlers.spawn_trader(spawn_pos, profession, true, override_data)
 
         block_meta:set_int("occupied", 1)

@@ -26,6 +26,22 @@ local male_names = {
     "Alfred", "Barnaby", "Cecil", "Desmond", "Edwin", "Fletcher", "Gerald"
 }
 
+function eg_settlers.get_safe_spawn_pos(pointed_thing)
+    if not pointed_thing or pointed_thing.type ~= "node" then return nil end
+    local under = pointed_thing.under
+    local above = pointed_thing.above
+    if above.y > under.y then
+        -- Top-face click: position 2 blocks above under so entity feet (pos.y - 1.0) rest at under.y + 1.0
+        return {x = above.x, y = under.y + 2, z = above.z}
+    elseif above.y < under.y then
+        -- Bottom-face click
+        return {x = above.x, y = above.y, z = above.z}
+    else
+        -- Side-face click: position at above.y + 1 so entity feet (pos.y - 1.0) rest on floor beneath above
+        return {x = above.x, y = above.y + 1, z = above.z}
+    end
+end
+
 function eg_settlers.spawn_companion(pos, is_female, owner, override_data)
     pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
     
