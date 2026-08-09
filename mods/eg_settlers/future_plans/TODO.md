@@ -56,9 +56,9 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Track damage dealt by players and apply consequences based on severity (Accident vs. Assault vs. Murder).
   - [x] **Guard Retaliation (Alarm System):** Implement distress call in `on_punch` to override guards' vision limits.
   - [x] **Reputation Penalty:** Persistently log criminals in the database, causing traders to refuse service.
-- [ ] **Build Protection Integration**
-  - [ ] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
-  - [ ] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
+- [x] **Build Protection Integration**
+  - [x] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
+  - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
 ## Phase 4: Quality of Life & Usability
 - [ ] **Visual Boundary Markers**

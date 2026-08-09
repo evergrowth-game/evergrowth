@@ -530,6 +530,45 @@ function eg_settlers.db.find_nearest_settlement(pos, max_radius)
     return nearest_id
 end
 
+-- Territory Build Protection Override
+function eg_settlers.db.is_area_protected(pos, digger)
+    if not pos then return false end
+    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+    if not sid then return false end
+
+    digger = digger or ""
+    -- Server Admin bypass (protection_bypass priv)
+    if digger ~= "" and minetest.check_player_privs(digger, {protection_bypass=true}) then
+        return false
+    end
+
+    -- Authorized owner or listed associate check
+    if digger ~= "" and eg_settlers.db.is_authorized(sid, digger) then
+        return false
+    end
+
+    -- Unauthorized digger in settlement territory
+    return true
+end
+
+local old_is_protected = minetest.is_protected
+function minetest.is_protected(pos, digger)
+    if eg_settlers.db.is_area_protected(pos, digger) then
+        if digger and digger ~= "" then
+            local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+            local s = sid and eg_settlers.db.get_settlement(sid)
+            local town_name = s and s.name or "Settlement"
+            minetest.chat_send_player(digger, minetest.colorize("#FF5555",
+                "[eg_settlers] This territory belongs to '" .. town_name .. "'. Only authorized residents can build or dig here."))
+        end
+        return true
+    end
+    if old_is_protected then
+        return old_is_protected(pos, digger)
+    end
+    return false
+end
+
 -- Food Value Scanner
 eg_settlers.food_values = {}
 
