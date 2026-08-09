@@ -9,28 +9,32 @@ local chapters = {
 	{
 		id = "ledger",
 		title = "2. The Town Ledger & Granary",
-		text = "The Town Ledger is the heart of your settlement. It tracks your total population and the village's food supply. \n\nThe Town Granary is a separate block with an inventory, and accepts food items to store and distribute to settlers. Settlers consume food over time. If the Granary runs out of food, your town will begin to starve, and settlers will refuse to trade with you until it is restocked."
+		text = "The Town Ledger is the heart of your settlement. It tracks your population, resident roster, settlement tier, and food supply. Access Control allows managing authorized players, while Incidents & Justice tracks villager deaths and allows paying restitution fines directly from inventory.\n\nThe Town Granary accepts food items to store and distribute to settlers. Settlers consume food over time. If the Granary runs out of food, your town will begin to starve, and settlers will refuse to trade until it is restocked."
 	},
 	{
 		id = "housing",
 		title = "3. Workstations & Bed Tethering",
-		text = "Settlers require both a Workstation (Job Block) and a Bed inside town bounds. \n\nSettlers follow a dual-tether schedule: during daytime (06:00–18:00) they work near their assigned Job Block workstation. At night (18:00–06:00), they return to their assigned bed for indoor shelter. Sleeping in a bed designates it as a Player Bed, reserving it from settler assignments."
+		text = "Settlers require both a Workstation (Job Block) and a Bed inside town bounds.\n\nSettlers follow a dual-tether schedule: during daytime (06:00–18:00) they work near their assigned Job Block workstation. At night (18:00–06:00), they return to their assigned bed for indoor shelter. Sleeping in a bed designates it as a Player Bed, reserving it from settler assignments."
 	},
 	{
 		id = "contracts",
 		title = "4. Hiring Contracts, Workstations & Companions",
-		text = "Settlers are recruited using the unified Hiring Contract placed directly onto a Workstation Node (Job Block). Job Blocks and Hiring Contracts can be purchased at the Job Board for Gold Lumps. \n\nEnvironmental Requirements: Workstations must be placed near required infrastructure (e.g. wet soil for farmers, furnaces for smiths, bookshelves for librarians) before accepting a contract.\n\nRelocation: You can relocate a settler by Sneak+Right-Clicking them, generating a Relocation Contract to place on a new Workstation.\n\nCompanions are ornamental NPCs assigned using Companion Contracts on Housing Deeds."
+		text = "Settlers are recruited using the unified Hiring Contract placed directly onto a Workstation Node (Job Block). Job Blocks (18 professions) and Hiring Contracts are purchased at the Job Board using Gold Lumps directly from your inventory, featuring interactive 3D item previews.\n\nEnvironmental Requirements: Workstations must be placed near required infrastructure (e.g., wet soil for farmers, furnaces for smiths, bookshelves for librarians) before contract placement.\n\nRelocation: Relocate a settler by Sneak+Right-Clicking them, generating a Relocation Contract to place on a new Workstation.\n\nCompanions are ornamental NPCs assigned using Companion Contracts on Housing Deeds."
 	},
-
 	{
 		id = "jobs",
 		title = "5. Job Board & Passive Income",
-		text = "The Job Board offers daily quests. \n\nAdditionally, your professional settlers generate passive income based on their professions. A Farmer will produce crops, while a Miner produces ores. These resources are automatically deposited into the Town Depot every in-game day. Check the Depot regularly to claim your town's production!"
+		text = "The Job Board offers daily bounties alongside contract and workstation procurement.\n\nProfessional settlers generate daily passive income based on their professions (e.g., Farmers produce crops, Miners produce ores). These resources are automatically deposited into the Town Depot every in-game day when the town is well-fed. Check the Depot regularly to claim your town's production!"
 	},
 	{
 		id = "defenses",
-		title = "6. Town Defenses & Healing",
-		text = "Towns can be defended by recruiting Guards. Guards are a unique profession that have a larger patrol radius of 45 blocks and stay awake all night to fight monsters. \n\nAdditionally, the Sentinel Ward Stone is a magical defense structure. Once placed, it emits an aura that automatically detects and deals 10 damage to any hostile within a 15-block radius every second. \n\nTo heal injured settlers or companions, right-click them with a Medkit (shapeless craft: 1 Leather, 2 Cotton, 1 Magic Root) to instantly restore them to full health."
+		title = "6. Town Defenses & Medical Care",
+		text = "Towns can be defended by recruiting Guards. Guards feature a 45-block patrol radius, stay awake all night to fight monsters, and respond to a 35-block distress alarm whenever villagers take damage.\n\nThe Sentinel Ward Stone is a magical defense node that emits an aura dealing 10 damage to hostiles within 15 blocks every second.\n\nTo heal injured settlers or companions, right-click them with a Medkit (shapeless craft: 1 Leather, 2 Cotton, 1 Magic Root) to instantly restore them to full health."
+	},
+	{
+		id = "justice",
+		title = "7. Law, Justice & Territory Protection",
+		text = "Territory Protection:\nTown Ledgers enforce territory build protection across a 100-block radius, securing settlement structures against unauthorized building or digging.\n\nLaw & Misclick Protection:\nStriking villagers is a crime. Bare-hand or tool misclicks (< 4 HP) issue a chat warning without fines. However, repeated light strikes (2 strikes or >= 4 HP cumulative damage) or heavy weapon hits incur an Assault crime (50 Gold Lump restitution fine). Killing a villager incurs a Murder crime (200 Gold Lump fine).\n\nConsequences & Decay:\nMerchants refuse trade with wanted players until fines are paid at the Town Ledger or the record decays (-1 assault severity per 6 in-game days). Town Ledger UI and trade refusal messages display live decay time estimates."
 	},
 }
 
