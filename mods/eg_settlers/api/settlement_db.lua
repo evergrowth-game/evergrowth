@@ -28,7 +28,7 @@ function eg_settlers.db.load()
             db_data = data
             db_data.settlements = db_data.settlements or {}
             db_data.next_id = db_data.next_id or 1
-            -- Migration hook for legacy unowned settlements
+            -- Migration hook for legacy unowned settlements and Phase 3 integrity data
             for id, s in pairs(db_data.settlements) do
                 local updated = false
                 if not s.owner then
@@ -37,6 +37,18 @@ function eg_settlers.db.load()
                 end
                 if not s.associates then
                     s.associates = {}
+                    updated = true
+                end
+                if not s.death_log then
+                    s.death_log = {}
+                    updated = true
+                end
+                if not s.historical_fallen_count then
+                    s.historical_fallen_count = 0
+                    updated = true
+                end
+                if not s.criminal_records then
+                    s.criminal_records = {}
                     updated = true
                 end
                 if updated then
@@ -89,7 +101,11 @@ function eg_settlers.db.create_settlement(ledger_pos, name, owner)
         last_tick_gametime = minetest.get_gametime(),
         residents = {},
         owner = owner or "",
-        associates = {}
+        associates = {},
+        death_log = {},
+        historical_fallen_count = 0,
+        criminal_records = {},
+        strike_records = {}
     }
     eg_settlers.db.mark_dirty()
     return id
@@ -299,7 +315,187 @@ function eg_settlers.db.process_daily_tick(settlement_id, time_diff)
         end
         
         s.last_tick_gametime = s.last_tick_gametime + (total_days * 1200)
+        eg_settlers.db.decay_reputation_tick(settlement_id, capped_days)
         eg_settlers.db.mark_dirty()
+    end
+end
+
+function eg_settlers.db.log_death(settlement_id, death_info)
+    local s = db_data.settlements[settlement_id]
+    if s then
+        s.death_log = s.death_log or {}
+        s.historical_fallen_count = s.historical_fallen_count or 0
+        
+        local entry = {
+            id = string.format("death_%d_%04d", os.time(), math.random(1, 9999)),
+            settler_name = death_info.settler_name or "Unknown Settler",
+            profession = death_info.profession or "Settler",
+            skin = death_info.skin or "",
+            pos = death_info.pos and {x = death_info.pos.x, y = death_info.pos.y, z = death_info.pos.z} or {x=0, y=0, z=0},
+            cause = death_info.cause or "Unknown",
+            killer = death_info.killer or "Unknown",
+            timestamp = os.time(),
+            status = death_info.status or "Unburied"
+        }
+        
+        table.insert(s.death_log, 1, entry)
+        
+        while #s.death_log > 25 do
+            table.remove(s.death_log)
+            s.historical_fallen_count = s.historical_fallen_count + 1
+        end
+        
+        eg_settlers.db.mark_dirty()
+        return entry.id
+    end
+    return nil
+end
+
+function eg_settlers.db.record_crime(settlement_id, player_name, crime_type)
+    if not player_name or player_name == "" then return end
+    local s = db_data.settlements[settlement_id]
+    if s then
+        s.criminal_records = s.criminal_records or {}
+        local rec = s.criminal_records[player_name] or { assault_count = 0, murder_count = 0, last_offense_time = os.time() }
+        if crime_type == "assault" then
+            rec.assault_count = rec.assault_count + 1
+        elseif crime_type == "murder" then
+            rec.murder_count = rec.murder_count + 1
+        end
+        rec.last_offense_time = os.time()
+        s.criminal_records[player_name] = rec
+        eg_settlers.db.mark_dirty()
+    end
+end
+
+function eg_settlers.db.is_criminal(settlement_id, player_name)
+    if not player_name or player_name == "" then return false end
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records then
+        local rec = s.criminal_records[player_name]
+        if rec then
+            if (rec.murder_count and rec.murder_count > 0) or (rec.assault_count and rec.assault_count > 0) then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.get_criminal_record(settlement_id, player_name)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records and player_name then
+        return s.criminal_records[player_name]
+    end
+    return nil
+end
+
+function eg_settlers.db.get_decay_time_estimate(settlement_id, player_name)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records and player_name then
+        local rec = s.criminal_records[player_name]
+        if rec and rec.assault_count and rec.assault_count > 0 then
+            local gametime = minetest.get_gametime()
+            local time_diff = math.max(0, gametime - (s.last_tick_gametime or gametime))
+            local total_sec_cycle = 3600 -- 3 in-game days = 3600 seconds
+            local sec_into_cycle = time_diff % total_sec_cycle
+            local sec_remaining = total_sec_cycle - sec_into_cycle
+            
+            local days_remaining = math.floor(sec_remaining / 1200)
+            local mins_remaining = math.max(1, math.ceil(sec_remaining / 60))
+            return days_remaining, mins_remaining
+        end
+    end
+    return 0, 0
+end
+
+function eg_settlers.db.register_punch(settlement_id, player_name, damage_dealt, is_weapon, is_owner)
+    local s = db_data.settlements[settlement_id]
+    if not s then return "assault" end
+    
+    s.strike_records = s.strike_records or {}
+    local rec = s.strike_records[player_name]
+    local now = minetest.get_gametime()
+    local window = is_owner and 300 or 180 -- 5 minutes for owner, 3 minutes for visitor
+    
+    damage_dealt = math.max(1, damage_dealt or 1)
+    
+    -- Heavy weapon hit (>= 4 HP damage) immediately escalates
+    if is_weapon and damage_dealt >= 4 then
+        s.strike_records[player_name] = { strike_count = 2, cumulative_damage = damage_dealt, last_punch_time = now }
+        eg_settlers.db.mark_dirty()
+        return "assault"
+    end
+
+    if not rec or (now - (rec.last_punch_time or 0)) > window then
+        -- New strike window
+        s.strike_records[player_name] = {
+            strike_count = 1,
+            cumulative_damage = damage_dealt,
+            last_punch_time = now
+        }
+        eg_settlers.db.mark_dirty()
+        return "warning"
+    else
+        -- Rapid input debounce (< 0.35s) to filter accidental double-clicks
+        if (now - (rec.last_punch_time or 0)) < 0.35 then
+            return "warning"
+        end
+
+        rec.strike_count = (rec.strike_count or 0) + 1
+        rec.cumulative_damage = (rec.cumulative_damage or 0) + damage_dealt
+        rec.last_punch_time = now
+        eg_settlers.db.mark_dirty()
+
+        -- Escalation condition: cumulative damage >= 4 HP OR 4 strikes within window
+        if rec.cumulative_damage >= 4 or rec.strike_count >= 4 then
+            return "assault"
+        else
+            return "warning"
+        end
+    end
+end
+
+function eg_settlers.db.pay_restitution(settlement_id, player_name, fine_type)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records and player_name then
+        local rec = s.criminal_records[player_name]
+        if rec then
+            if fine_type == "assault" then
+                rec.assault_count = 0
+            elseif fine_type == "murder" then
+                rec.murder_count = 0
+            end
+            if rec.assault_count <= 0 and rec.murder_count <= 0 then
+                s.criminal_records[player_name] = nil
+            end
+            eg_settlers.db.mark_dirty()
+            return true
+        end
+    end
+    return false
+end
+
+function eg_settlers.db.decay_reputation_tick(settlement_id, days_passed)
+    local s = db_data.settlements[settlement_id]
+    if s and s.criminal_records then
+        local ticks = math.max(1, days_passed or 1)
+        local decay_amount = math.floor(ticks / 3)
+        if decay_amount > 0 then
+            local updated = false
+            for pname, rec in pairs(s.criminal_records) do
+                if rec.assault_count and rec.assault_count > 0 then
+                    rec.assault_count = math.max(0, rec.assault_count - decay_amount)
+                    updated = true
+                    if rec.assault_count == 0 and (not rec.murder_count or rec.murder_count == 0) then
+                        s.criminal_records[pname] = nil
+                    end
+                end
+            end
+            if updated then
+                eg_settlers.db.mark_dirty()
+            end
+        end
     end
 end
 
@@ -332,6 +528,45 @@ function eg_settlers.db.find_nearest_settlement(pos, max_radius)
     end
     
     return nearest_id
+end
+
+-- Territory Build Protection Override
+function eg_settlers.db.is_area_protected(pos, digger)
+    if not pos then return false end
+    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+    if not sid then return false end
+
+    digger = digger or ""
+    -- Server Admin bypass (protection_bypass priv)
+    if digger ~= "" and minetest.check_player_privs(digger, {protection_bypass=true}) then
+        return false
+    end
+
+    -- Authorized owner or listed associate check
+    if digger ~= "" and eg_settlers.db.is_authorized(sid, digger) then
+        return false
+    end
+
+    -- Unauthorized digger in settlement territory
+    return true
+end
+
+local old_is_protected = minetest.is_protected
+function minetest.is_protected(pos, digger)
+    if eg_settlers.db.is_area_protected(pos, digger) then
+        if digger and digger ~= "" then
+            local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+            local s = sid and eg_settlers.db.get_settlement(sid)
+            local town_name = s and s.name or "Settlement"
+            minetest.chat_send_player(digger, minetest.colorize("#FF5555",
+                "[eg_settlers] This territory belongs to '" .. town_name .. "'. Only authorized residents can build or dig here."))
+        end
+        return true
+    end
+    if old_is_protected then
+        return old_is_protected(pos, digger)
+    end
+    return false
 end
 
 -- Food Value Scanner

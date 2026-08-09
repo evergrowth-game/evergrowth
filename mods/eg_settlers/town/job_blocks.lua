@@ -27,7 +27,16 @@ function eg_settlers.register_job_block(prof_id, def)
         light_source = def.light_source or 0,
         selection_box = def.selection_box or { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.45, 0.45} },
         collision_box = def.collision_box or { type = "fixed", fixed = {-0.45, -0.5, -0.45, 0.45, 0.45, 0.45} },
-        groups = node_groups,
+        on_place = function(itemstack, placer, pointed_thing)
+            if pointed_thing.type == "node" and placer and placer:is_player() then
+                local pos = pointed_thing.above
+                if minetest.is_protected(pos, placer:get_player_name()) then
+                    minetest.record_protection_violation(pos, placer:get_player_name())
+                    return itemstack
+                end
+            end
+            return minetest.item_place(itemstack, placer, pointed_thing)
+        end,
 
         on_construct = function(pos)
             local meta = minetest.get_meta(pos)

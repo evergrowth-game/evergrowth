@@ -48,17 +48,17 @@ This TODO list tracks the status of all planned features from the [Master Develo
 
 
 ## Phase 3: Settlement Integrity & Security
-- [ ] **Incident Logging (Graveyard)**
-  - [ ] Implement a persistent log in the settlement database to track settler deaths.
-  - [ ] Cache the `puncher` in `on_punch` and determine the cause of death in `on_die` (player, mob, or environment).
-  - [ ] Add an interface to the Town Ledger for the owner to review this log. *(Unburied Remains / Shade mechanics deferred to future add-on).*
-- [ ] **Proportional Justice System (NPC Damage Deterrence)**
-  - [ ] Track damage dealt by players and apply consequences based on severity (Accident vs. Assault vs. Murder).
-  - [ ] **Guard Retaliation (Alarm System):** Implement distress call in `on_punch` to override guards' vision limits.
-  - [ ] **Reputation Penalty:** Persistently log criminals in the database, causing traders to refuse service.
-- [ ] **Build Protection Integration**
-  - [ ] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
-  - [ ] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
+- [x] **Incident Logging (Graveyard)**
+  - [x] Implement a persistent log in the settlement database to track settler deaths.
+  - [x] Cache the `puncher` in `on_punch` and determine the cause of death in `on_die` (player, mob, or environment).
+  - [x] Add an interface to the Town Ledger for the owner to review this log. *(Unburied Remains / Shade mechanics deferred to future add-on).*
+- [x] **Proportional Justice System (NPC Damage Deterrence)**
+  - [x] Track damage dealt by players and apply consequences based on severity (Accident vs. Assault vs. Murder).
+  - [x] **Guard Retaliation (Alarm System):** Implement distress call in `on_punch` to override guards' vision limits.
+  - [x] **Reputation Penalty:** Persistently log criminals in the database, causing traders to refuse service.
+- [x] **Build Protection Integration**
+  - [x] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
+  - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
 ## Phase 4: Quality of Life & Usability
 - [ ] **Visual Boundary Markers**
