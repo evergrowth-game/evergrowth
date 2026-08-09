@@ -553,16 +553,29 @@ end
 
 local old_is_protected = minetest.is_protected
 function minetest.is_protected(pos, digger)
-    if eg_settlers.db.is_area_protected(pos, digger) then
-        if digger and digger ~= "" then
-            local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-            local s = sid and eg_settlers.db.get_settlement(sid)
+    -- Check if position is inside any settlement territory
+    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+    if sid then
+        -- Inside settlement territory: eg_settlers handles ALL protection.
+        -- Do NOT chain to old_is_protected (protector mod) to avoid its
+        -- independent owner/members check blocking authorized players.
+        local dname = digger or ""
+        if dname ~= "" and (
+            eg_settlers.db.is_authorized(sid, dname) or
+            minetest.check_player_privs(dname, {protection_bypass=true})
+        ) then
+            return false  -- authorized, allow dig/place
+        end
+        -- Unauthorized
+        if dname ~= "" then
+            local s = eg_settlers.db.get_settlement(sid)
             local town_name = s and s.name or "Settlement"
-            minetest.chat_send_player(digger, minetest.colorize("#FF5555",
+            minetest.chat_send_player(dname, minetest.colorize("#FF5555",
                 "[eg_settlers] This territory belongs to '" .. town_name .. "'. Only authorized residents can build or dig here."))
         end
         return true
     end
+    -- Outside settlement territory: delegate to protector / engine default
     if old_is_protected then
         return old_is_protected(pos, digger)
     end

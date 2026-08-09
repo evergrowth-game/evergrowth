@@ -423,10 +423,10 @@ minetest.register_globalstep(function(dtime)
 end)
 
 
--- LBM for Retroactive Deed Registration
+-- LBM for Retroactive Deed Registration + Stale Occupied Cleanup
 minetest.register_lbm({
-    label = "Retroactive Deed Registration",
-    name = "eg_settlers:retro_deed_registration",
+    label = "Retroactive Deed Registration and Stale Cleanup",
+    name = "eg_settlers:retro_deed_registration_v2",
     nodenames = {"eg_settlers:housing_deed"},
     run_at_every_load = true,
     action = function(pos, node)
@@ -447,6 +447,69 @@ minetest.register_lbm({
                     eg_settlers.db.register_resident(found_sid, pos, resident_name, profession)
                 end
             end
+
+            -- Stale occupied cleanup: if no tethered entity exists nearby, clear occupied
+            local found_entity = false
+            local objects = minetest.get_objects_inside_radius(pos, 50)
+            for _, obj in ipairs(objects) do
+                local ent = obj:get_luaentity()
+                if ent and (ent.is_villager or ent.is_evergrowth_companion) and ent.home_pos then
+                    if vector.equals(ent.home_pos, pos) then
+                        found_entity = true
+                        break
+                    end
+                end
+            end
+            if not found_entity then
+                meta:set_int("occupied", 0)
+                meta:set_string("resident_name", "")
+                meta:set_string("infotext", "Housing Deed (Companion Deed Only)")
+                local clean_sid = meta:get_string("settlement_id")
+                if clean_sid and clean_sid ~= "" then
+                    eg_settlers.db.unregister_resident(clean_sid, pos)
+                end
+                minetest.log("action", "[eg_settlers] LBM cleared stale occupied on housing_deed at " .. minetest.pos_to_string(pos))
+            end
         end
     end,
 })
+
+-- LBM for Stale Job Block Occupied Cleanup
+minetest.register_lbm({
+    label = "Job Block Stale Occupied Cleanup",
+    name = "eg_settlers:job_block_stale_cleanup",
+    nodenames = {"group:job_block"},
+    run_at_every_load = true,
+    action = function(pos, node)
+        local meta = minetest.get_meta(pos)
+        if meta:get_int("occupied") == 1 then
+            -- Check if a villager entity is tethered to this job block
+            local found_entity = false
+            local objects = minetest.get_objects_inside_radius(pos, 50)
+            for _, obj in ipairs(objects) do
+                local ent = obj:get_luaentity()
+                if ent and ent.is_villager and ent.job_pos then
+                    if vector.equals(ent.job_pos, pos) then
+                        found_entity = true
+                        break
+                    end
+                end
+            end
+            if not found_entity then
+                meta:set_int("occupied", 0)
+                meta:set_string("resident_name", "")
+                local jdef = minetest.registered_nodes[node.name]
+                if jdef and jdef.description then
+                    local desc = jdef.description:match("([^\n]+)")
+                    meta:set_string("infotext", desc .. " (Vacant)")
+                end
+                local sid = meta:get_string("settlement_id")
+                if sid and sid ~= "" then
+                    eg_settlers.db.unregister_resident(sid, pos)
+                end
+                minetest.log("action", "[eg_settlers] LBM cleared stale occupied on " .. node.name .. " at " .. minetest.pos_to_string(pos))
+            end
+        end
+    end,
+})
+
