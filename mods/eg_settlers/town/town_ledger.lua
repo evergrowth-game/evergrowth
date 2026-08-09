@@ -463,7 +463,7 @@ minetest.register_lbm({
             if not found_entity then
                 meta:set_int("occupied", 0)
                 meta:set_string("resident_name", "")
-                meta:set_string("infotext", "Housing Deed (Companion Deed Only)")
+                meta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
                 local clean_sid = meta:get_string("settlement_id")
                 if clean_sid and clean_sid ~= "" then
                     eg_settlers.db.unregister_resident(clean_sid, pos)

@@ -6,6 +6,8 @@
     using the Wardrobe Wand.
 ]]--
 
+local S = minetest.get_translator("eg_settlers")
+
 local companion_male_skins = {"mobs_npc.png", "mobs_npc3.png", "mobs_npc5.png", "mobs_trader2.png"}
 local companion_female_skins = {"mobs_npc2.png", "mobs_npc4.png", "mobs_npc6.png", "mobs_trader4.png"}
 
@@ -110,7 +112,7 @@ if base_npc then
                             local dmeta = minetest.get_meta(self.home_pos)
                             dmeta:set_int("occupied", 0)
                             dmeta:set_string("resident_name", "")
-                            dmeta:set_string("infotext", "Housing Deed (Companion Deed Only)")
+                            dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
                             local deed_sid = dmeta:get_string("settlement_id")
                             if deed_sid and deed_sid ~= "" then
                                 eg_settlers.db.unregister_resident(deed_sid, self.home_pos)

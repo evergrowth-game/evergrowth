@@ -167,9 +167,9 @@ for _, entity_name in ipairs(target_entities) do
                         dmeta:set_int("occupied", 0)
                         dmeta:set_string("resident_name", "")
                         dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-                        local sid = dmeta:get_string("settlement_id")
-                        if sid and sid ~= "" then
-                            eg_settlers.db.unregister_resident(sid, self.home_pos)
+                        local deed_sid = dmeta:get_string("settlement_id")
+                        if deed_sid and deed_sid ~= "" then
+                            eg_settlers.db.unregister_resident(deed_sid, self.home_pos)
                         end
                     else
                         -- Bed: clear bed-specific metadata
