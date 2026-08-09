@@ -448,28 +448,9 @@ minetest.register_lbm({
                 end
             end
 
-            -- Stale occupied cleanup: if no tethered entity exists nearby, clear occupied
-            local found_entity = false
-            local objects = minetest.get_objects_inside_radius(pos, 50)
-            for _, obj in ipairs(objects) do
-                local ent = obj:get_luaentity()
-                if ent and (ent.is_villager or ent.is_evergrowth_companion) and ent.home_pos then
-                    if vector.equals(ent.home_pos, pos) then
-                        found_entity = true
-                        break
-                    end
-                end
-            end
-            if not found_entity then
-                meta:set_int("occupied", 0)
-                meta:set_string("resident_name", "")
-                meta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-                local clean_sid = meta:get_string("settlement_id")
-                if clean_sid and clean_sid ~= "" then
-                    eg_settlers.db.unregister_resident(clean_sid, pos)
-                end
-                minetest.log("action", "[eg_settlers] LBM cleared stale occupied on housing_deed at " .. minetest.pos_to_string(pos))
-            end
+            -- Stale occupied cleanup: disabled because get_objects_inside_radius fails 
+            -- to find unloaded entities or entities that wandered >50 blocks away during day/night cycle.
+            -- (Occupied clearing is handled gracefully in npc_behavior's on_die hook).
         end
     end,
 })
@@ -484,31 +465,9 @@ minetest.register_lbm({
         local meta = minetest.get_meta(pos)
         if meta:get_int("occupied") == 1 then
             -- Check if a villager entity is tethered to this job block
-            local found_entity = false
-            local objects = minetest.get_objects_inside_radius(pos, 50)
-            for _, obj in ipairs(objects) do
-                local ent = obj:get_luaentity()
-                if ent and ent.is_villager and ent.job_pos then
-                    if vector.equals(ent.job_pos, pos) then
-                        found_entity = true
-                        break
-                    end
-                end
-            end
-            if not found_entity then
-                meta:set_int("occupied", 0)
-                meta:set_string("resident_name", "")
-                local jdef = minetest.registered_nodes[node.name]
-                if jdef and jdef.description then
-                    local desc = jdef.description:match("([^\n]+)")
-                    meta:set_string("infotext", desc .. " (Vacant)")
-                end
-                local sid = meta:get_string("settlement_id")
-                if sid and sid ~= "" then
-                    eg_settlers.db.unregister_resident(sid, pos)
-                end
-                minetest.log("action", "[eg_settlers] LBM cleared stale occupied on " .. node.name .. " at " .. minetest.pos_to_string(pos))
-            end
+            -- Disabled because get_objects_inside_radius fails for unloaded entities
+            -- or entities that wandered to their beds >50 blocks away at night.
+            -- (Occupied clearing is handled gracefully in npc_behavior's on_die hook).
         end
     end,
 })
