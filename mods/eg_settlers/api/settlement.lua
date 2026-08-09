@@ -33,7 +33,16 @@ minetest.register_node("eg_settlers:housing_deed", {
     selection_box = {
         type = "wallmounted",
     },
-    groups = {choppy = 2, dig_immediate = 2, attached_node = 1},
+    on_place = function(itemstack, placer, pointed_thing)
+        if pointed_thing.type == "node" and placer and placer:is_player() then
+            local pos = pointed_thing.above
+            if minetest.is_protected(pos, placer:get_player_name()) then
+                minetest.record_protection_violation(pos, placer:get_player_name())
+                return itemstack
+            end
+        end
+        return minetest.item_place(itemstack, placer, pointed_thing)
+    end,
 
     on_construct = function(pos)
         local meta = minetest.get_meta(pos)

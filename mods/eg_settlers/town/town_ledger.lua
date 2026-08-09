@@ -17,7 +17,7 @@ local function get_formspec(sid, player_name, tab_index)
     local formspec = "size[8,9]"
     
     if is_auth then
-        formspec = formspec .. "tabheader[0,0;ledger_tabs;" .. S("Info") .. "," .. S("Access Control") .. ";" .. tab_index .. ";true;false]"
+        formspec = formspec .. "tabheader[0,0;ledger_tabs;" .. S("Info") .. "," .. S("Access Control") .. "," .. S("Incidents & Justice") .. ";" .. tab_index .. ";true;false]"
     end
     
     if tab_index == 1 or not is_auth then
@@ -84,6 +84,69 @@ local function get_formspec(sid, player_name, tab_index)
                 "field[0.8,7.5;4,1;assoc_name;;" .. S("Associate Name") .. "]" ..
                 "button[4.8,7.2;1.2,1;add_assoc;" .. S("Add") .. "]" ..
                 "button[6.2,7.2;1.2,1;remove_assoc;" .. S("Remove") .. "]"
+        end
+    elseif tab_index == 3 and is_auth then
+        -- Incidents & Justice Tab
+        local death_entries = ""
+        local deaths = s.death_log or {}
+        for _, d in ipairs(deaths) do
+            local pstr = d.pos and string.format("(%d,%d,%d)", d.pos.x, d.pos.y, d.pos.z) or ""
+            local line = string.format("[%s] %s (%s) - Cause: %s by %s @ %s [%s]",
+                os.date("%m/%d %H:%M", d.timestamp or os.time()),
+                d.settler_name or "Settler",
+                d.profession or "N/A",
+                d.cause or "Unknown",
+                d.killer or "Unknown",
+                pstr,
+                d.status or "Unburied"
+            )
+            if death_entries == "" then
+                death_entries = minetest.formspec_escape(line)
+            else
+                death_entries = death_entries .. "," .. minetest.formspec_escape(line)
+            end
+        end
+        
+        local total_historical = (s.historical_fallen_count or 0) + #deaths
+        
+        formspec = formspec ..
+            "label[0.5,0.4;" .. S("── Settler Incident Log (Recent Deaths) ──") .. "]" ..
+            "textlist[0.5,0.8;7,2.8;death_list;" .. death_entries .. "]" ..
+            "label[0.5,3.7;" .. S("Total Historical Mortality Count:") .. " " .. minetest.colorize("#FFAA00", tostring(total_historical)) .. "]" ..
+            "label[0.5,4.3;" .. S("── Settlement Criminal Records & Fines ──") .. "]"
+            
+        local criminal_list = ""
+        local records = s.criminal_records or {}
+        for pname, rec in pairs(records) do
+            local days_rem, mins_rem = eg_settlers.db.get_decay_time_estimate(sid, pname)
+            local parts = {}
+            if rec.assault_count and rec.assault_count > 0 then
+                local decay_info = days_rem > 0 and string.format("~%dd/%dm", days_rem, mins_rem) or string.format("~%dm", mins_rem)
+                table.insert(parts, string.format("%d Assaults (%s)", rec.assault_count, decay_info))
+            end
+            if rec.murder_count and rec.murder_count > 0 then
+                table.insert(parts, string.format("%d Murders (Perm)", rec.murder_count))
+            end
+            local line = pname .. ": " .. (table.concat(parts, ", ") ~= "" and table.concat(parts, ", ") or "Clean")
+            if criminal_list == "" then
+                criminal_list = minetest.formspec_escape(line)
+            else
+                criminal_list = criminal_list .. "," .. minetest.formspec_escape(line)
+            end
+        end
+        
+        formspec = formspec .. "textlist[0.5,4.7;7,2.2;wanted_list;" .. criminal_list .. "]"
+        
+        local prec = eg_settlers.db.get_criminal_record(sid, player_name)
+        if prec then
+            if prec.assault_count and prec.assault_count > 0 then
+                formspec = formspec .. "button[0.5,7.3;3.3,1;pay_assault_fine;" .. S("Pay Assault Fine (50 Lumps)") .. "]"
+            end
+            if prec.murder_count and prec.murder_count > 0 then
+                formspec = formspec .. "button[4.2,7.3;3.3,1;pay_murder_fine;" .. S("Pay Murder Fine (200 Lumps)") .. "]"
+            end
+        else
+            formspec = formspec .. "label[0.5,7.5;" .. minetest.colorize("#00FF00", S("Your standing in this settlement is clean.")) .. "]"
         end
     end
         
@@ -303,6 +366,34 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                             minetest.chat_send_player(name, S("Player does not exist: ") .. fields.new_owner)
                         end
                     end
+                elseif fields.pay_assault_fine then
+                    local rec = eg_settlers.db.get_criminal_record(sid, name)
+                    if rec and rec.assault_count and rec.assault_count > 0 then
+                        local inv = player:get_inventory()
+                        local fine_stack = ItemStack("default:gold_lump 50")
+                        if inv and inv:contains_item("main", fine_stack) then
+                            inv:remove_item("main", fine_stack)
+                            eg_settlers.db.pay_restitution(sid, name, "assault")
+                            minetest.chat_send_player(name, minetest.colorize("#00FF00", S("Assault fine paid! Active assault charges cleared.")))
+                        else
+                            minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Insufficient gold lumps! You need 50 Gold Lumps to pay the assault fine.")))
+                        end
+                    end
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 3))
+                elseif fields.pay_murder_fine then
+                    local rec = eg_settlers.db.get_criminal_record(sid, name)
+                    if rec and rec.murder_count and rec.murder_count > 0 then
+                        local inv = player:get_inventory()
+                        local fine_stack = ItemStack("default:gold_lump 200")
+                        if inv and inv:contains_item("main", fine_stack) then
+                            inv:remove_item("main", fine_stack)
+                            eg_settlers.db.pay_restitution(sid, name, "murder")
+                            minetest.chat_send_player(name, minetest.colorize("#00FF00", S("Murder fine paid! Capital murder charges cleared.")))
+                        else
+                            minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Insufficient gold lumps! You need 200 Gold Lumps to pay the murder fine.")))
+                        end
+                    end
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 3))
                 end
             end
         end
@@ -331,39 +422,6 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
--- Trade Blocking Override
-local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
-for _, entity_name in ipairs(target_entities) do
-    local base_entity = minetest.registered_entities[entity_name]
-    if base_entity then
-        local old_on_rightclick = base_entity.on_rightclick
-        base_entity.on_rightclick = function(self, clicker)
-            if clicker and clicker:is_player() and clicker:get_player_control().sneak then
-                if old_on_rightclick then
-                    return old_on_rightclick(self, clicker)
-                end
-                return
-            end
-            
-            -- Only block if it's a villager with a home
-            if self.is_villager and self.home_pos then
-                local meta = minetest.get_meta(self.home_pos)
-                local sid = meta:get_string("settlement_id")
-                if sid and sid ~= "" then
-                    if not eg_settlers.db.is_satiated(sid) then
-                        if clicker and clicker:is_player() then
-                            minetest.chat_send_player(clicker:get_player_name(), "<" .. (self.game_name or "Villager") .. "> " .. S("The town is starving... I have nothing to trade."))
-                        end
-                        return
-                    end
-                end
-            end
-            if old_on_rightclick then
-                return old_on_rightclick(self, clicker)
-            end
-        end
-    end
-end
 
 -- LBM for Retroactive Deed Registration
 minetest.register_lbm({
