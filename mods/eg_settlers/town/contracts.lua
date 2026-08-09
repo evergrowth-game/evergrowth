@@ -117,10 +117,11 @@ minetest.register_craftitem("eg_settlers:contract_companion_male", {
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
-        local node = minetest.get_node(pos)
+        local check_pos = pointed_thing.above
+        local node = minetest.get_node(check_pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or check_pos
         local owner_name = placer and placer:get_player_name() or ""
         eg_settlers.spawn_companion(pos, false, owner_name)
         minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
@@ -144,10 +145,11 @@ minetest.register_craftitem("eg_settlers:contract_companion_female", {
     inventory_image = "default_paper.png^(default_apple.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
-        local node = minetest.get_node(pos)
+        local check_pos = pointed_thing.above
+        local node = minetest.get_node(check_pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or check_pos
         local owner_name = placer and placer:get_player_name() or ""
         eg_settlers.spawn_companion(pos, true, owner_name)
         minetest.sound_play("default_place_node_hard", {pos = pos, gain = 1.0}, true)
@@ -172,10 +174,11 @@ minetest.register_craftitem("eg_settlers:contract_companion_relocation", {
     groups = {not_in_creative_inventory = 1},
     on_place = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then return end
-        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
-        local node = minetest.get_node(pos)
+        local check_pos = pointed_thing.above
+        local node = minetest.get_node(check_pos)
         local def = minetest.registered_nodes[node.name]
         if not def or not (node.name == "air" or def.buildable_to) then return end
+        local pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or check_pos
         
         local meta = itemstack:get_meta()
         local override_data = {
