@@ -99,3 +99,75 @@ The **Town Dropbox (`eg_settlers:town_depot`)** serves as a centralized collecti
     *   Right-clicking an injured settler or companion executes `eg_settlers.use_medkit_on_entity()` to instantly restore maximum health (`self.health` and `object:set_hp()`), play green particle spawner and audio effects, and consume 1 medkit stack.
     *   Intercepts and returns `true` before calling original `on_rightclick`, preventing the trader or dialogue interface from opening.
 
+---
+
+## 6. Incident Logging & Proportional Justice System
+
+The **Justice System** tracks crimes against villagers, maintains persistent death logs, and enforces financial restitution and merchant sanctions.
+
+### Death Log & Attacker Tracking (`death_log`):
+* **Attacker Caching:** `on_punch` caches the last attacker (`self.last_puncher`) on entity metadata.
+* **Cause Determination:** In `on_die`, the system evaluates `self.last_puncher` and entity state to classify mortality cause as `Player`, `Mob`, or `Environment`.
+* **Persistence:** Appends death events (timestamp, victim name, profession, cause, attacker name) to the settlement database `death_log` array (capped at 25 recent entries).
+* **Mortality Counter:** Maintains cumulative settlement historical mortality count (`total_deaths`).
+
+### Criminal Records & Restitution Fines (`criminal_records`):
+* **Schema:** Stores `assault_count`, `murder_count`, and `fines_owed` per player under the settlement record.
+* **Fine Amounts:**
+  * **Assault:** 50 Gold Lumps (`default:gold_lump`).
+  * **Murder:** 200 Gold Lumps (`default:gold_lump`).
+* **Restitution UI & Payment:**
+  * Town Ledger UI (Tab 3: *Incidents & Justice*) displays settlement criminal records, active fines, and incident history.
+  * Players pay outstanding fines directly from inventory via the formspec button handler.
+* **Merchant Sanctions & Trade Refusal:**
+  * `on_rightclick` checks the caller's criminal record for active fines or assault counts.
+  * Merchants refuse trade until fines are paid or criminal status decays, displaying localized chat alerts with exact decay estimations.
+
+### Alarm & Panic Response:
+* **Guard Alarm:** Punching a villager triggers a 35-node spatial distress broadcast (`trigger_guard_alarm`), alerting nearby Guards regardless of line-of-sight.
+* **Panic Fleeing:** Non-guard villagers within a 20-node radius enter a panic fleeing state upon taking damage.
+
+---
+
+## 7. Smart Intent Detection & Strike Escalation Engine
+
+To protect players from accidental criminal status caused by bare-hand misclicks or tool misfires, `eg_settlers` implements intent detection and escalation logic.
+
+### Strike Tracking (`strike_records`):
+* **Debounce Window:** Rapid inputs under `< 0.35s` are ignored to prevent double-click misfires.
+* **Weapon Classification:** Evaluates held item weapon capabilities. Heavy weapon hits (swords, axes, high-damage tools) instantly bypass intent checks and trigger assault fines.
+* **Non-Weapon Misclick Threshold:** Bare-hand or low-damage tool strikes (< 4 HP) accumulate in `strike_records`.
+* **2-Strike / 4 HP Escalation:**
+  * 1st light strike: Displays warning chat notification; no fine incurred.
+  * 2nd strike OR cumulative damage >= 4 HP within the forgiveness window: Escalates to formal Assault crime and 50 Gold Lump fine.
+
+### Strike Forgiveness Timers:
+* **Settlement Owners / Associates:** Non-weapon strike records expire after **5 minutes (300 seconds)** without further hits.
+* **Visitors:** Strike records expire after **3 minutes (180 seconds)**.
+
+---
+
+## 8. Criminal Decay Estimation Engine
+
+Assault severity penalties decay over time through lawful settlement activity.
+
+### Decay Mechanics:
+* **Tick Schedule:** Every 3 settlement daily ticks (~6 in-game days), active assault records decay by **-1 severity**.
+* **Decay Estimator Function (`eg_settlers.db.get_decay_time_estimate()`):**
+  * Calculates remaining daily ticks until criminal status clearance.
+  * Converts ticks to remaining in-game days (`days_remaining`) and real-time minutes (`minutes_remaining`).
+  * Returns formatted time strings (omitting `0d` prefix when less than 1 in-game day remains).
+* **UI & Interaction Displays:**
+  * Town Ledger UI (*Incidents & Justice* tab) displays live decay estimates for all listed offenders.
+  * Merchant trade refusal notifications display exact remaining decay time to the player.
+
+---
+
+## 9. Settlement Build Protection Integration
+
+Town Ledgers function as protection blocks, securing settlement structures against unauthorized modification.
+
+### Protection Mechanics:
+* Integrated with the `protector` mod API.
+* Placing a Town Ledger registers build protection across its 100-block radius for the town owner and authorized associates.
+* Non-authorized players cannot place, dig, or modify nodes within settlement bounds unless granted access via the Town Ledger *Access Control* tab.
