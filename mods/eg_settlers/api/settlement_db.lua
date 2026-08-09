@@ -553,6 +553,7 @@ end
 
 local old_is_protected = minetest.is_protected
 function minetest.is_protected(pos, digger)
+    if not pos then return false end
     -- Check if position is inside any settlement territory
     local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
     if sid then
