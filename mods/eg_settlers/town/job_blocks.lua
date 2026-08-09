@@ -198,8 +198,8 @@ eg_settlers.register_job_block("merchant", {
     description = "Merchant's Counter",
     cost = 10,
     tiles = {"default_wood.png", "default_gold_block.png"},
-    selection_box = { type = "fixed", fixed = {-0.5, -0.5, -0.45, 0.5, 0.4, 0.45} },
-    collision_box = { type = "fixed", fixed = {-0.5, -0.5, -0.45, 0.5, 0.4, 0.45} },
+    selection_box = { type = "fixed", fixed = {-0.5, -0.5, -0.45, 0.5, 0.75, 0.45} },
+    collision_box = { type = "fixed", fixed = {-0.5, -0.5, -0.45, 0.5, 0.75, 0.45} },
 })
 
 eg_settlers.register_job_block("guard", {
