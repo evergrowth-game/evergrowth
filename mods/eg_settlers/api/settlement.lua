@@ -271,6 +271,7 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         end
     end
 
+    local valid_beds = {}
     for _, bed_pos in ipairs(beds) do
         local meta = minetest.get_meta(bed_pos)
         local owner = meta:get_string("owner")
@@ -294,8 +295,14 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         local entity_assigned = assigned_home_positions[pos_str] or assigned_home_positions[partner_str]
 
         if not reserved and owner == "" and assigned == "" and not partner_occupied and not entity_assigned then
-            return bed_pos
+            local dist = vector.distance(pos, bed_pos)
+            table.insert(valid_beds, {pos = bed_pos, dist = dist})
         end
+    end
+    
+    if #valid_beds > 0 then
+        table.sort(valid_beds, function(a, b) return a.dist < b.dist end)
+        return valid_beds[1].pos
     end
     return nil
 end

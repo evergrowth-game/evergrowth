@@ -179,11 +179,11 @@ eg_settlers.register_job_block("mage", {
 })
 
 eg_settlers.register_job_block("brewer", {
-    description = "Brewer's Fermentation Cask",
+    description = "Brewer's Bottling Bench",
     cost = 8,
-    tiles = {"default_wood.png", "default_steel_block.png"},
-    selection_box = { type = "fixed", fixed = {-0.45, -0.5, -0.48, 0.45, 0.57, 0.48} },
-    collision_box = { type = "fixed", fixed = {-0.45, -0.5, -0.48, 0.45, 0.57, 0.48} },
+    tiles = {"default_wood.png", "default_glass.png"},
+    selection_box = { type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5} },
+    collision_box = { type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5} },
 })
 
 eg_settlers.register_job_block("miner", {
