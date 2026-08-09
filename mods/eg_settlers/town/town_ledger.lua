@@ -455,20 +455,3 @@ minetest.register_lbm({
     end,
 })
 
--- LBM for Stale Job Block Occupied Cleanup
-minetest.register_lbm({
-    label = "Job Block Stale Occupied Cleanup",
-    name = "eg_settlers:job_block_stale_cleanup",
-    nodenames = {"group:job_block"},
-    run_at_every_load = true,
-    action = function(pos, node)
-        local meta = minetest.get_meta(pos)
-        if meta:get_int("occupied") == 1 then
-            -- Check if a villager entity is tethered to this job block
-            -- Disabled because get_objects_inside_radius fails for unloaded entities
-            -- or entities that wandered to their beds >50 blocks away at night.
-            -- (Occupied clearing is handled gracefully in npc_behavior's on_die hook).
-        end
-    end,
-})
-
