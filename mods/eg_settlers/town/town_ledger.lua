@@ -45,7 +45,8 @@ local function get_formspec(sid, player_name, tab_index)
         
         formspec = formspec ..
             "label[0.5,2;" .. S("Tier:") .. " " .. tier_name .. " (" .. resident_count .. "/" .. tier_cap .. " " .. S("residents") .. ")]" ..
-            "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]"
+            "label[0.5,2.5;" .. S("Status:") .. " " .. status_text .. "]" ..
+            "button[4.8,2;1.6,1;toggle_boundaries;" .. S("Boundaries") .. "]"
 
             
         if is_owner then
@@ -294,6 +295,20 @@ minetest.register_node("eg_settlers:town_ledger", {
         end
     end,
     
+    on_punch = function(pos, node, puncher, pointed_thing)
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        if sid and sid ~= "" and puncher and puncher:is_player() then
+            local name = puncher:get_player_name()
+            if eg_settlers.db.is_authorized(sid, name) then
+                eg_settlers.toggle_boundary_markers(puncher, sid, pos)
+            else
+                minetest.chat_send_player(name, minetest.colorize("#FF5555",
+                    S("[eg_settlers] Only authorized residents can toggle settlement boundary markers.")))
+            end
+        end
+    end,
+
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
         local meta = minetest.get_meta(pos)
         local sid = meta:get_string("settlement_id")
@@ -332,8 +347,11 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     minetest.show_formspec(name, formname, get_formspec(sid, name, tab))
                     return true
                 end
-                
-                if fields.rename and fields.town_name and is_auth then
+
+                if fields.toggle_boundaries then
+                    eg_settlers.toggle_boundary_markers(player, sid, pos)
+                    minetest.show_formspec(name, formname, get_formspec(sid, name, 1))
+                elseif fields.rename and fields.town_name and is_auth then
                     eg_settlers.db.set_name(sid, fields.town_name)
                     meta:set_string("infotext", S("Town Ledger: ") .. fields.town_name)
                     minetest.show_formspec(name, formname, get_formspec(sid, name, 1))

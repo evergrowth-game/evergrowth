@@ -55,12 +55,12 @@ This document consolidates all planned features, multiplayer fixes, and infrastr
     * Override `minetest.is_protected(pos, name)` to make the Town Ledger a massive protection block, blocking unauthorized building/digging within the town's radius.
     * Ensure deeds/job blocks can only be placed if the player has permission (hooking into `areas` or `protector` mods).
 
-## Phase 4: Quality of Life & Usability
+## Phase 4: Quality of Life & Usability (Complete)
 *Improving the player experience for town planning.*
 
-12. **Visual Boundary Markers:** 
-    * Introduce a "Surveyor's Tool" to temporarily highlight the town's invisible 200-block N/S/E/W borders. 
-    * Use non-colliding, temporary visual entities (like Techage marker cubes) to avoid particle lag.
+12. **Visual Boundary Markers (Complete):** 
+    * Punching the Town Ledger or clicking the 'Boundaries' button in its interface temporarily highlights the town's 200-block N/S/E/W and diagonal borders.
+    * Uses non-colliding, temporary glowing visual entities to avoid particle lag.
 
 ## Phase 5: Advanced Logistics & Trade Hubs
 *Complex, modular systems for inter-town trading. These explicitly require the Phase 1 Ownership system to prevent griefing.*
