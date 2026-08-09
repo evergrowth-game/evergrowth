@@ -279,11 +279,8 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         local assigned = meta:get_string("assigned_settler")
         
         local partner_occupied = false
-        local node = minetest.get_node(bed_pos)
-        local dir = minetest.facedir_to_dir(node.param2 or 0)
-        local partner_pos = vector.add(bed_pos, dir)
-        local partner_node = minetest.get_node(partner_pos)
-        if minetest.get_item_group(partner_node.name, "bed") > 0 then
+        local partner_pos = eg_settlers.get_partner_bed_pos(bed_pos)
+        if partner_pos then
             local pmeta = minetest.get_meta(partner_pos)
             if pmeta:get_string("assigned_settler") ~= "" or pmeta:get_string("owner") ~= "" or pmeta:get_string("player_reserved") == "true" then
                 partner_occupied = true
@@ -366,6 +363,18 @@ minetest.register_on_mods_loaded(function()
                             meta:set_string("assigned_settler", "")
                         end
                         eg_settlers.update_bed_infotext(pos)
+
+                        local ppos = eg_settlers.get_partner_bed_pos(pos)
+                        if ppos then
+                            local pmeta = minetest.get_meta(ppos)
+                            pmeta:set_string("owner", clicker:get_player_name())
+                            pmeta:set_string("player_reserved", "true")
+                            local passigned = pmeta:get_string("assigned_settler")
+                            if passigned and passigned ~= "" then
+                                pmeta:set_string("assigned_settler", "")
+                            end
+                            eg_settlers.update_bed_infotext(ppos)
+                        end
                     end
                     if orig_on_rightclick then
                         return orig_on_rightclick(pos, node, clicker, itemstack, pointed_thing)
