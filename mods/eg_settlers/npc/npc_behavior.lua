@@ -404,14 +404,14 @@ for _, entity_name in ipairs(target_entities) do
                             local day_target = self.job_pos or self.home_pos
                             if day_target then
                                 local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
-                                if vector.distance(pos, day_target) > tether_radius then
+                                local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
+                                local target_head = {x = day_target.x, y = day_target.y + 1, z = day_target.z}
+                                if vector.distance(pos, day_target) > tether_radius or not minetest.line_of_sight(head_pos, target_head) then
                                     self.order = "go_home"
                                     self.state = "walk"
                                     if self.pathfinding and self.smart_mobs then
                                         self:smart_mobs(pos, day_target, vector.distance(pos, day_target), dtime)
                                         
-                                        local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
-                                        local target_head = {x = day_target.x, y = day_target.y + 1, z = day_target.z}
                                         if (not self.path or not self.path.way or #self.path.way == 0) and not minetest.line_of_sight(head_pos, target_head) then
                                             self._day_stuck_timer = (self._day_stuck_timer or 0) + 1
                                             if self._day_stuck_timer > 5 then
@@ -420,6 +420,8 @@ for _, entity_name in ipairs(target_entities) do
                                                     {x=0, y=0.5, z=0}, {x=0, y=1.0, z=0},
                                                     {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
                                                     {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
+                                                    {x=0, y=-0.5, z=1}, {x=0, y=-0.5, z=-1},
+                                                    {x=1, y=-0.5, z=0}, {x=-1, y=-0.5, z=0},
                                                 }
                                                 for _, off in ipairs(offsets) do
                                                     local test_pos = {x = day_target.x + off.x, y = day_target.y + off.y, z = day_target.z + off.z}
