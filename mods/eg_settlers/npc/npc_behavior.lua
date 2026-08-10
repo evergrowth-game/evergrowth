@@ -173,22 +173,7 @@ for _, entity_name in ipairs(target_entities) do
                         end
                     else
                         -- Bed: clear bed-specific metadata
-                        local bed_meta = minetest.get_meta(self.home_pos)
-                        if bed_meta then
-                            local owner = bed_meta:get_string("owner")
-                            if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
-                                bed_meta:set_string("assigned_settler", "")
-                                local ppos = eg_settlers.get_partner_bed_pos(self.home_pos)
-                                if ppos then
-                                    local pmeta = minetest.get_meta(ppos)
-                                    if pmeta then
-                                        pmeta:set_string("assigned_settler", "")
-                                        eg_settlers.update_bed_infotext(ppos)
-                                    end
-                                end
-                                eg_settlers.update_bed_infotext(self.home_pos)
-                            end
-                        end
+                        eg_settlers.clear_bed_assignment(self.home_pos)
                     end
                 end
                 if self.job_pos then
@@ -284,8 +269,38 @@ for _, entity_name in ipairs(target_entities) do
 
                         if self.home_pos then
                             local hnode = minetest.get_node(self.home_pos)
-                            if hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") == 0 and hnode.name ~= "eg_settlers:housing_deed" then
+                            local hmeta = minetest.get_meta(self.home_pos)
+                            local is_bed = hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0
+                            local is_deed = hnode.name == "eg_settlers:housing_deed"
+                            local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
+                            
+                            if (hnode.name ~= "ignore" and not is_bed and not is_deed) or is_reserved then
+                                if is_bed and is_reserved then
+                                    eg_settlers.clear_bed_assignment(self.home_pos)
+                                end
                                 self.home_pos = nil
+                            end
+                        end
+                        
+                        -- Auto-search for unassigned bed if homeless
+                        if not self.home_pos then
+                            self._bed_search_timer = (self._bed_search_timer or 0) + 1.0
+                            if self._bed_search_timer >= 5.0 then
+                                self._bed_search_timer = 0
+                                local search_pos = self.job_pos or pos
+                                local unassigned_bed = eg_settlers.find_unassigned_bed(search_pos, 50)
+                                if unassigned_bed then
+                                    self.home_pos = unassigned_bed
+                                    local settler_name = self.nametag or self.game_name or (self.evergrowth_profession and self.evergrowth_profession:gsub("^%l", string.upper)) or "Settler"
+                                    eg_settlers.assign_bed(unassigned_bed, settler_name)
+                                    
+                                    if self.job_pos then
+                                        local jmeta = minetest.get_meta(self.job_pos)
+                                        if jmeta then
+                                            jmeta:set_string("home_pos", minetest.pos_to_string(unassigned_bed))
+                                        end
+                                    end
+                                end
                             end
                         end
                         
@@ -489,14 +504,7 @@ for _, entity_name in ipairs(target_entities) do
                             end
                         else
                             -- Bed: clear bed-specific metadata
-                            local bed_meta = minetest.get_meta(self.home_pos)
-                            if bed_meta then
-                                local owner = bed_meta:get_string("owner")
-                                if owner == "" or string.sub(owner, 1, 10) ~= "Player Bed" then
-                                    bed_meta:set_string("assigned_settler", "")
-                                    eg_settlers.update_bed_infotext(self.home_pos)
-                                end
-                            end
+                            eg_settlers.clear_bed_assignment(self.home_pos)
                         end
                     end
                     if self.job_pos then
