@@ -207,8 +207,14 @@ for _, entity_name in ipairs(target_entities) do
         -- Call original logic
         if old_on_step then old_on_step(self, dtime) end
 
+        --[[ FUTURE: Fast Path Following (disabled - pathfinding cannot navigate doors)
+        -- Dynamically enable pathfinding for existing entities
+        if self.is_villager and (not self.pathfinding or self.pathfinding == 0) then
+            self.pathfinding = 1
+        end
+
         -- Fast Path Following for Settlers returning to job blocks (Daytime)
-        if self.is_villager and self.order == "go_home" and self.state == "walk" then
+        if self.is_villager and self.order == "go_home" then
             local pos = self.object:get_pos()
             if pos then
                 if self._cached_is_night == false and self._cached_day_target then
@@ -244,6 +250,7 @@ for _, entity_name in ipairs(target_entities) do
                 end
             end
         end
+        ]]
 
         -- Custom Nametag & Engagement Logic (Only if flag is set)
         if self.evergrowth_nametag_mode then
@@ -297,9 +304,10 @@ for _, entity_name in ipairs(target_entities) do
                         local current_time = minetest.get_timeofday() * 24000
                         local is_night = (current_time > 18500 or current_time < 4500) and self.evergrowth_profession ~= "guard"
                         
-                        -- Cache variables for fast path-following loop
+                        --[[ FUTURE: Cache variables for fast path-following loop
                         self._cached_is_night = is_night
                         self._cached_day_target = self.job_pos or self.home_pos
+                        ]]
                         
                         -- Defensive check: verify Job Block / Deed still exists
                         if self.job_pos then
@@ -348,6 +356,7 @@ for _, entity_name in ipairs(target_entities) do
                         
                         -- Schedule: Nighttime return home bed shelter, Daytime active at job workstation
                         if is_night then
+                            self._was_night = true
                             local night_target = self.home_pos or self.job_pos
                             if night_target then
                                 local dist_home = vector.distance(pos, night_target)
@@ -396,12 +405,66 @@ for _, entity_name in ipairs(target_entities) do
                             end
                         else
                             -- Daytime
+                            
+                            -- Sunrise teleport: on night→day transition, teleport to job block
+                            if self._was_night and not is_night then
+                                local day_target = self.job_pos or self.home_pos
+                                if day_target then
+                                    local dest = {x = day_target.x, y = day_target.y + 0.5, z = day_target.z}
+                                    local offsets = {
+                                        {x=0, y=0.5, z=0}, {x=0, y=1.0, z=0},
+                                        {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
+                                        {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
+                                        {x=0, y=-0.5, z=1}, {x=0, y=-0.5, z=-1},
+                                        {x=1, y=-0.5, z=0}, {x=-1, y=-0.5, z=0},
+                                    }
+                                    for _, off in ipairs(offsets) do
+                                        local test_pos = {x = day_target.x + off.x, y = day_target.y + off.y, z = day_target.z + off.z}
+                                        local test_head = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
+                                        local node1 = minetest.get_node(test_pos)
+                                        local node2 = minetest.get_node(test_head)
+                                        local def1 = minetest.registered_nodes[node1.name]
+                                        local def2 = minetest.registered_nodes[node2.name]
+                                        if def1 and not def1.walkable and def2 and not def2.walkable then
+                                            dest = test_pos
+                                            break
+                                        end
+                                    end
+                                    
+                                    -- Verify destination is safe by explicitly rounding
+                                    local check_y = math.floor(dest.y + 0.5)
+                                    local d_pos1 = {x = dest.x, y = check_y, z = dest.z}
+                                    local d_pos2 = {x = dest.x, y = check_y + 1, z = dest.z}
+                                    local d_n1 = minetest.get_node(d_pos1)
+                                    local d_n2 = minetest.get_node(d_pos2)
+                                    local d_def1 = minetest.registered_nodes[d_n1.name]
+                                    local d_def2 = minetest.registered_nodes[d_n2.name]
+                                    
+                                    if d_def1 and not d_def1.walkable and d_def2 and not d_def2.walkable then
+                                        self.object:set_pos(dest)
+                                    end
+                                end
+                            end
+                            self._was_night = is_night
+                            
                             if self.order == "stand" or self.order == "go_home" then
                                 self.order = "wander"
                             end
                             
                             -- Anti-Wander check (Workstation Tether)
                             local day_target = self.job_pos or self.home_pos
+                            if day_target then
+                                local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
+                                if vector.distance(pos, day_target) > tether_radius then
+                                    self.order = "go_home"
+                                    self.state = "walk"
+                                    self:yaw_to_pos(day_target)
+                                    self:set_velocity(self.walk_velocity)
+                                    self:set_animation("walk")
+                                end
+                            end
+                            
+                            --[[ FUTURE: smart_mobs pathfinding (disabled - cannot navigate doors)
                             if day_target then
                                 local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
                                 local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
@@ -415,42 +478,7 @@ for _, entity_name in ipairs(target_entities) do
                                         if (not self.path or not self.path.way or #self.path.way == 0) and not minetest.line_of_sight(head_pos, target_head) then
                                             self._day_stuck_timer = (self._day_stuck_timer or 0) + 1
                                             if self._day_stuck_timer > 5 then
-                                                local dest = {x = day_target.x, y = day_target.y + 0.5, z = day_target.z}
-                                                local offsets = {
-                                                    {x=0, y=0.5, z=0}, {x=0, y=1.0, z=0},
-                                                    {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
-                                                    {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
-                                                    {x=0, y=-0.5, z=1}, {x=0, y=-0.5, z=-1},
-                                                    {x=1, y=-0.5, z=0}, {x=-1, y=-0.5, z=0},
-                                                }
-                                                for _, off in ipairs(offsets) do
-                                                    local test_pos = {x = day_target.x + off.x, y = day_target.y + off.y, z = day_target.z + off.z}
-                                                    local test_head = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
-                                                    local node1 = minetest.get_node(test_pos)
-                                                    local node2 = minetest.get_node(test_head)
-                                                    local def1 = minetest.registered_nodes[node1.name]
-                                                    local def2 = minetest.registered_nodes[node2.name]
-                                                    if def1 and not def1.walkable and def2 and not def2.walkable then
-                                                        dest = test_pos
-                                                        break
-                                                    end
-                                                end
-                                                
-                                                -- Verify fallback destination is safe by explicitly rounding
-                                                local check_y = math.floor(dest.y + 0.5)
-                                                local d_pos1 = {x = dest.x, y = check_y, z = dest.z}
-                                                local d_pos2 = {x = dest.x, y = check_y + 1, z = dest.z}
-                                                
-                                                local d_n1 = minetest.get_node(d_pos1)
-                                                local d_n2 = minetest.get_node(d_pos2)
-                                                local d_def1 = minetest.registered_nodes[d_n1.name]
-                                                local d_def2 = minetest.registered_nodes[d_n2.name]
-                                                
-                                                if d_def1 and not d_def1.walkable and d_def2 and not d_def2.walkable then
-                                                    self.object:set_pos(dest)
-                                                end
-                                                
-                                                self._day_stuck_timer = 0
+                                                -- stuck teleport logic
                                             end
                                         else
                                             self._day_stuck_timer = 0
@@ -459,6 +487,7 @@ for _, entity_name in ipairs(target_entities) do
                                     self:set_animation("walk")
                                 end
                             end
+                            ]]                            
                         end
 
                         
