@@ -77,16 +77,7 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
         block_meta:set_string("infotext", S("Workstation: ") .. prof_id:sub(1,1):upper() .. prof_id:sub(2) .. "\n" .. S("Resident: ") .. (npc_name or prof_id))
 
-        local bmeta = minetest.get_meta(bed_pos)
-        bmeta:set_string("assigned_settler", npc_name or prof_id)
-        eg_settlers.update_bed_infotext(bed_pos)
-
-        local partner_pos = eg_settlers.get_partner_bed_pos(bed_pos)
-        if partner_pos then
-            local pmeta = minetest.get_meta(partner_pos)
-            pmeta:set_string("assigned_settler", npc_name or prof_id)
-            eg_settlers.update_bed_infotext(partner_pos)
-        end
+        eg_settlers.assign_bed(bed_pos, npc_name or prof_id)
 
         if sid then
             block_meta:set_string("settlement_id", sid)
@@ -276,9 +267,7 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
         block_meta:set_string("infotext", S("Workstation: ") .. profession .. "\n" .. S("Resident: ") .. (npc_name or "Villager"))
 
-        local bed_meta = minetest.get_meta(bed_pos)
-        bed_meta:set_string("assigned_settler", npc_name or "Villager")
-        eg_settlers.update_bed_infotext(bed_pos)
+        eg_settlers.assign_bed(bed_pos, npc_name or "Villager")
 
         local sid = eg_settlers.db.find_nearest_settlement(under_pos, 200)
         if sid then

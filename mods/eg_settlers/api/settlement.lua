@@ -144,37 +144,80 @@ function eg_settlers.get_partner_bed_pos(pos)
 end
 
 function eg_settlers.update_bed_infotext(pos)
+    if not pos then return end
     local meta = minetest.get_meta(pos)
     local owner = meta:get_string("owner")
     local reserved = meta:get_string("player_reserved") == "true"
     local assigned = meta:get_string("assigned_settler")
 
-    if assigned == "" and owner == "" and not reserved then
-        local ppos = eg_settlers.get_partner_bed_pos(pos)
-        if ppos then
-            local pmeta = minetest.get_meta(ppos)
-            local powner = pmeta:get_string("owner")
-            local preserved = pmeta:get_string("player_reserved") == "true"
-            local passigned = pmeta:get_string("assigned_settler")
-            if passigned ~= "" then
-                assigned = passigned
-                meta:set_string("assigned_settler", assigned)
-            elseif preserved or powner ~= "" then
-                owner = powner
-                reserved = preserved
-                meta:set_string("owner", owner)
-                if reserved then meta:set_string("player_reserved", "true") end
-            end
+    local ppos = eg_settlers.get_partner_bed_pos(pos)
+    if ppos then
+        local pmeta = minetest.get_meta(ppos)
+        local powner = pmeta:get_string("owner")
+        local preserved = pmeta:get_string("player_reserved") == "true"
+        local passigned = pmeta:get_string("assigned_settler")
+
+        if assigned == "" and passigned ~= "" then
+            assigned = passigned
+            meta:set_string("assigned_settler", assigned)
+        elseif passigned == "" and assigned ~= "" then
+            pmeta:set_string("assigned_settler", assigned)
+        end
+
+        if owner == "" and powner ~= "" then
+            owner = powner
+            meta:set_string("owner", owner)
+        elseif powner == "" and owner ~= "" then
+            pmeta:set_string("owner", owner)
+        end
+
+        if not reserved and preserved then
+            reserved = true
+            meta:set_string("player_reserved", "true")
+        elseif not preserved and reserved then
+            pmeta:set_string("player_reserved", "true")
         end
     end
 
+    local infotext
     if reserved or (owner ~= "" and assigned == "") then
-        meta:set_string("infotext", S("Player Bed (Owner: ") .. (owner ~= "" and owner or "Player") .. ")")
+        infotext = S("Player Bed (Owner: ") .. (owner ~= "" and owner or "Player") .. ")"
     elseif assigned ~= "" then
-        meta:set_string("infotext", S("Settler Bed (Assigned: ") .. assigned .. ")")
+        infotext = S("Settler Bed (Assigned: ") .. assigned .. ")"
     else
-        meta:set_string("infotext", S("Settler Bed (Unassigned)"))
+        infotext = S("Settler Bed (Unassigned)")
     end
+
+    meta:set_string("infotext", infotext)
+    if ppos then
+        local pmeta = minetest.get_meta(ppos)
+        pmeta:set_string("infotext", infotext)
+    end
+end
+
+function eg_settlers.assign_bed(pos, settler_name)
+    if not pos then return end
+    settler_name = settler_name or ""
+    local meta = minetest.get_meta(pos)
+    meta:set_string("assigned_settler", settler_name)
+    local ppos = eg_settlers.get_partner_bed_pos(pos)
+    if ppos then
+        local pmeta = minetest.get_meta(ppos)
+        pmeta:set_string("assigned_settler", settler_name)
+    end
+    eg_settlers.update_bed_infotext(pos)
+end
+
+function eg_settlers.clear_bed_assignment(pos)
+    if not pos then return end
+    local meta = minetest.get_meta(pos)
+    meta:set_string("assigned_settler", "")
+    local ppos = eg_settlers.get_partner_bed_pos(pos)
+    if ppos then
+        local pmeta = minetest.get_meta(ppos)
+        pmeta:set_string("assigned_settler", "")
+    end
+    eg_settlers.update_bed_infotext(pos)
 end
 
 function eg_settlers.get_total_beds_count(pos, radius)
@@ -288,8 +331,8 @@ function eg_settlers.find_unassigned_bed(pos, radius)
         end
 
         local pos_str = minetest.pos_to_string(bed_pos)
-        local partner_str = minetest.pos_to_string(partner_pos)
-        local entity_assigned = assigned_home_positions[pos_str] or assigned_home_positions[partner_str]
+        local partner_str = partner_pos and minetest.pos_to_string(partner_pos)
+        local entity_assigned = assigned_home_positions[pos_str] or (partner_str and assigned_home_positions[partner_str])
 
         if not reserved and owner == "" and assigned == "" and not partner_occupied and not entity_assigned then
             local dist = vector.distance(pos, bed_pos)
