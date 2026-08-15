@@ -184,7 +184,7 @@ eg_settlers.trades_list = {
         {"airutils:repair_tool 1", "default:gold_lump 5", 100},
         {"supercub:supercub 1", "default:gold_lump 120", 100},
         {"pa28:pa28 1", "default:gold_lump 150", 100},
-        {"nss_helicopter:helicopter 1", "default:gold_lump 180", 100},
+        {"nss_helicopter:heli 1", "default:gold_lump 180", 100},
         -- NPC Buys (Trader Buys, Player Sells)
         {"default:gold_lump 8", "default:steelblock 1", 100},
         {"default:gold_lump 10", "techage:ta3_barrel_oil 1", 100},
