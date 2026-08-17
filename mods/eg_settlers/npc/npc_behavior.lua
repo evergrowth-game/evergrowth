@@ -20,8 +20,14 @@ for _, entity_name in ipairs(target_entities) do
     if base_entity then
         -- Triggers mobs_redo pathfinding to avoid water as a hazard (>0) while taking negligible damage if they fall in
         base_entity.water_damage = 0.001
-        -- Disables active jumping to prevent them from vaulting over fences, while stepheight (1.1) still allows walking up steps/slabs
-        base_entity.jump_height = 0
+        -- Stepheight 0.6 allows walking up slabs (0.5), stairs (0.5), and snow layers (0.2) without stepping onto 1.0-tall fences
+        base_entity.stepheight = 0.6
+        if base_entity.initial_properties then
+            base_entity.initial_properties.stepheight = 0.6
+        end
+        -- Jump height 4 (vertical velocity 4 m/s, ~0.8m jump) allows jumping out of water and single-block ledges, while mobs_redo blocks fence jumps
+        base_entity.jump_height = 4
+        base_entity.jump = true
         
         local old_on_punch = base_entity.on_punch
         base_entity.on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
@@ -463,6 +469,33 @@ for _, entity_name in ipairs(target_entities) do
                                     self:set_animation("walk")
                                 end
                             end
+
+                            -- Ice Avoidance Check (Prevent wandering onto frozen rivers)
+                            local yaw = self.object:get_yaw() or 0
+                            local dir_x = -math.sin(yaw)
+                            local dir_z = math.cos(yaw)
+                            local under_node = minetest.get_node({x = math.floor(pos.x + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + 0.5)})
+                            local ahead_under = minetest.get_node({x = math.floor(pos.x + dir_x * 1.2 + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + dir_z * 1.2 + 0.5)})
+
+                            local is_ice_node = function(nodename)
+                                if not nodename or nodename == "air" or nodename == "ignore" then return false end
+                                local def = minetest.registered_nodes[nodename]
+                                if def and def.groups and (def.groups.ice or def.groups.melts) then
+                                    return true
+                                end
+                                return nodename == "regional_weather:ice" or nodename == "ethereal:thin_ice" or nodename == "default:ice" or nodename:find("ice") ~= nil
+                            end
+
+                            if is_ice_node(under_node.name) or is_ice_node(ahead_under.name) then
+                                local retreat_target = self.job_pos or self.home_pos
+                                if retreat_target then
+                                    self:yaw_to_pos(retreat_target)
+                                else
+                                    self:set_yaw(yaw + math.pi, 8)
+                                end
+                                self:set_velocity(self.walk_velocity or 2)
+                                self:set_animation("walk")
+                            end
                             
                             --[[ FUTURE: smart_mobs pathfinding (disabled - cannot navigate doors)
                             if day_target then
@@ -525,6 +558,9 @@ for _, entity_name in ipairs(target_entities) do
         if old_on_activate then old_on_activate(self, staticdata, dtime) end
 
         if self.is_villager then
+            self.jump_height = 4
+            self.jump = true
+            self.object:set_properties({stepheight = 0.6})
             self.evergrowth_nametag_mode = true
             if not self.game_name or self.game_name == "" then
                 if self.nametag and self.nametag ~= "" then
@@ -537,7 +573,9 @@ for _, entity_name in ipairs(target_entities) do
         end
 
         if self.base_texture then
-            self.object:set_properties({textures = self.base_texture})
+            self.object:set_properties({textures = self.base_texture, stepheight = 0.6})
+        else
+            self.object:set_properties({stepheight = 0.6})
         end
 
         if self.evergrowth_profession == "guard" then
