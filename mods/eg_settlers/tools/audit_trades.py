@@ -25,27 +25,31 @@ def parse_trades(init_lua_path):
             if prof_match:
                 current_prof = prof_match.group(1)
                 continue
-                
-            trade_match = re.search(r'\{"([^" ]+)\s+(\d+)",\s*"([^" ]+)\s+(\d+)",\s*(\d+)\}', line)
-            if trade_match and current_prof:
-                goods_item, goods_qty, price_item, price_qty, chance = trade_match.groups()
-                goods_qty = float(goods_qty)
-                price_qty = float(price_qty)
-                
-                # price_item -> goods_item
-                # rate: how much of get_item you receive for 1 give_item
-                rate = goods_qty / price_qty
-                
-                # Forward edge (what the player can do)
-                # Player gives price_item, gets goods_item
-                edges.append({
-                    'from': price_item,
-                    'from_qty': price_qty,
-                    'to': goods_item,
-                    'to_qty': goods_qty,
-                    'rate': rate,
-                    'prof': current_prof
-                })
+
+        pool_match = re.match(r'eg_settlers\.([a-zA-Z_]+)_master_pool\s*=\s*\{', line)
+        if pool_match:
+            current_prof = pool_match.group(1)
+            
+        trade_match = re.search(r'\{"([^" ]+)\s+(\d+)",\s*"([^" ]+)\s+(\d+)",\s*(\d+)\}', line)
+        if trade_match and current_prof:
+            goods_item, goods_qty, price_item, price_qty, chance = trade_match.groups()
+            goods_qty = float(goods_qty)
+            price_qty = float(price_qty)
+            
+            # price_item -> goods_item
+            # rate: how much of get_item you receive for 1 give_item
+            rate = goods_qty / price_qty
+            
+            # Forward edge (what the player can do)
+            # Player gives price_item, gets goods_item
+            edges.append({
+                'from': price_item,
+                'from_qty': price_qty,
+                'to': goods_item,
+                'to_qty': goods_qty,
+                'rate': rate,
+                'prof': current_prof
+            })
 
     return edges
 
