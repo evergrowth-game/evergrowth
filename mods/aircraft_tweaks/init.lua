@@ -26,9 +26,15 @@ local function apply_helicopter_tweaks(entity_name)
     local def = minetest.registered_entities[entity_name]
     if def then
         def._use_camera_relocation = false
+        def._climb_speed = nil
+        def._lift_dead_zone = nil
 
         local old_logic = def.logic
         def.logic = function(self)
+            -- Bypass upstream hard step governor to prevent square-wave oscillation
+            self._climb_speed = nil
+            self._lift_dead_zone = nil
+
             -- Dynamic drag factors: prevent sliding on ground and dampen lateral drift in air
             if self.isonground or (self.colinfo and self.colinfo.touching_ground) then
                 self._later_drag_factor = 15.0
@@ -42,20 +48,38 @@ local function apply_helicopter_tweaks(entity_name)
                 old_logic(self)
             end
 
-            -- Acceleration-level vertical damping & cruise altitude stabilization
+            -- Smooth vertical control & altitude stabilization
             if self._engine_running and not self.isonground and not (self.colinfo and self.colinfo.touching_ground) then
                 local pilot = self.driver_name and minetest.get_player_by_name(self.driver_name)
                 local ctrl = pilot and pilot:get_player_control()
-                local holding_vertical = ctrl and (ctrl.jump or ctrl.sneak)
+                local vel = self.object:get_velocity()
 
-                if not holding_vertical and self._last_accel then
-                    local vel = self.object:get_velocity()
-                    if vel then
-                        -- When in level flight, neutralize vertical net acceleration to hold altitude smoothly
+                if vel and self._last_accel then
+                    if ctrl and ctrl.jump then
+                        -- Smooth proportional taper for ascent up to 5.0 m/s
+                        local max_climb = 5.0
+                        if vel.y > 2.5 then
+                            local factor = math.max(0, (max_climb - vel.y) / 2.5)
+                            local net_up = self._last_accel.y - math.abs(airutils.gravity)
+                            if net_up > 0 then
+                                self._last_accel.y = math.abs(airutils.gravity) + (net_up * factor)
+                            end
+                        end
+                    elseif ctrl and ctrl.sneak then
+                        -- Smooth proportional taper for descent down to -4.0 m/s
+                        local max_desc = 4.0
+                        if vel.y < -2.0 then
+                            local factor = math.max(0, (max_desc + vel.y) / 2.0)
+                            local net_down = math.abs(airutils.gravity) - self._last_accel.y
+                            if net_down > 0 then
+                                self._last_accel.y = math.abs(airutils.gravity) - (net_down * factor)
+                            end
+                        end
+                    else
+                        -- Neutral level flight: Altitude lock & smooth vertical damping
                         if math.abs(vel.y) < 0.35 then
                             self._last_accel.y = -airutils.gravity
                         else
-                            -- Smoothly damp climb/descent acceleration toward zero net vertical velocity
                             self._last_accel.y = self._last_accel.y - (vel.y * 3.5)
                         end
                     end
