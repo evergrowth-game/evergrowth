@@ -1,9 +1,0 @@
-# textdomain: nss_helicopter
-Helicopter Blades=
-Cabin for Helicopter=
-Helicopter=
- nice helicopter=
-A nice helicopter=
- Helicopter=
-You do not have room in your inventory=
-Nice helicopter of @1. Current hp: @2=
