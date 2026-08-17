@@ -55,32 +55,23 @@ local function apply_helicopter_tweaks(entity_name)
                 local vel = self.object:get_velocity()
 
                 if vel and self._last_accel then
+                    local grav = math.abs(airutils.gravity)
                     if ctrl and ctrl.jump then
-                        -- Smooth proportional taper for ascent up to 5.0 m/s
+                        -- Smooth upward climb capped at 5.0 m/s with continuous proportional force
                         local max_climb = 5.0
-                        if vel.y > 2.5 then
-                            local factor = math.max(0, (max_climb - vel.y) / 2.5)
-                            local net_up = self._last_accel.y - math.abs(airutils.gravity)
-                            if net_up > 0 then
-                                self._last_accel.y = math.abs(airutils.gravity) + (net_up * factor)
-                            end
-                        end
+                        local climb_factor = math.max(0, (max_climb - vel.y) / max_climb)
+                        self._last_accel.y = grav + (3.5 * climb_factor)
                     elseif ctrl and ctrl.sneak then
-                        -- Smooth proportional taper for descent down to -4.0 m/s
+                        -- Smooth descent capped at -4.0 m/s with continuous proportional force
                         local max_desc = 4.0
-                        if vel.y < -2.0 then
-                            local factor = math.max(0, (max_desc + vel.y) / 2.0)
-                            local net_down = math.abs(airutils.gravity) - self._last_accel.y
-                            if net_down > 0 then
-                                self._last_accel.y = math.abs(airutils.gravity) - (net_down * factor)
-                            end
-                        end
+                        local desc_factor = math.max(0, (max_desc + vel.y) / max_desc)
+                        self._last_accel.y = grav - (3.0 * desc_factor)
                     else
                         -- Neutral level flight: Altitude lock & smooth vertical damping
-                        if math.abs(vel.y) < 0.35 then
-                            self._last_accel.y = -airutils.gravity
+                        if math.abs(vel.y) < 0.25 then
+                            self._last_accel.y = grav
                         else
-                            self._last_accel.y = self._last_accel.y - (vel.y * 3.5)
+                            self._last_accel.y = grav - (vel.y * 3.5)
                         end
                     end
                 end
