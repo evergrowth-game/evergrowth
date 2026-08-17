@@ -350,32 +350,35 @@ end
 eg_settlers.fisher_master_pool = {
     buys = {
         -- Player Sells (NPC Buys)
-        {"default:gold_lump 1", "farming:string 20", 100},
-        {"default:gold_lump 1", "default:stick 30", 100},
-        {"default:gold_lump 1", "default:clay_lump 20", 100},
-        {"default:gold_lump 1", "default:sand 30", 100},
-        {"default:gold_lump 1", "default:coral_brown 10", 100},
-        {"default:gold_lump 1", "default:coral_orange 10", 100},
+        {"default:gold_lump 1", "farming:string 15", 100},
+        {"default:gold_lump 1", "default:stick 25", 100},
+        {"default:gold_lump 1", "ethereal:worm 5", 100},
+        {"default:gold_lump 1", "ethereal:fish_cichlid 4", 100},
+        {"default:gold_lump 1", "ethereal:fish_salmon 3", 100},
+        {"default:gold_lump 1", "ethereal:fish_trout 3", 100},
+        {"default:gold_lump 1", "ethereal:fish_squid 2", 100},
+        {"default:gold_lump 2", "ethereal:fish_piranha 1", 100},
     },
     sells = {
         -- Player Buys (NPC Sells)
+        {"ethereal:fishing_rod 1", "default:gold_lump 2", 100},
+        {"default:coral_orange 1", "default:gold_lump 3", 100},
+        {"default:coral_brown 1", "default:gold_lump 3", 100},
+        {"ethereal:seaweed 5", "default:gold_lump 1", 100},
         {"ethereal:fish_salmon 2", "default:gold_lump 1", 100},
         {"ethereal:fish_cod 2", "default:gold_lump 1", 100},
         {"ethereal:fish_tuna 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_trout 2", "default:gold_lump 1", 100},
         {"ethereal:fish_bluefin 2", "default:gold_lump 1", 100},
         {"ethereal:fish_mackerel 2", "default:gold_lump 1", 100},
         {"ethereal:fish_shrimp 5", "default:gold_lump 2", 100},
-        {"ethereal:fish_squid 2", "default:gold_lump 2", 100},
         {"ethereal:fish_pufferfish 1", "default:gold_lump 2", 100},
         {"ethereal:fish_clownfish 1", "default:gold_lump 2", 100},
-        {"ethereal:fish_jellyfish 1", "default:gold_lump 1", 100},
     }
 }
 
 function eg_settlers.generate_fisher_trades(num_buys, num_sells)
-    num_buys = num_buys or 4
-    num_sells = num_sells or 6
+    num_buys = num_buys or 5
+    num_sells = num_sells or 5
     local trades = {}
 
     local buys_pool = {}
