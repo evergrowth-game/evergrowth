@@ -13,4 +13,20 @@ mobs:spawn({
 	max_height = 1000,
 })
 
-minetest.log("action", "[raider_tweaks] Enhanced spawning for raiders loaded")
+-- Fix raiders truncated collision boxes to match standard humanoid dimensions
+local humanoid_box = {-0.35, -1.0, -0.35, 0.35, 0.85, 0.35}
+
+for _, mob_name in ipairs({"raiders:pirate", "raiders:plundererstick", "raiders:plunderercrossbow", "raiders:plundererflask"}) do
+	local ent = minetest.registered_entities[mob_name]
+	if ent then
+		if ent.initial_properties then
+			ent.initial_properties.collisionbox = humanoid_box
+			ent.initial_properties.selectionbox = humanoid_box
+		end
+		ent.base_colbox = humanoid_box
+		ent.base_selbox = humanoid_box
+	end
+end
+
+minetest.log("action", "[raider_tweaks] Enhanced spawning and collision box fixes for raiders loaded")
+
