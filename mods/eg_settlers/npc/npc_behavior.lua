@@ -474,8 +474,8 @@ for _, entity_name in ipairs(target_entities) do
                             local yaw = self.object:get_yaw() or 0
                             local dir_x = -math.sin(yaw)
                             local dir_z = math.cos(yaw)
-                            local under_node = minetest.get_node({x = math.floor(pos.x + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + 0.5)})
-                            local ahead_under = minetest.get_node({x = math.floor(pos.x + dir_x * 1.2 + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + dir_z * 1.2 + 0.5)})
+                            local under_node = minetest.get_node({x = math.floor(pos.x + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + 0.5)})
+                            local ahead_under = minetest.get_node({x = math.floor(pos.x + dir_x * 1.2 + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + dir_z * 1.2 + 0.5)})
 
                             local is_ice_node = function(nodename)
                                 if not nodename or nodename == "air" or nodename == "ignore" then return false end
