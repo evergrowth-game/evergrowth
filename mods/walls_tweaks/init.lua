@@ -78,7 +78,7 @@ local function apply_tweaks(name, def)
 	local override_def = {}
 	local changed_base = false
 	
-	local fence_collision_extra = minetest.settings:get_bool("enable_fence_tall") and 3/8 or 0
+	local fence_collision_extra = 3/8
 	if def.collision_box then
 		override_def.collision_box = {
 			type = "connected",
@@ -195,3 +195,32 @@ minetest.register_lbm({
 		update_wall(pos)
 	end
 })
+
+-- Enforce tall collision box (1.375 height) for all fences, fence rails, and closed fence gates
+minetest.register_on_mods_loaded(function()
+	local extra = 3/8
+	for name, def in pairs(minetest.registered_nodes) do
+		if def.groups and def.groups.fence then
+			if def.collision_box and def.collision_box.type == "connected" then
+				minetest.override_item(name, {
+					collision_box = {
+						type = "connected",
+						fixed = {-1/8, -1/2, -1/8, 1/8, 1/2 + extra, 1/8},
+						connect_front = {-1/8, -1/2, -1/2,  1/8, 1/2 + extra, -1/8},
+						connect_left =  {-1/2, -1/2, -1/8, -1/8, 1/2 + extra,  1/8},
+						connect_back =  {-1/8, -1/2,  1/8,  1/8, 1/2 + extra,  1/2},
+						connect_right = { 1/8, -1/2, -1/8,  1/2, 1/2 + extra,  1/8}
+					}
+				})
+			elseif def.collision_box and def.collision_box.type == "fixed" and name:match("_closed$") then
+				minetest.override_item(name, {
+					collision_box = {
+						type = "fixed",
+						fixed = {-1/2, -1/2, -1/8, 1/2, 1/2 + extra, 1/8}
+					}
+				})
+			end
+		end
+	end
+end)
+
