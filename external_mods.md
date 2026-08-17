@@ -44,6 +44,7 @@ The following 80 integrated community mods are packaged with this game. All link
 | `guidebooks` | PolySaken | CC-BY-SA-4.0 | [ContentDB](https://content.luanti.org/packages/PolySaken/guidebooks/) &bull; [Source](https://github.com/PolySaken/guidebooks) | Physical written books support |
 | `hbarmor` | Wuzzy | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbarmor/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbarmor) |  |
 | `hbhunger` | Wuzzy | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbhunger/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbhunger) |  |
+| `heli` | apercy | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/heli/) &bull; [Source](https://github.com/APercy/heli) |  |
 | `hidroplane` | apercy | LGPL-3.0-only for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/hidroplane/) &bull; [Source](https://github.com/APercy/hidroplane) |  |
 | `hudbars` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/hudbars/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hudbars) |  |
 | `i_have_hands` | SURV | MIT | [ContentDB](https://content.luanti.org/packages/SURV/i_have_hands/) &bull; [Source](https://github.com/KingTheGuy/i_have_hands) |  |
@@ -65,7 +66,6 @@ The following 80 integrated community mods are packaged with this game. All link
 | `music_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/music_modpack/) &bull; [Source](https://github.com/mt-historical/music_modpack.git) |  |
 | `nautilus` | apercy | MIT | [ContentDB](https://content.luanti.org/packages/apercy/nautilus/) &bull; [Source](https://github.com/APercy/nautilus) |  |
 | `new_campfire` | mt-mods | LGPL-2.1-only for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/new_campfire/) &bull; [Source](https://github.com/mt-mods/new_campfire) |  |
-| `nss_helicopter` | mt-mods | GPL-2.0-only for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/nss_helicopter/) &bull; [Source](https://github.com/mt-mods/helicopter) |  |
 | `pa28` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/pa28/) &bull; [Source](https://github.com/APercy/pa28.git) |  |
 | `player_monoids` | Byakuren | Apache-2.0 | [ContentDB](https://content.luanti.org/packages/Byakuren/player_monoids/) &bull; [Source](https://github.com/minetest-mods/player_monoids) |  |
 | `playereffects` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/playereffects/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_playereffects) |  |

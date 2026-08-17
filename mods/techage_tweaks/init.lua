@@ -23,11 +23,6 @@ minetest.register_on_mods_loaded(function()
         airutils.fuel['techage:ta3_canister_gasoline'] = 1
         airutils.fuel['techage:ta3_barrel_gasoline'] = 10
     end
-
-    if minetest.get_modpath("nss_helicopter") and helicopter and helicopter.fuel then
-        helicopter.fuel['techage:ta3_canister_gasoline'] = 1
-        helicopter.fuel['techage:ta3_barrel_gasoline'] = 10
-    end
 end)
 
 if minetest.get_modpath("wine") then
