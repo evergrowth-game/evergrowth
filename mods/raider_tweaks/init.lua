@@ -42,5 +42,18 @@ for _, mob_name in ipairs({"raiders:plunderercrossbow", "raiders:plundererflask"
 	end
 end
 
-minetest.log("action", "[raider_tweaks] Enhanced spawning and collision box fixes for raiders loaded")
+-- Disable taming/capturing and increase gold lump drop yield on all raiders
+local raider_drops = {
+	{name = "default:gold_lump", chance = 1, min = 2, max = 5},
+}
+
+for _, mob_name in ipairs({"raiders:pirate", "raiders:plundererstick", "raiders:plunderercrossbow", "raiders:plundererflask"}) do
+	local ent = minetest.registered_entities[mob_name]
+	if ent then
+		ent.on_rightclick = nil
+		ent.drops = raider_drops
+	end
+end
+
+minetest.log("action", "[raider_tweaks] Enhanced spawning, collision box fixes, untameable settings, and updated drops for raiders loaded")
 
