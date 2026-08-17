@@ -13,18 +13,32 @@ mobs:spawn({
 	max_height = 1000,
 })
 
--- Fix raiders truncated collision boxes to match standard humanoid dimensions
-local humanoid_box = {-0.35, -1.0, -0.35, 0.35, 0.85, 0.35}
-
-for _, mob_name in ipairs({"raiders:pirate", "raiders:plundererstick", "raiders:plunderercrossbow", "raiders:plundererflask"}) do
+-- Fix raiders collision boxes to match actual model origins and full heights
+-- Pirate & Plundererstick models have origin at feet (y = 0 to ~1.9)
+local feet_origin_box = {-0.4, -0.01, -0.4, 0.4, 1.9, 0.4}
+for _, mob_name in ipairs({"raiders:pirate", "raiders:plundererstick"}) do
 	local ent = minetest.registered_entities[mob_name]
 	if ent then
 		if ent.initial_properties then
-			ent.initial_properties.collisionbox = humanoid_box
-			ent.initial_properties.selectionbox = humanoid_box
+			ent.initial_properties.collisionbox = feet_origin_box
+			ent.initial_properties.selectionbox = feet_origin_box
 		end
-		ent.base_colbox = humanoid_box
-		ent.base_selbox = humanoid_box
+		ent.base_colbox = feet_origin_box
+		ent.base_selbox = feet_origin_box
+	end
+end
+
+-- Plunderercrossbow & Plundererflask models have origin at waist (y = -1.0 to 0.85)
+local waist_origin_box = {-0.35, -1.0, -0.35, 0.35, 0.85, 0.35}
+for _, mob_name in ipairs({"raiders:plunderercrossbow", "raiders:plundererflask"}) do
+	local ent = minetest.registered_entities[mob_name]
+	if ent then
+		if ent.initial_properties then
+			ent.initial_properties.collisionbox = waist_origin_box
+			ent.initial_properties.selectionbox = waist_origin_box
+		end
+		ent.base_colbox = waist_origin_box
+		ent.base_selbox = waist_origin_box
 	end
 end
 
