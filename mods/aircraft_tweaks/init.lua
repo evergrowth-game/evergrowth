@@ -38,16 +38,9 @@ local function apply_helicopter_tweaks(entity_name)
                 self._longit_drag_factor = 0.018
             end
 
-            -- Temporarily suppress move_to during logic_heli to prevent client jitter at high speeds
-            local orig_move_to = self.object.move_to
-            self.object.move_to = function() end
-
             if old_logic then
                 old_logic(self)
             end
-
-            -- Restore original move_to
-            self.object.move_to = orig_move_to
 
             -- Acceleration-level vertical damping & cruise altitude stabilization
             if self._engine_running and not self.isonground and not (self.colinfo and self.colinfo.touching_ground) then
