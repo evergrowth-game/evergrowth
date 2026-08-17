@@ -51,6 +51,7 @@ for _, mob_name in ipairs({"raiders:pirate", "raiders:plundererstick", "raiders:
 	local ent = minetest.registered_entities[mob_name]
 	if ent then
 		ent.on_rightclick = nil
+		ent.do_punch = nil
 		ent.drops = raider_drops
 	end
 end
