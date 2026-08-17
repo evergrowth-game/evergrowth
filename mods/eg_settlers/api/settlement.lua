@@ -444,7 +444,7 @@ function eg_settlers.validate_job_block_environment(pos, profession)
     elseif profession == "smith" then
         local count = #minetest.find_nodes_in_area(
             vector.subtract(pos, 3), vector.add(pos, 3),
-            {"default:furnace", "default:furnace_active", "group:anvil"}
+            {"default:furnace", "default:furnace_active", "group:anvil", "anvil:anvil"}
         )
         if count < 1 then
             return false, S("Blacksmith requires a furnace or anvil within 3 blocks.")
@@ -476,7 +476,17 @@ function eg_settlers.validate_job_block_environment(pos, profession)
     elseif profession == "merchant" then
         local count = #minetest.find_nodes_in_area(
             vector.subtract(pos, 4), vector.add(pos, 4),
-            {"group:chest"}
+            {
+                "group:chest",
+                "default:chest",
+                "default:chest_locked",
+                "default:chest_open",
+                "default:chest_locked_open",
+                "xdecor:mailbox",
+                "xdecor:cabinet",
+                "xdecor:barrel",
+                "protector:chest"
+            }
         )
         if count < 1 then
             return false, S("Merchant requires at least 1 chest within 4 blocks.")

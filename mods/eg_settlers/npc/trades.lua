@@ -191,27 +191,7 @@ eg_settlers.trades_list = {
         {"default:gold_lump 10", "default:tinblock 1", 100},
         {"default:gold_lump 50", "default:mese_block 1", 100},
     },
-    fisher = {
-        -- NPC Sells (Trader Sells, Player Buys)
-        {"ethereal:fish_salmon 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_cod 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_tuna 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_trout 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_bluefin 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_mackerel 2", "default:gold_lump 1", 100},
-        {"ethereal:fish_shrimp 5", "default:gold_lump 2", 100},
-        {"ethereal:fish_squid 2", "default:gold_lump 2", 100},
-        {"ethereal:fish_pufferfish 1", "default:gold_lump 2", 100},
-        {"ethereal:fish_clownfish 1", "default:gold_lump 2", 100},
-        {"ethereal:fish_jellyfish 1", "default:gold_lump 1", 100},
-        -- NPC Buys (Trader Buys, Player Sells)
-        {"default:gold_lump 1", "farming:string 20", 100},
-        {"default:gold_lump 1", "default:stick 30", 100},
-        {"default:gold_lump 1", "default:clay_lump 20", 100},
-        {"default:gold_lump 1", "default:sand 30", 100},
-        {"default:gold_lump 1", "default:coral_brown 10", 100},
-        {"default:gold_lump 1", "default:coral_orange 10", 100},
-    },
+    -- Fisher has been moved to a rotating master pool below
     roboticist = {
         -- NPC Sells (Trader Sells, Player Buys)
         {"maidroid:maidroid_egg 1", "default:gold_lump 40", 100},
@@ -348,6 +328,63 @@ function eg_settlers.generate_rancher_trades(num_buys, num_sells)
 
     local sells_pool = {}
     for i, v in ipairs(eg_settlers.rancher_master_pool.sells) do
+        sells_pool[i] = v
+    end
+
+    for i = 1, math.min(num_buys, #buys_pool) do
+        local idx = math.random(#buys_pool)
+        table.insert(trades, buys_pool[idx])
+        table.remove(buys_pool, idx)
+    end
+
+    for i = 1, math.min(num_sells, #sells_pool) do
+        local idx = math.random(#sells_pool)
+        table.insert(trades, sells_pool[idx])
+        table.remove(sells_pool, idx)
+    end
+
+    return trades
+end
+
+-- FISHER MASTER TRADE POOL
+eg_settlers.fisher_master_pool = {
+    buys = {
+        -- Player Sells (NPC Buys)
+        {"default:gold_lump 1", "farming:string 20", 100},
+        {"default:gold_lump 1", "default:stick 30", 100},
+        {"default:gold_lump 1", "default:clay_lump 20", 100},
+        {"default:gold_lump 1", "default:sand 30", 100},
+        {"default:gold_lump 1", "default:coral_brown 10", 100},
+        {"default:gold_lump 1", "default:coral_orange 10", 100},
+    },
+    sells = {
+        -- Player Buys (NPC Sells)
+        {"ethereal:fish_salmon 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_cod 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_tuna 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_trout 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_bluefin 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_mackerel 2", "default:gold_lump 1", 100},
+        {"ethereal:fish_shrimp 5", "default:gold_lump 2", 100},
+        {"ethereal:fish_squid 2", "default:gold_lump 2", 100},
+        {"ethereal:fish_pufferfish 1", "default:gold_lump 2", 100},
+        {"ethereal:fish_clownfish 1", "default:gold_lump 2", 100},
+        {"ethereal:fish_jellyfish 1", "default:gold_lump 1", 100},
+    }
+}
+
+function eg_settlers.generate_fisher_trades(num_buys, num_sells)
+    num_buys = num_buys or 4
+    num_sells = num_sells or 6
+    local trades = {}
+
+    local buys_pool = {}
+    for i, v in ipairs(eg_settlers.fisher_master_pool.buys) do
+        buys_pool[i] = v
+    end
+
+    local sells_pool = {}
+    for i, v in ipairs(eg_settlers.fisher_master_pool.sells) do
         sells_pool[i] = v
     end
 
