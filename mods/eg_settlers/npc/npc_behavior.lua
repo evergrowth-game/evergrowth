@@ -20,10 +20,10 @@ for _, entity_name in ipairs(target_entities) do
     if base_entity then
         -- Triggers mobs_redo pathfinding to avoid water as a hazard (>0) while taking negligible damage if they fall in
         base_entity.water_damage = 0.001
-        -- Stepheight 0.6 allows walking up slabs (0.5), stairs (0.5), and snow layers (0.2) without stepping onto 1.0-tall fences
-        base_entity.stepheight = 0.6
+        -- Stepheight 1.1 allows walking up natural 1.0 terrain ledges, dirt banks, and steps (tall fences at 1.375 height block fence climbing)
+        base_entity.stepheight = 1.1
         if base_entity.initial_properties then
-            base_entity.initial_properties.stepheight = 0.6
+            base_entity.initial_properties.stepheight = 1.1
         end
         -- Jump height 4 (vertical velocity 4 m/s, ~0.8m jump) allows jumping out of water and single-block ledges, while mobs_redo blocks fence jumps
         base_entity.jump_height = 4
@@ -560,7 +560,7 @@ for _, entity_name in ipairs(target_entities) do
         if self.is_villager then
             self.jump_height = 4
             self.jump = true
-            self.object:set_properties({stepheight = 0.6})
+            self.object:set_properties({stepheight = 1.1})
             self.evergrowth_nametag_mode = true
             if not self.game_name or self.game_name == "" then
                 if self.nametag and self.nametag ~= "" then
@@ -573,9 +573,9 @@ for _, entity_name in ipairs(target_entities) do
         end
 
         if self.base_texture then
-            self.object:set_properties({textures = self.base_texture, stepheight = 0.6})
+            self.object:set_properties({textures = self.base_texture, stepheight = 1.1})
         else
-            self.object:set_properties({stepheight = 0.6})
+            self.object:set_properties({stepheight = 1.1})
         end
 
         if self.evergrowth_profession == "guard" then
