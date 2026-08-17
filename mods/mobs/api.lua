@@ -2549,7 +2549,7 @@ function mob_class:on_punch(hitter, tflp, tool_capabilities, dir, damage)
 	end
 
 	-- custom punch function (if false returned, do not continue)
-	if self.do_punch and self:do_punch(
+	if self.do_punch and not self:do_punch(
 			hitter, tflp, tool_capabilities, dir, damage) == false then
 		return true
 	end
