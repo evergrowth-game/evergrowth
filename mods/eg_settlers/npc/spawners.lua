@@ -128,6 +128,8 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 ent.trades = eg_settlers.generate_merchant_trades(4, 4)
             elseif profession == "rancher" then
                 ent.trades = eg_settlers.generate_rancher_trades(3, 7)
+            elseif profession == "fisher" then
+                ent.trades = eg_settlers.generate_fisher_trades(4, 6)
             else
                 ent.trades = eg_settlers.trades_list[profession] or eg_settlers.trades_list.merchant
             end
