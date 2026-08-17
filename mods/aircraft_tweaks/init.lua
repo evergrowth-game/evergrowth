@@ -32,8 +32,8 @@ local function apply_helicopter_tweaks(entity_name)
                 self._later_drag_factor = 15.0
                 self._longit_drag_factor = 15.0
             else
-                self._later_drag_factor = 0.8
-                self._longit_drag_factor = 0.4
+                self._later_drag_factor = 0.06
+                self._longit_drag_factor = 0.018
             end
 
             -- Call the original step function
