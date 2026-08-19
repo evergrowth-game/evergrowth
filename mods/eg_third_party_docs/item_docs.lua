@@ -7,11 +7,11 @@ local item_docs = {
 	-- ==========================================
 	["bweapons_bows_pack:wooden_bow"] = {
 		longdesc = "A traditional wooden ranged weapon crafted from timber and string. Fires arrows in an arced trajectory.",
-		usagehelp = "Requires Wooden Arrows (bweapons_bows_pack:arrow) in your inventory. Left-click to shoot. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Wooden Arrows (bweapons_bows_pack:arrow) in your inventory. Left-click to shoot. Can be repaired on an anvil.",
 	},
 	["bweapons_bows_pack:crossbow"] = {
 		longdesc = "A heavy mechanical crossbow with steel reinforcement. Fires high-velocity bolts along a flat trajectory with strong impact force.",
-		usagehelp = "Requires Crossbow Bolts (bweapons_bows_pack:bolt) in your inventory. Left-click to fire. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Crossbow Bolts (bweapons_bows_pack:bolt) in your inventory. Left-click to fire. Can be repaired on an anvil.",
 	},
 	["bweapons_bows_pack:arrow"] = {
 		longdesc = "Standard wooden arrow with flint tip and fletching, designed as ammunition for wooden bows. Fired arrows have a chance to be retrieved from the ground upon impact.",
@@ -25,11 +25,11 @@ local item_docs = {
 	-- ==========================================
 	["bweapons_firearms_pack:pistol"] = {
 		longdesc = "A compact semi-automatic firearm designed for rapid short-to-medium range combat.",
-		usagehelp = "Requires Pistol Rounds (bweapons_firearms_pack:pistol_round) in your inventory. Left-click to fire. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Pistol Rounds (bweapons_firearms_pack:pistol_round) in your inventory. Left-click to fire. Can be repaired on an anvil.",
 	},
 	["bweapons_firearms_pack:shotgun"] = {
 		longdesc = "A pump-action shotgun that discharges a spread of 5 heavy pellets per blast. Inflicts high close-range stopping power.",
-		usagehelp = "Requires Shotgun Shells (bweapons_firearms_pack:shotgun_shell) in your inventory. Left-click to fire. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Shotgun Shells (bweapons_firearms_pack:shotgun_shell) in your inventory. Left-click to fire. Can be repaired on an anvil.",
 	},
 	["bweapons_firearms_pack:double_barrel"] = {
 		longdesc = "A break-action double-barreled shotgun. Fires a massive 10-pellet burst consuming 2 shells simultaneously, dealing severe point-blank damage with wide spread.",
@@ -37,11 +37,11 @@ local item_docs = {
 	},
 	["bweapons_firearms_pack:rifle"] = {
 		longdesc = "A high-precision long-range hunting rifle capable of penetrating through multiple targets. Deals high damage over long distances.",
-		usagehelp = "Requires Rifle Rounds (bweapons_firearms_pack:rifle_round) in your inventory. Left-click to fire. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Rifle Rounds (bweapons_firearms_pack:rifle_round) in your inventory. Left-click to fire. Can be repaired on an anvil.",
 	},
 	["bweapons_firearms_pack:grenade_launcher"] = {
 		longdesc = "A heavy ordnance launcher that lobs explosive canisters in an arced trajectory, detonating on impact with area-of-effect blast damage.",
-		usagehelp = "Requires Grenades (bweapons_firearms_pack:grenade) in your inventory. Left-click to launch. Can be repaired on a blacksmith's anvil.",
+		usagehelp = "Requires Grenades (bweapons_firearms_pack:grenade) in your inventory. Left-click to launch. Can be repaired on an anvil.",
 	},
 	["bweapons_firearms_pack:pistol_round"] = {
 		longdesc = "Standard brass-cased ammunition cartridge designed for pistols.",

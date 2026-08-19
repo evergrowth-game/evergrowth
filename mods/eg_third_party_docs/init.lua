@@ -25,7 +25,7 @@ doc.add_entry("combat", "archery", {
 			"• Crossbow:\n" ..
 			"A heavy mechanical crossbow with high tensile strength. Fires bolts at high velocity along a flat trajectory, dealing heavy impact damage.\n\n" ..
 			"• Maintenance & Repairs:\n" ..
-			"Bows and crossbows take wear with each shot and can be repaired using a hammer on a blacksmith's anvil.",
+			"Bows and crossbows take wear with each shot and can be repaired using a hammer on an anvil.",
 		images = {
 			{ image = "bweapons_bows_pack:wooden_bow", imagetype = "item", caption = "Wooden Bow" },
 			{ image = "bweapons_bows_pack:arrow", imagetype = "item", caption = "Wooden Arrow" },
@@ -50,7 +50,7 @@ doc.add_entry("combat", "firearms", {
 			"• Grenade Launcher:\n" ..
 			"Lobs explosive canisters in an arced trajectory using Grenades, dealing area-of-effect blast damage on impact.\n\n" ..
 			"• Maintenance:\n" ..
-			"Conventional firearms can be repaired on a blacksmith's anvil.",
+			"Conventional firearms can be repaired on an anvil.",
 		images = {
 			{ image = "bweapons_firearms_pack:pistol", imagetype = "item", caption = "Handgun" },
 			{ image = "bweapons_firearms_pack:shotgun", imagetype = "item", caption = "Pump-Action Shotgun" },
