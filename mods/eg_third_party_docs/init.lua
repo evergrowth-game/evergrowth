@@ -1,164 +1,531 @@
 -- eg_third_party_docs/init.lua
--- Centralized in-game documentation and guide manuals for Evergrowth.
+-- Centralized, structured in-game documentation manuals for Evergrowth.
 
 local S = minetest.get_translator("eg_third_party_docs")
 
--- Only proceed if the core 'doc' mod is present
 if not minetest.get_modpath("doc") then
 	return
 end
 
 -- ==========================================
--- 1. Unified Category: Gameplay Guides
+-- 1. CATEGORY: Combat & Arsenal
 -- ==========================================
-doc.add_category("gameplay_guides", {
-	name = "Gameplay Guides",
-	description = "Comprehensive guides covering magic, combat, survival, vehicles, farming, and industrial technology in Evergrowth.",
-	build_formspec = doc.entry_builders.text,
+doc.add_category("combat", {
+	name = "Combat & Arsenal",
+	description = "Comprehensive guide to archery, conventional firearms, hi-tech directed-energy weapons, and torch ordnance.",
+	build_formspec = doc.entry_builders.text_and_gallery,
 })
 
--- Chapter 1: Magic & Mana
-doc.add_entry("gameplay_guides", "magic", {
-	name = "1. Magic & Mana System",
-	data = "Magic in Evergrowth is powered by player Mana, arcane spellbooks, elemental staves, and alchemical potions:\n\n" ..
-		"• Mana Pool & HUD:\n" ..
-		"Each player possesses a Mana pool displayed on the blue HUD bar (200 base maximum), which naturally regenerates at +1 Mana every 0.2 seconds.\n\n" ..
-		"• Utility Spellbooks (gadgets_magic):\n" ..
-		"Spellbooks channel specific incantations directly from your mana pool:\n" ..
-		"  - Spellbook of Flight (25 Mana): Launches the caster upward with a sustained velocity boost.\n" ..
-		"  - Spellbook of Blink (30 Mana): Instantly teleports the caster to the targeted position in sight.\n" ..
-		"  - Spellbook of Earth (35 Mana): Transmutes and shapes targeted geological blocks.\n" ..
-		"  - Spellbook of Light (15 Mana): Conjures a glowing orb of stationary light.\n\n" ..
-		"• Elemental Staves (gadgets_magic & bweapons_magic_pack):\n" ..
-		"  - Druid's Staff: Transmutes stone and soil through geological stages (Stone → Cobble → Gravel → Sand → Dirt → Grass) and sprouts wild flora.\n" ..
-		"  - Staff of Earth: Instantly excavates minable blocks in a 3×3 radius.\n" ..
-		"  - Combat Staves (Fireball, Ice Shard, Electrosphere): Cast elemental combat spells at reduced mana costs (10–15 Mana) using staff durability.\n" ..
-		"  - Maintenance: Magical staves can be repaired by combining them with a Februm Crystal (magic_materials:februm_crystal) in any crafting grid.\n\n" ..
-		"• Combat Spell Tomes (bweapons_magic_pack):\n" ..
-		"Fireball, Ice Shard, and Electrosphere Tomes channel raw combat magic directly from player Mana (25–40 Mana per cast) with zero item durability wear.\n\n" ..
-		"• Consumables & Reagents:\n" ..
-		"  - Mana Potions: Instantly restore +15 Mana and grant a temporary mana regeneration boost.\n" ..
-		"  - Elemental Crystals: Februm, Aerum, Aquam, Terram, and Ignis crystals forged with runes to create magical gear.",
+doc.add_entry("combat", "archery", {
+	name = "Archery & Crossbows",
+	data = {
+		text = "Archery provides silent, reusable projectile combat:\n\n" ..
+			"• Wooden Bow:\n" ..
+			"Fires standard wooden arrows in an arced trajectory. Arrows have a high probability of dropping on the ground upon hitting a target or surface, allowing them to be retrieved.\n\n" ..
+			"• Crossbow:\n" ..
+			"A heavy mechanical crossbow with high tensile strength. Fires bolts at high velocity along a flat trajectory, dealing heavy impact damage.\n\n" ..
+			"• Maintenance & Repairs:\n" ..
+			"Bows and crossbows take wear with each shot and can be repaired using a hammer on a blacksmith's anvil.",
+		images = {
+			{ image = "bweapons_bows_pack:wooden_bow", imagetype = "item", caption = "Wooden Bow" },
+			{ image = "bweapons_bows_pack:arrow", imagetype = "item", caption = "Wooden Arrow" },
+			{ image = "bweapons_bows_pack:crossbow", imagetype = "item", caption = "Crossbow" },
+			{ image = "bweapons_bows_pack:bolt", imagetype = "item", caption = "Crossbow Bolt" },
+		},
+	},
 })
 
--- Chapter 2: Enchanting & Disenchanting
-doc.add_entry("gameplay_guides", "enchanting", {
-	name = "2. Enchanting & Disenchanting",
-	data = "Tools, weapons, and armor can be imbued with powerful enchantments via x_enchanting:\n\n" ..
-		"• The Enchanting Table:\n" ..
-		"Place the tool you wish to enchant into the table's item slot and insert Mese Crystals (default:mese_crystal) into the trade slot as currency.\n\n" ..
-		"• Bookshelf Surrounding Placement:\n" ..
-		"Surrounding the Enchanting Table with Bookshelves (default:bookshelf) increases the power and tier of available enchantments. To unlock maximum level 30 enchantments, place up to 15 bookshelves within a 2-block horizontal and vertical radius of the table.\n\n" ..
-		"• The Grindstone:\n" ..
-		"Place any enchanted item into a Grindstone to strip its enchantments and restore the item to its unenchanted base state.",
+doc.add_entry("combat", "firearms", {
+	name = "Conventional Firearms",
+	data = {
+		text = "Conventional firearms deliver instantaneous kinetic or explosive ballistic damage using specialized ammunition cartridges:\n\n" ..
+			"• Handgun (Pistol):\n" ..
+			"A compact semi-automatic sidearm loaded with Pistol Rounds. Excellent for rapid mid-range defense.\n\n" ..
+			"• Pump-Action Shotgun:\n" ..
+			"Discharges a spread of 5 heavy pellets per blast using Shotgun Shells. Highly effective for stopping close-range attackers.\n\n" ..
+			"• Double-Barreled Shotgun:\n" ..
+			"Consumes 2 Shotgun Shells simultaneously to unleash a devastating 10-pellet burst with wide spread at point-blank range.\n\n" ..
+			"• Hunting Rifle:\n" ..
+			"A high-precision long-range rifle using Rifle Rounds. Projectiles pierce through multiple consecutive targets.\n\n" ..
+			"• Grenade Launcher:\n" ..
+			"Lobs explosive canisters in an arced trajectory using Grenades, dealing area-of-effect blast damage on impact.\n\n" ..
+			"• Maintenance:\n" ..
+			"Conventional firearms can be repaired on a blacksmith's anvil.",
+		images = {
+			{ image = "bweapons_firearms_pack:pistol", imagetype = "item", caption = "Handgun" },
+			{ image = "bweapons_firearms_pack:shotgun", imagetype = "item", caption = "Pump-Action Shotgun" },
+			{ image = "bweapons_firearms_pack:double_barrel", imagetype = "item", caption = "Double-Barreled Shotgun" },
+			{ image = "bweapons_firearms_pack:rifle", imagetype = "item", caption = "Hunting Rifle" },
+			{ image = "bweapons_firearms_pack:grenade_launcher", imagetype = "item", caption = "Grenade Launcher" },
+		},
+	},
 })
 
--- Chapter 3: Combat & Weaponry
-doc.add_entry("gameplay_guides", "combat", {
-	name = "3. Combat & Weaponry",
-	data = "Evergrowth features several specialized tiers of combat gear and ranged weaponry:\n\n" ..
-		"• Archery:\n" ..
-		"  - Wooden Bow: Fires wooden arrows along an arced trajectory. Arrows have a chance to be retrieved from the ground after impact.\n" ..
-		"  - Crossbow: Steel-reinforced crossbow firing high-velocity bolts along a flat trajectory with strong impact damage.\n" ..
-		"  - Maintenance: Bows and crossbows are repaired at a blacksmith's anvil.\n\n" ..
-		"• Conventional Firearms:\n" ..
-		"Deliver instantaneous hitscan or explosive ballistic damage using specific ammunition cartridges:\n" ..
-		"  - Handgun (Pistol): Rapid-fire sidearm using Pistol Rounds.\n" ..
-		"  - Pump-Action Shotgun: Discharges a spread of 5 heavy pellets per blast using Shotgun Shells.\n" ..
-		"  - Double-Barreled Shotgun: Fires a massive 10-pellet burst consuming 2 Shotgun Shells simultaneously for severe close-range damage.\n" ..
-		"  - Hunting Rifle: Long-range precision rifle capable of penetrating through multiple targets using Rifle Rounds.\n" ..
-		"  - Grenade Launcher: Lobs explosive canisters that detonate on impact using Grenades.\n" ..
-		"  - Maintenance: Conventional firearms are repaired with a hammer at a blacksmith's anvil.\n\n" ..
-		"• Hi-Tech Energy Weapons:\n" ..
-		"Advanced directed-energy weapons (Laser Gun, Particle Gun, Plasma Gun, Railgun, Missile Launcher):\n" ..
-		"  - Firing: Energy beams and bolts consume internal battery capacity (32–128 shots). Railguns also require Railgun Slugs; Missile Launchers fire rocket Missiles.\n" ..
-		"  - Battery Recharging: Energy weapons are recharged using Techage Batteries (techage:ta4_battery). Either hold the weapon and right-click (or sneak + right-click) with a Battery in your inventory, or combine them in any crafting grid.\n\n" ..
-		"• Torch Ordnance (torch_bomb & bweapons_utility_pack):\n" ..
-		"Tools designed to illuminate distant caverns and walls:\n" ..
-		"  - Torch Bow: Shoots torches that mount onto distant walls, floors, or ceilings.\n" ..
-		"  - Torch Grenade: Throwable canister scattering 12 torches across impacted surfaces.\n" ..
-		"  - Torch Bombs & Mega Bombs: Placeable explosive blocks scattering 42 or 162 torches.\n" ..
-		"  - Torch Rockets: Placeable rockets with adjustable fuse timers that ascend to light cavern ceilings.",
+doc.add_entry("combat", "energy_weapons", {
+	name = "Hi-Tech Energy Weapons",
+	data = {
+		text = "Advanced directed-energy and electromagnetic weaponry powered by electrical battery cells:\n\n" ..
+			"• Weapon Types:\n" ..
+			"  - Laser Gun: Pin-point continuous beam weapon with a 100-meter range (128 shots capacity).\n" ..
+			"  - Particle Gun: Rapid-fire projector accelerating charged subatomic particles (64 shots capacity).\n" ..
+			"  - Plasma Gun: Heavy projector discharging area-impact bolts of superheated ionized gas (32 shots capacity).\n" ..
+			"  - Railgun: Electromagnetic accelerator firing high-velocity Railgun Slugs over extreme distances.\n" ..
+			"  - Missile Launcher: Heavy tactical launcher firing self-propelled explosive Missiles.\n\n" ..
+			"• Battery Recharging:\n" ..
+			"Energy weapons operate on internal electrical charge. To recharge a depleted weapon, hold the weapon and right-click (or sneak + right-click) with a Battery in your inventory, or place them together in any crafting grid.",
+		images = {
+			{ image = "bweapons_hitech_pack:laser_gun", imagetype = "item", caption = "Laser Gun" },
+			{ image = "bweapons_hitech_pack:particle_gun", imagetype = "item", caption = "Particle Gun" },
+			{ image = "bweapons_hitech_pack:plasma_gun", imagetype = "item", caption = "Plasma Gun" },
+			{ image = "bweapons_hitech_pack:rail_gun", imagetype = "item", caption = "Railgun" },
+			{ image = "bweapons_hitech_pack:missile_launcher", imagetype = "item", caption = "Missile Launcher" },
+			{ image = "techage:ta4_battery", imagetype = "item", caption = "Techage Battery" },
+		},
+	},
 })
 
--- Chapter 4: Survival & Armor
-doc.add_entry("gameplay_guides", "survival", {
-	name = "4. Survival & Armor",
-	data = "Surviving the wilderness requires managing health, nutrition, and protective gear:\n\n" ..
-		"• Armor & Damage Absorption (3d_armor):\n" ..
-		"Equip Helmets, Chestplates, Leggings, Boots, and Shields across various tiers (Wood, Cactus, Steel, Bronze, Diamond, Gold, Crystal, and Nether). The armor HUD bar displays your total damage absorption percentage.\n\n" ..
-		"• Hunger & Nutrition (hbhunger):\n" ..
-		"Performing physical activities depletes the hunger bar. Consuming cooked foods restores hunger points and saturation. If hunger fully depletes, the player begins taking continuous starvation damage.\n\n" ..
-		"• Underwater Diving Air Tanks (airtanks):\n" ..
-		"Equipping Single, Double, or Triple compressed air tanks allows extended breathing underwater for subterranean diving and marine exploration.\n\n" ..
-		"• Death Compass (death_compass):\n" ..
-		"When respawning after death, the Death Compass needle points directly toward the coordinates of your last death site to assist in recovering lost equipment.",
-})
-
--- Chapter 5: Vehicles & Transport
-doc.add_entry("gameplay_guides", "vehicles", {
-	name = "5. Vehicles & Transport",
-	data = "Evergrowth provides automobiles, aircraft, watercraft, and rapid transit networks:\n\n" ..
-		"• Automobiles (automobiles_pck):\n" ..
-		"Available in 9 distinct models: Beetle, Dune Buggy, Catrelle, Coupe, DeLorean, Motorcycle, Roadster, Trans Am, and Vespa. Controls: W (gas), S (brake/reverse), A/D (steer).\n\n" ..
-		"• Aircraft (airutils, supercub, pa28, hidroplane, heli):\n" ..
-		"Includes the Piper Super Cub, Piper Cherokee PA-28, Hidroplane (Seaplane), and Helicopter. Controls: W/S (throttle/pitch), A/D (roll/yaw), Space (ascend/takeoff), Shift (descend).\n\n" ..
-		"• Watercraft (motorboat, nautilus):\n" ..
-		"Motorboats provide high-speed surface travel, while Nautilus Submarines allow deep underwater exploration using Space/Shift to surface and submerge.\n\n" ..
-		"• Engine Fuels:\n" ..
-		"Motorized vehicles can be refueled using either Biofuel (biofuel:biofuel, biofuel:fuel_can) or Techage Gasoline (techage:ta3_canister_gasoline, techage:ta3_barrel_gasoline).\n\n" ..
-		"• Elevators & Teleportation:\n" ..
-		"  - Travelnet Elevators: Multistory elevators and automatic sliding elevator doors.\n" ..
-		"  - Telemosaic: Keyed teleportation beacons for routing between distant stations.",
-})
-
--- Chapter 6: Farming & Agriculture
-doc.add_entry("gameplay_guides", "farming", {
-	name = "6. Farming & Agriculture",
-	data = "Cultivating crops sustains settlements and provides ingredients for cooking and biofuels:\n\n" ..
-		"• Soil Preparation & Hydration (farming):\n" ..
-		"Use a hoe to till dirt or grass into farm soil. Soil requires a water source within 3 blocks horizontally to remain hydrated. Without water, soil dries out and crops stop growing.\n\n" ..
-		"• Specialized Farm Tools (farmtools):\n" ..
-		"  - Sickles: Rapidly clear weeds, wild grasses, and overgrown vegetation.\n" ..
-		"  - Scythes: Harvest large areas of fully mature crops simultaneously in a single swing.\n" ..
-		"  - Rakes: Till soil across an expanded radius for rapid field preparation.\n\n" ..
-		"• Fertilizer (bonemeal):\n" ..
-		"Applying bonemeal directly onto growing crops accelerates their growth stages to reach maturity faster.",
-})
-
--- Chapter 7: Animals & Wildlife
-doc.add_entry("gameplay_guides", "animals", {
-	name = "7. Animals & Wildlife",
-	data = "Creatures inhabit diverse biomes across the world:\n\n" ..
-		"• Animal Taming & Breeding (mobs_animal):\n" ..
-		"Passive animals can be tamed by feeding them their preferred food:\n" ..
-		"  - Cows & Sheep: Wheat\n" ..
-		"  - Chickens: Seeds\n" ..
-		"  - Horses: Wheat and Apples (saddles enable riding)\n" ..
-		"Feeding a tamed pair of the same species initiates breeding to produce offspring.\n\n" ..
-		"• Hostile Threats (mobs_monster):\n" ..
-		"Hostile monsters spawn in dark subterranean caverns and across the surface during nighttime.\n\n" ..
-		"• Raiders (raiders):\n" ..
-		"Hostile plunderers stationed defensively to protect loot caches (booty nodes) located in and around ruined structures.",
-})
-
--- Chapter 8: Industrial Technology
-doc.add_entry("gameplay_guides", "techage", {
-	name = "8. Techage Industrial Stages",
-	data = "Techage introduces 5 progressive developmental stages of industrial machinery and automation:\n\n" ..
-		"• TA1: Iron Age:\n" ..
-		"Early manual and mechanical processing: Coal burners, gravel sieves, hammers, hoppers, and basic ore smelting.\n\n" ..
-		"• TA2: Steam Age:\n" ..
-		"Mechanical power generation: Steam boilers, engines, and drive axles that mechanically power early ore crushers and machinery.\n\n" ..
-		"• TA3: Oil Age:\n" ..
-		"Fossil fuels and early electricity: Oil drills, distillation towers (producing bitumen, fuel oil, naphtha, gasoline, and gas), generators, electrical wiring, and oil railways.\n\n" ..
-		"• TA4: Present:\n" ..
-		"Electronics and renewable energy: Wind generators, solar panels, high-voltage transformers, battery storage buffers, silicon wafers, and programmable logic controllers.\n\n" ..
-		"• TA5: Future:\n" ..
-		"Advanced technologies: Baborium alloy processing, spatial teleportation, and artificial intelligence automation.",
+doc.add_entry("combat", "torch_ordnance", {
+	name = "Torch Ordnance & Illumination",
+	data = {
+		text = "Specialized ordnance engineered to illuminate expansive underground chasms and dark cave networks from safety:\n\n" ..
+			"• Torch Grenade:\n" ..
+			"A compact throwable canister that detonates upon impact, mounting 12 torches across surrounding surfaces.\n\n" ..
+			"• Torch Bomb & Mega Torch Bomb:\n" ..
+			"Placeable explosive blocks. When ignited with flint and steel, fire, or redstone triggers, they disperse 42 (Bomb) or 162 (Mega Bomb) torches across large caverns.\n\n" ..
+			"• Torch Rocket:\n" ..
+			"A ground-launched pyrotechnic rocket. Right-click to set its fuse timer; when ignited, it ascends vertically to illuminate high ceilings.\n\n" ..
+			"• Torch Crossbow & Utility Bow:\n" ..
+			"Handheld ranged tools that fire torches directly onto targeted surfaces across long distances.",
+		images = {
+			{ image = "torch_bomb:grenade", imagetype = "item", caption = "Torch Grenade" },
+			{ image = "torch_bomb:bomb", imagetype = "item", caption = "Torch Bomb" },
+			{ image = "torch_bomb:mega_bomb", imagetype = "item", caption = "Mega Torch Bomb" },
+			{ image = "torch_bomb:rocket", imagetype = "item", caption = "Torch Rocket" },
+		},
+	},
 })
 
 -- ==========================================
--- 2. Item Encyclopedia Overrides (doc_items)
+-- 2. CATEGORY: Magic & Enchantment
+-- ==========================================
+doc.add_category("magic", {
+	name = "Magic & Enchantment",
+	description = "Guide to mana reserves, utility spellbooks, elemental staves, arcane tomes, alchemy, and enchanting.",
+	build_formspec = doc.entry_builders.text_and_gallery,
+})
+
+doc.add_entry("magic", "mana_pool", {
+	name = "Mana & Core Mechanics",
+	data = {
+		text = "All magical incantations and staves draw from the player's personal mana reserves:\n\n" ..
+			"• Mana Reserve & HUD:\n" ..
+			"Mana is displayed on the blue HUD bar above your health. Each player begins with a maximum capacity of 200 Mana.\n\n" ..
+			"• Natural Regeneration:\n" ..
+			"Mana naturally regenerates at a steady rate of +1 Mana every 0.2 seconds (+5 Mana per second). Consuming Mana Potions accelerates this regeneration rate.",
+		images = {
+			{ image = "mana_icon.png", imagetype = "image", caption = "Mana Reserve" },
+			{ image = "gadgets_consumables:potion_mana", imagetype = "item", caption = "Mana Potion" },
+		},
+	},
+})
+
+doc.add_entry("magic", "spellbooks", {
+	name = "Utility Spellbooks",
+	data = {
+		text = "Spellbooks channel direct magical effects from your mana reserves with zero durability wear:\n\n" ..
+			"• Spellbook of Flight (25 Mana):\n" ..
+			"Propels the caster into the air with a sustained upward velocity boost, ideal for scaling cliffs or escaping danger.\n\n" ..
+			"• Spellbook of Blink (30 Mana):\n" ..
+			"Instantly teleports the caster to the targeted surface within line of sight.\n\n" ..
+			"• Spellbook of Earth (35 Mana):\n" ..
+			"Transmutes targeted stone and geological blocks into altered states.\n\n" ..
+			"• Spellbook of Light (15 Mana):\n" ..
+			"Conjures a permanent glowing orb of pure light at the targeted position to illuminate dark caverns.",
+		images = {
+			{ image = "gadgets_magic:spellbook_flight", imagetype = "item", caption = "Spellbook of Flight" },
+			{ image = "gadgets_magic:spellbook_blink", imagetype = "item", caption = "Spellbook of Blink" },
+			{ image = "gadgets_magic:spellbook_earth", imagetype = "item", caption = "Spellbook of Earth" },
+			{ image = "gadgets_magic:spellbook_light", imagetype = "item", caption = "Spellbook of Light" },
+		},
+	},
+})
+
+doc.add_entry("magic", "staves", {
+	name = "Elemental & Utility Staves",
+	data = {
+		text = "Staves focus magical energy into terrain alteration and low-cost spellcasting:\n\n" ..
+			"• Druid's Staff:\n" ..
+			"Revitalizes barren ground by advancing blocks through geological stages (Stone → Cobble → Gravel → Sand → Dirt → Grass) and sprouting wild flora.\n\n" ..
+			"• Staff of Earth:\n" ..
+			"Excavates stone, ore, and soil in a 3×3 cube radius in a single cast.\n\n" ..
+			"• Combat Staves (Fireball, Ice Shard, Electrosphere):\n" ..
+			"Cast elemental offensive spells at reduced mana costs (10–15 Mana) using staff durability.\n\n" ..
+			"• Staff Maintenance:\n" ..
+			"Combine any damaged staff with a Februm Crystal in any crafting grid to restore its durability.",
+		images = {
+			{ image = "gadgets_magic:staff_druid", imagetype = "item", caption = "Druid's Staff" },
+			{ image = "gadgets_magic:staff_earth", imagetype = "item", caption = "Staff of Earth" },
+			{ image = "bweapons_magic_pack:staff_fireball", imagetype = "item", caption = "Staff of Fireball" },
+			{ image = "magic_materials:februm_crystal", imagetype = "item", caption = "Februm Crystal" },
+		},
+	},
+})
+
+doc.add_entry("magic", "tomes", {
+	name = "Arcane Combat Tomes",
+	data = {
+		text = "Spell tomes channel concentrated offensive elemental spells directly from player Mana with zero item wear:\n\n" ..
+			"• Tome of Fireball (35 Mana):\n" ..
+			"Launches an explosive sphere of fire that detonates on impact, burning targets and igniting flammable surfaces.\n\n" ..
+			"• Tome of Ice Shard (25 Mana):\n" ..
+			"Fires piercing glacial spikes that damage and slow enemies.\n\n" ..
+			"• Tome of Electrosphere (40 Mana):\n" ..
+			"Conjures a volatile lightning orb that shocks targets with heavy electrical damage.",
+		images = {
+			{ image = "bweapons_magic_pack:tome_fireball", imagetype = "item", caption = "Tome of Fireball" },
+			{ image = "bweapons_magic_pack:tome_iceshard", imagetype = "item", caption = "Tome of Ice Shard" },
+			{ image = "bweapons_magic_pack:tome_electrosphere", imagetype = "item", caption = "Tome of Electrosphere" },
+		},
+	},
+})
+
+doc.add_entry("magic", "enchanting", {
+	name = "Enchanting & Grindstones",
+	data = {
+		text = "Enhance tools, weapons, and armor with magical attributes:\n\n" ..
+			"• Enchanting Table:\n" ..
+			"Place the item you wish to enchant into the table's slot, and insert Mese Crystals (default:mese_crystal) as currency to pay the enchantment cost.\n\n" ..
+			"• Bookshelf Surrounding Placement:\n" ..
+			"Surround the Enchanting Table with Bookshelves (default:bookshelf) to increase available enchantment levels. To unlock maximum level 30 enchantments, place up to 15 bookshelves within a 2-block radius.\n\n" ..
+			"• The Grindstone:\n" ..
+			"Place any enchanted item into a Grindstone to strip its enchantments and return the item to its clean base state.",
+		images = {
+			{ image = "x_enchanting:enchantment_table", imagetype = "item", caption = "Enchanting Table" },
+			{ image = "default:bookshelf", imagetype = "item", caption = "Bookshelf" },
+			{ image = "default:mese_crystal", imagetype = "item", caption = "Mese Crystal" },
+			{ image = "x_enchanting:grindstone", imagetype = "item", caption = "Grindstone" },
+		},
+	},
+})
+
+-- ==========================================
+-- 3. CATEGORY: Survival & Health
+-- ==========================================
+doc.add_category("survival", {
+	name = "Survival & Health",
+	description = "Guide to armor sets, hunger and nutrition, diving gear, and death recovery.",
+	build_formspec = doc.entry_builders.text_and_gallery,
+})
+
+doc.add_entry("survival", "armor", {
+	name = "Armor & Protection",
+	data = {
+		text = "Equipping protective armor mitigates incoming physical and projectile damage:\n\n" ..
+			"• Armor Slots & Materials:\n" ..
+			"Equip Helmets, Chestplates, Leggings, Boots, and Shields crafted from Wood, Cactus, Steel, Bronze, Diamond, Gold, Crystal, and Nether.\n\n" ..
+			"• Damage Absorption:\n" ..
+			"The armor HUD bar indicates your total damage absorption percentage. Armor degrades as it absorbs hits and can be repaired at an anvil.",
+		images = {
+			{ image = "3d_armor:helmet_steel", imagetype = "item", caption = "Steel Helmet" },
+			{ image = "3d_armor:chestplate_steel", imagetype = "item", caption = "Steel Chestplate" },
+			{ image = "3d_armor:leggings_steel", imagetype = "item", caption = "Steel Leggings" },
+			{ image = "3d_armor:boots_steel", imagetype = "item", caption = "Steel Boots" },
+			{ image = "3d_armor:shield_steel", imagetype = "item", caption = "Steel Shield" },
+		},
+	},
+})
+
+doc.add_entry("survival", "hunger", {
+	name = "Hunger & Nutrition",
+	data = {
+		text = "Managing your stamina and nutrition is vital for wilderness survival:\n\n" ..
+			"• Hunger Bar & Saturation:\n" ..
+			"Physical activities (running, mining, fighting) deplete your hunger bar. Eating cooked foods restores hunger points and saturation.\n\n" ..
+			"• Starvation Damage:\n" ..
+			"If your hunger bar fully depletes to zero, your character will begin suffering continuous starvation damage until food is consumed.",
+		images = {
+			{ image = "farming:bread", imagetype = "item", caption = "Bread" },
+			{ image = "mobs:meat", imagetype = "item", caption = "Cooked Meat" },
+		},
+	},
+})
+
+doc.add_entry("survival", "diving", {
+	name = "Diving & Marine Gear",
+	data = {
+		text = "Subterranean lakes and ocean trenches require specialized diving equipment:\n\n" ..
+			"• Compressed Air Tanks:\n" ..
+			"Equip Single, Double, or Triple steel air tanks to extend your underwater breathing supply for prolonged marine exploration.\n\n" ..
+			"• Air Compressor:\n" ..
+			"Use an air compressor machine to refill depleted air tanks with breathable air.",
+		images = {
+			{ image = "airtanks:steel_tank", imagetype = "item", caption = "Air Tank" },
+			{ image = "airtanks:compressor", imagetype = "item", caption = "Compressor" },
+		},
+	},
+})
+
+doc.add_entry("survival", "death_compass", {
+	name = "Death Recovery",
+	data = {
+		text = "Recovering equipment after death:\n\n" ..
+			"• Death Compass:\n" ..
+			"Upon respawning after death, holding a Death Compass will cause its needle to point directly toward the exact coordinates of your last death site, helping you retrieve lost items.",
+		images = {
+			{ image = "death_compass:compass", imagetype = "item", caption = "Death Compass" },
+		},
+	},
+})
+
+-- ==========================================
+-- 4. CATEGORY: Vehicles & Travel
+-- ==========================================
+doc.add_category("vehicles", {
+	name = "Vehicles & Travel",
+	description = "Guide to driving automobiles, flying aircraft, sailing watercraft, refueling, and transit networks.",
+	build_formspec = doc.entry_builders.text_and_gallery,
+})
+
+doc.add_entry("vehicles", "controls_fuel", {
+	name = "Controls & Engine Fueling",
+	data = {
+		text = "Motorized vehicles share unified driving mechanics and fuel sources:\n\n" ..
+			"• Vehicle Controls:\n" ..
+			"  - W: Accelerate / Throttle Forward\n" ..
+			"  - S: Brake / Reverse\n" ..
+			"  - A / D: Steer Left / Right\n" ..
+			"  - Space: Ascend (Planes/Helicopters) or Surface (Submarines)\n" ..
+			"  - Shift (Sneak): Descend / Submerge\n\n" ..
+			"• Accepted Fuels:\n" ..
+			"Engines accept Biofuel (biofuel:biofuel, biofuel:fuel_can) or Techage Gasoline (techage:ta3_canister_gasoline, techage:ta3_barrel_gasoline). Right-click the vehicle with fuel in hand to refuel.",
+		images = {
+			{ image = "biofuel:fuel_can", imagetype = "item", caption = "Biofuel Canister" },
+			{ image = "techage:ta3_canister_gasoline", imagetype = "item", caption = "Techage Gasoline" },
+		},
+	},
+})
+
+doc.add_entry("vehicles", "automobiles", {
+	name = "Automobiles",
+	data = {
+		text = "Evergrowth features 9 distinct motor vehicle models for overland travel:\n\n" ..
+			"• Available Models:\n" ..
+			"  - Roadster: Classic open-top high-speed cruiser.\n" ..
+			"  - Dune Buggy: Off-road vehicle built for rough terrain.\n" ..
+			"  - Catrelle: Durable utility vehicle with ample trunk storage.\n" ..
+			"  - Coupe: Balanced everyday passenger vehicle.\n" ..
+			"  - DeLorean: Iconic high-performance vehicle.\n" ..
+			"  - Motorcycle & Vespa: Agile two-wheeled transport for narrow paths.\n" ..
+			"  - Trans Am: High-torque muscle car.\n" ..
+			"  - Beetle: Compact vintage city car.",
+		images = {
+			{ image = "automobiles_roadster:roadster", imagetype = "item", caption = "Roadster" },
+			{ image = "automobiles_trans_am:trans_am", imagetype = "item", caption = "Trans Am" },
+			{ image = "automobiles_beetle:beetle", imagetype = "item", caption = "Beetle" },
+			{ image = "automobiles_delorean:delorean", imagetype = "item", caption = "DeLorean" },
+		},
+	},
+})
+
+doc.add_entry("vehicles", "aircraft", {
+	name = "Aircraft & Flight",
+	data = {
+		text = "Aviation allows rapid aerial navigation over long distances:\n\n" ..
+			"• Piper Super Cub:\n" ..
+			"A versatile bush plane capable of short takeoff and landing on rough wilderness airstrips.\n\n" ..
+			"• Piper Cherokee PA-28:\n" ..
+			"A reliable low-wing four-seater aircraft built for stable long-distance transit.\n\n" ..
+			"• Hidroplane (Seaplane):\n" ..
+			"Fitted with pontoons for taking off and landing on ocean and lake surfaces.\n\n" ..
+			"• Helicopter:\n" ..
+			"Vertical takeoff and landing aircraft capable of hovering in place.",
+		images = {
+			{ image = "supercub:supercub", imagetype = "item", caption = "Super Cub" },
+			{ image = "pa28:pa28", imagetype = "item", caption = "PA-28 Cherokee" },
+			{ image = "hidroplane:hidroplane", imagetype = "item", caption = "Hidroplane" },
+			{ image = "heli:heli", imagetype = "item", caption = "Helicopter" },
+		},
+	},
+})
+
+doc.add_entry("vehicles", "watercraft", {
+	name = "Watercraft & Diving",
+	data = {
+		text = "Watercraft provide marine navigation and deep-sea exploration:\n\n" ..
+			"• Motorboat:\n" ..
+			"High-speed engine-driven boat for skimming across rivers and oceans.\n\n" ..
+			"• Nautilus Submarine:\n" ..
+			"Advanced submersible vessel. Use Space and Shift to control dive depth and surface safely.",
+		images = {
+			{ image = "motorboat:boat", imagetype = "item", caption = "Motorboat" },
+			{ image = "nautilus:nautilus", imagetype = "item", caption = "Nautilus Submarine" },
+		},
+	},
+})
+
+doc.add_entry("vehicles", "elevators_teleport", {
+	name = "Elevators & Teleportation",
+	data = {
+		text = "Stationary transit networks for vertical and long-distance travel:\n\n" ..
+			"• Travelnet Elevators:\n" ..
+			"Multistory elevator cabins that move vertically between designated floors with automated sliding elevator doors.\n\n" ..
+			"• Telemosaic Teleportation:\n" ..
+			"Point-to-point instantaneous transit using keyed Telemosaic beacons placed at distant settlement hubs.",
+		images = {
+			{ image = "travelnet:elevator", imagetype = "item", caption = "Elevator" },
+			{ image = "telemosaic:key", imagetype = "item", caption = "Telemosaic Key" },
+		},
+	},
+})
+
+-- ==========================================
+-- 5. CATEGORY: Farming & Wildlife
+-- ==========================================
+doc.add_category("farming_wildlife", {
+	name = "Farming & Wildlife",
+	description = "Guide to agriculture, specialized farm tools, animal husbandry, and defensive combat.",
+	build_formspec = doc.entry_builders.text_and_gallery,
+})
+
+doc.add_entry("farming_wildlife", "soil_crops", {
+	name = "Soil Hydration & Crops",
+	data = {
+		text = "Cultivating crops provides food for settlements and cooking:\n\n" ..
+			"• Soil Tilling:\n" ..
+			"Use a hoe to till grass or dirt into farm soil. Soil requires a water source within 3 blocks horizontally to remain hydrated. Unwatered soil will dry out into standard dirt.\n\n" ..
+			"• Fertilizer:\n" ..
+			"Apply Bonemeal to growing crops to immediately accelerate their growth to harvest maturity.",
+		images = {
+			{ image = "default:hoe_steel", imagetype = "item", caption = "Steel Hoe" },
+			{ image = "bonemeal:bonemeal", imagetype = "item", caption = "Bonemeal" },
+			{ image = "farming:wheat", imagetype = "item", caption = "Wheat" },
+		},
+	},
+})
+
+doc.add_entry("farming_wildlife", "farmtools", {
+	name = "Specialized Farm Tools",
+	data = {
+		text = "Specialized tools significantly improve agricultural productivity:\n\n" ..
+			"• Sickles:\n" ..
+			"Quickly clear wild grass, weeds, and underbrush without damaging soil.\n\n" ..
+			"• Scythes:\n" ..
+			"Wide-area harvesting tool. Swings across large crop fields to harvest all fully mature crops simultaneously in a single strike.\n\n" ..
+			"• Rakes:\n" ..
+			"Tills large circular plots of soil at once for rapid farmland expansion.",
+		images = {
+			{ image = "farmtools:sickle_steel", imagetype = "item", caption = "Steel Sickle" },
+			{ image = "farmtools:scythe_steel", imagetype = "item", caption = "Steel Scythe" },
+		},
+	},
+})
+
+doc.add_entry("farming_wildlife", "animals", {
+	name = "Animal Husbandry",
+	data = {
+		text = "Taming and breeding livestock sustains your settlement's food and material reserves:\n\n" ..
+			"• Taming Foods:\n" ..
+			"  - Cows & Sheep: Feed Wheat to tame.\n" ..
+			"  - Chickens: Feed Seeds to tame.\n" ..
+			"  - Horses: Feed Wheat or Apples to tame (place a Saddle to ride).\n\n" ..
+			"• Breeding Pairs:\n" ..
+			"Feeding a tamed pair of the same species will initiate breeding and produce offspring.",
+		images = {
+			{ image = "farming:wheat", imagetype = "item", caption = "Wheat" },
+			{ image = "farming:seed_wheat", imagetype = "item", caption = "Wheat Seed" },
+			{ image = "default:apple", imagetype = "item", caption = "Apple" },
+			{ image = "mobs:saddle", imagetype = "item", caption = "Saddle" },
+		},
+	},
+})
+
+doc.add_entry("farming_wildlife", "threats_raiders", {
+	name = "Hostile Threats & Raiders",
+	data = {
+		text = "Dangers of the wilderness:\n\n" ..
+			"• Nighttime Monsters:\n" ..
+			"Hostile monsters spawn in dark subterranean caverns and across the surface under low light levels at night.\n\n" ..
+			"• Raider Plunderers:\n" ..
+			"Hostile raiders are stationed as stationary guardians around valuable loot caches located in and around ancient ruins.",
+		images = {
+			{ image = "raiders:bootynode", imagetype = "item", caption = "Ruin Booty Node" },
+		},
+	},
+})
+
+-- ==========================================
+-- 6. CATEGORY: Industry & Automation
+-- ==========================================
+doc.add_category("techage_industry", {
+	name = "Industry & Automation",
+	description = "Comprehensive guide to Techage technological stages (TA1–TA5), electrical power grids, and factory automation.",
+	build_formspec = doc.entry_builders.text_and_gallery,
+})
+
+doc.add_entry("techage_industry", "techage_stages", {
+	name = "Techage Developmental Stages",
+	data = {
+		text = "Techage advances through 5 progressive technological eras:\n\n" ..
+			"• TA1: Iron Age:\n" ..
+			"Early mechanical processing: Coal burners, gravel sieves, hammers, hoppers, and basic ore smelting.\n\n" ..
+			"• TA2: Steam Age:\n" ..
+			"Mechanical power: Steam boilers, engines, and drive axles that mechanically power early ore crushers and machinery.\n\n" ..
+			"• TA3: Oil Age:\n" ..
+			"Fossil fuels and electricity: Oil extraction, distillation towers (producing bitumen, fuel oil, naphtha, gasoline, and gas), generators, electrical wiring, and oil transport railways.\n\n" ..
+			"• TA4: Present:\n" ..
+			"Electronics and renewables: Wind generators, solar panels, high-voltage transformers, battery storage buffers, silicon wafers, and programmable logic controllers.\n\n" ..
+			"• TA5: Future:\n" ..
+			"Advanced technology: Baborium alloy processing, spatial teleportation, and artificial intelligence automation.",
+		images = {
+			{ image = "techage:ta4_battery", imagetype = "item", caption = "TA4 Battery" },
+		},
+	},
+})
+
+doc.add_entry("techage_industry", "power_grids", {
+	name = "Power Grids & Distribution",
+	data = {
+		text = "Managing electricity across industrial plants:\n\n" ..
+			"• Generators & Consumers:\n" ..
+			"Power is generated by steam turbines, oil generators, wind turbines, and solar arrays. Machines draw active power from the grid.\n\n" ..
+			"• Battery Storage Buffers:\n" ..
+			"Industrial battery banks store excess power during peak generation and buffer power fluctuations under heavy machinery loads.\n\n" ..
+			"• Transformers:\n" ..
+			"Couple multiple sub-networks and regulate voltage distribution across large factories.",
+		images = {
+			{ image = "techage:ta4_battery", imagetype = "item", caption = "Battery Storage" },
+		},
+	},
+})
+
+-- ==========================================
+-- 7. CATEGORY ORDERING
+-- ==========================================
+minetest.register_on_mods_loaded(function()
+	doc.set_category_order({
+		-- Column 1: Core Player Guides
+		"basics",
+		"survival",
+		"farming_wildlife",
+		"combat",
+		"magic",
+		"vehicles",
+		"eg_settlers_guide",
+
+		-- Column 2: Advanced, Industry & Encyclopedia
+		"techage_industry",
+		"minecart",
+		"signs_bot",
+		"castle_gates",
+		"nodes",
+		"tools",
+		"craftitems",
+		"advanced",
+	})
+end)
+
+-- ==========================================
+-- 8. ITEM ENCYCLOPEDIA OVERRIDES
 -- ==========================================
 dofile(minetest.get_modpath("eg_third_party_docs") .. "/item_docs.lua")
+
