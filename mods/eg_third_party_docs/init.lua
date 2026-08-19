@@ -278,7 +278,7 @@ doc.add_entry("survival", "death_compass", {
 			"• Death Compass:\n" ..
 			"Upon respawning after death, holding a Death Compass will cause its needle to point directly toward the exact coordinates of your last death site, helping you retrieve lost items.",
 		images = {
-			{ image = "death_compass:inactive", imagetype = "item", caption = "Death Compass" },
+			{ image = "death_compass:dir0", imagetype = "item", caption = "Death Compass" },
 		},
 	},
 })
@@ -402,7 +402,7 @@ doc.add_entry("farming_wildlife", "soil_crops", {
 			"• Fertilizer:\n" ..
 			"Apply Bonemeal to growing crops to immediately accelerate their growth to harvest maturity.",
 		images = {
-			{ image = "default:hoe_steel", imagetype = "item", caption = "Steel Hoe" },
+			{ image = "farming:hoe_steel", imagetype = "item", caption = "Steel Hoe" },
 			{ image = "bonemeal:bonemeal", imagetype = "item", caption = "Bonemeal" },
 			{ image = "farming:wheat", imagetype = "item", caption = "Wheat" },
 		},
@@ -466,7 +466,7 @@ doc.add_entry("farming_wildlife", "threats_raiders", {
 -- ==========================================
 doc.add_category("techage_industry", {
 	name = "Industry & Automation",
-	description = "Comprehensive guide to Techage technological stages (TA1–TA5), electrical power grids, and factory automation.",
+	description = "Overview primer for Techage developmental stages and power distribution. Detailed machine blueprints are accessed in-game via the TA Construction Board.",
 	build_formspec = doc.entry_builders.text_and_gallery,
 })
 
@@ -483,8 +483,11 @@ doc.add_entry("techage_industry", "techage_stages", {
 			"• TA4: Present:\n" ..
 			"Electronics and renewables: Wind generators, solar panels, high-voltage transformers, battery storage buffers, silicon wafers, and programmable logic controllers.\n\n" ..
 			"• TA5: Future:\n" ..
-			"Advanced technology: Baborium alloy processing, spatial teleportation, and artificial intelligence automation.",
+			"Advanced technology: Baborium alloy processing, spatial teleportation, and artificial intelligence automation.\n\n" ..
+			"• Comprehensive In-Game Blueprints:\n" ..
+			"Craft and place the TA Construction Board (techage:construction_board_EN) in the world. Right-click the board to access complete, multi-page interactive technical schematics, machine assembly diagrams, and detailed wiring guides for every machine across all 5 ages.",
 		images = {
+			{ image = "techage:construction_board_EN", imagetype = "item", caption = "TA Construction Board" },
 			{ image = "techage:ta4_battery", imagetype = "item", caption = "TA4 Battery" },
 		},
 	},
@@ -499,8 +502,11 @@ doc.add_entry("techage_industry", "power_grids", {
 			"• Battery Storage Buffers:\n" ..
 			"Industrial battery banks store excess power during peak generation and buffer power fluctuations under heavy machinery loads.\n\n" ..
 			"• Transformers:\n" ..
-			"Couple multiple sub-networks and regulate voltage distribution across large factories.",
+			"Couple multiple sub-networks and regulate voltage distribution across large factories.\n\n" ..
+			"• Interactive Schematics:\n" ..
+			"Consult the TA Construction Board (techage:construction_board_EN) for network topology diagrams and transformer layout guidelines.",
 		images = {
+			{ image = "techage:construction_board_EN", imagetype = "item", caption = "TA Construction Board" },
 			{ image = "techage:ta4_battery", imagetype = "item", caption = "Battery Storage" },
 		},
 	},
