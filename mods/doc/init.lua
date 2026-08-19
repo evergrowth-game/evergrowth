@@ -24,12 +24,12 @@ doc.VERSION.STRING = doc.VERSION.MAJOR.."."..doc.VERSION.MINOR.."."..doc.VERSION
 -- Formspec information
 doc.FORMSPEC = {}
 -- Width of formspec
-doc.FORMSPEC.WIDTH = 14
+doc.FORMSPEC.WIDTH = 15
 doc.FORMSPEC.HEIGHT = 9
 
 --[[ Recommended bounding box coordinates for widgets to be placed in entry pages. Make sure
 all entry widgets are completely inside these coordinates to avoid overlapping. ]]
-doc.FORMSPEC.ENTRY_START_X = 4.5
+doc.FORMSPEC.ENTRY_START_X = 5.6
 doc.FORMSPEC.ENTRY_START_Y = 1.4
 doc.FORMSPEC.ENTRY_END_X = doc.FORMSPEC.WIDTH - 0.4
 doc.FORMSPEC.ENTRY_END_Y = doc.FORMSPEC.HEIGHT - 0.8
@@ -787,7 +787,7 @@ function doc.formspec_error_hidden(category_id, entry_id)
 end
 
 function doc.generate_entry_list(cid, playername)
-	local entry_textlist = "textlist[0.4,1.7;3.8,6.5;doc_catlist;"
+	local entry_textlist = "textlist[0.4,1.7;4.9,6.5;doc_catlist;"
 	local counter = 0
 	doc.data.players[playername].entry_ids = {}
 	local entries = doc.get_sorted_entry_names(cid)
