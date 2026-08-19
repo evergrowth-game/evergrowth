@@ -29,8 +29,8 @@ doc.FORMSPEC.HEIGHT = 9
 
 --[[ Recommended bounding box coordinates for widgets to be placed in entry pages. Make sure
 all entry widgets are completely inside these coordinates to avoid overlapping. ]]
-doc.FORMSPEC.ENTRY_START_X = 0.4
-doc.FORMSPEC.ENTRY_START_Y = 1.0
+doc.FORMSPEC.ENTRY_START_X = 4.5
+doc.FORMSPEC.ENTRY_START_Y = 1.4
 doc.FORMSPEC.ENTRY_END_X = doc.FORMSPEC.WIDTH - 0.4
 doc.FORMSPEC.ENTRY_END_Y = doc.FORMSPEC.HEIGHT - 0.8
 doc.FORMSPEC.ENTRY_WIDTH = doc.FORMSPEC.ENTRY_END_X - doc.FORMSPEC.ENTRY_START_X
@@ -283,7 +283,7 @@ function doc.show_doc(playername)
 		minetest.show_formspec(playername, "doc:error_no_categories", doc.formspec_error_no_categories())
 		return
 	end
-	local formspec = doc.formspec_core()..doc.formspec_main(playername)
+	local formspec = doc.formspec_core(1)..doc.formspec_main(playername)
 	minetest.show_formspec(playername, "doc:main", formspec)
 end
 
@@ -293,11 +293,26 @@ function doc.show_category(playername, category_id)
 		minetest.show_formspec(playername, "doc:error_no_categories", doc.formspec_error_no_categories())
 		return
 	end
-	doc.data.players[playername].catsel = nil
+	local entries = doc.get_sorted_entry_names(category_id)
+	local first_eid = nil
+	local first_idx = nil
+	for i=1, #entries do
+		if doc.entry_revealed(playername, category_id, entries[i]) then
+			first_eid = entries[i]
+			first_idx = i
+			break
+		end
+	end
 	doc.data.players[playername].category = category_id
-	doc.data.players[playername].entry = nil
-	local formspec = doc.formspec_core(2)..doc.formspec_category(category_id, playername)
-	minetest.show_formspec(playername, "doc:category", formspec)
+	doc.data.players[playername].entry = first_eid
+	doc.data.players[playername].catsel = first_idx or 1
+	doc.data.players[playername].galidx = 1
+	doc.data.players[playername].entry_textlist_needs_updating = true
+	if first_eid then
+		doc.mark_entry_as_viewed(playername, category_id, first_eid)
+	end
+	local formspec = doc.formspec_core(2)..doc.formspec_entry(category_id, first_eid, playername)
+	minetest.show_formspec(playername, "doc:entry", formspec)
 end
 
 -- Opens the documentation formspec for the player showing the specified entry in a category
@@ -318,10 +333,10 @@ function doc.show_entry(playername, category_id_in, entry_id_in, ignore_hidden)
 		playerdata.entry_textlist_needs_updating = true
 		doc.generate_entry_list(category_id, playername)
 
-		playerdata.catsel = playerdata.catsel_list[entry_id]
+		playerdata.catsel = playerdata.catsel_list[entry_id] or 1
 		playerdata.galidx = 1
 
-		local formspec = doc.formspec_core(3)..doc.formspec_entry(category_id, entry_id, playername)
+		local formspec = doc.formspec_core(2)..doc.formspec_entry(category_id, entry_id, playername)
 		minetest.show_formspec(playername, "doc:entry", formspec)
 	else
 		minetest.show_formspec(playername, "doc:error_hidden", doc.formspec_error_hidden(category_id, entry_id))
@@ -657,7 +672,6 @@ function doc.formspec_core(tab)
 	"size["..doc.FORMSPEC.WIDTH..","..doc.FORMSPEC.HEIGHT.."]"..
 	"tabheader[0.4,0;doc_header;"..
 	minetest.formspec_escape(S("Categories")) .. "," ..
-	minetest.formspec_escape(S("Entries")) .. "," ..
 	minetest.formspec_escape(S("Documentation")) .. ";"
 	..tab..";false;false]"
 end
@@ -773,60 +787,49 @@ function doc.formspec_error_hidden(category_id, entry_id)
 end
 
 function doc.generate_entry_list(cid, playername)
-	local formstring
-	if doc.data.players[playername].entry_textlist == nil
-	or doc.data.players[playername].catsel_list == nil
-	or doc.data.players[playername].category ~= cid
-	or doc.data.players[playername].entry_textlist_needs_updating == true then
-		local entry_textlist = "textlist[0.4,1.4;"..(doc.FORMSPEC.WIDTH-0.8)..","..(doc.FORMSPEC.HEIGHT-2.6)..";doc_catlist;"
-		local counter = 0
-		doc.data.players[playername].entry_ids = {}
-		local entries = doc.get_sorted_entry_names(cid)
-		doc.data.players[playername].catsel_list = {}
-		for i=1, #entries do
-			local eid = entries[i]
-			local edata = doc.data.categories[cid].entries[eid]
-			if doc.entry_revealed(playername, cid, eid) then
-				table.insert(doc.data.players[playername].entry_ids, eid)
-				doc.data.players[playername].catsel_list[eid] = counter + 1
-				-- Colorize entries based on viewed status
-				local viewedprefix = COLOR_NOT_VIEWED
-				local name = edata.name
-				if name == nil or name == "" then
-					name = S("Nameless entry (@1)", eid)
-					if doc.entry_viewed(playername, cid, eid) then
-						viewedprefix = "#FF4444"
-					else
-						viewedprefix = COLOR_ERROR
-					end
-				elseif doc.entry_viewed(playername, cid, eid) then
-					viewedprefix = COLOR_VIEWED
+	local entry_textlist = "textlist[0.4,1.7;3.8,6.5;doc_catlist;"
+	local counter = 0
+	doc.data.players[playername].entry_ids = {}
+	local entries = doc.get_sorted_entry_names(cid)
+	doc.data.players[playername].catsel_list = {}
+	for i=1, #entries do
+		local eid = entries[i]
+		local edata = doc.data.categories[cid].entries[eid]
+		if doc.entry_revealed(playername, cid, eid) then
+			table.insert(doc.data.players[playername].entry_ids, eid)
+			doc.data.players[playername].catsel_list[eid] = counter + 1
+			-- Colorize entries based on viewed status
+			local viewedprefix = COLOR_NOT_VIEWED
+			local name = edata.name
+			if name == nil or name == "" then
+				name = S("Nameless entry (@1)", eid)
+				if doc.entry_viewed(playername, cid, eid) then
+					viewedprefix = "#FF4444"
+				else
+					viewedprefix = COLOR_ERROR
 				end
-				entry_textlist = entry_textlist .. viewedprefix .. minetest.formspec_escape(name) .. ","
-				counter = counter + 1
+			elseif doc.entry_viewed(playername, cid, eid) then
+				viewedprefix = COLOR_VIEWED
 			end
+			entry_textlist = entry_textlist .. viewedprefix .. minetest.formspec_escape(name) .. ","
+			counter = counter + 1
 		end
-		if counter >= 1  then
-			entry_textlist = string.sub(entry_textlist, 1, #entry_textlist-1)
-		end
-		local catsel = doc.data.players[playername].catsel
-		if catsel then
-			entry_textlist = entry_textlist .. ";"..catsel
-		end
-		entry_textlist = entry_textlist .. "]"
-		doc.data.players[playername].entry_textlist = entry_textlist
-		formstring = entry_textlist
-		doc.data.players[playername].entry_textlist_needs_updating = false
-	else
-		formstring = doc.data.players[playername].entry_textlist
 	end
-	return formstring
+	if counter >= 1  then
+		entry_textlist = string.sub(entry_textlist, 1, #entry_textlist-1)
+	end
+	local catsel = doc.data.players[playername].catsel or 1
+	entry_textlist = entry_textlist .. ";"..catsel.."]"
+	return entry_textlist
 end
 
 function doc.get_sorted_entry_names(cid)
 	local sort_table = {}
 	local entry_table = {}
 	local cat = doc.data.categories[cid]
+	if cat == nil then
+		return {}
+	end
 	local used_eids = {}
 	-- Helper function to extract the entry ID out of the output table
 	local extract = function(entry_table)
@@ -881,45 +884,7 @@ function doc.get_sorted_entry_names(cid)
 end
 
 function doc.formspec_category(id, playername)
-	local formstring
-	if id == nil then
-		formstring = "label[0.4,0.7;"..F("Help > (No Category)") .. "]"..
-			"label[0.4,1.2;"..F("You haven't chosen a category yet. Please choose one in the category list first.").."]"..
-			"button[0.4,2.0;3.5,0.8;doc_button_goto_main;"..F("Go to Category List").."]"
-	else
-		formstring = "label[0.4,0.7;"..minetest.formspec_escape(S("Help > @1", doc.data.categories[id].def.name)).."]"
-		local total = doc.get_entry_count(id)
-		if total >= 1 then
-			local revealed = doc.get_revealed_count(playername, id)
-			if revealed == 0 then
-				formstring = formstring .. "label[0.4,1.2;"..minetest.formspec_escape(S("Currently all entries in this category are hidden from you.").."\n"..S("Unlock new entries by progressing in the game.")).."]"..
-					"button[0.4,2.2;3.5,0.8;doc_button_goto_main;"..F("Go to Category List").."]"
-			else
-				formstring = formstring .. "label[0.4,1.1;"..F("Category entries:").."]"
-				formstring = formstring .. doc.generate_entry_list(id, playername)
-				formstring = formstring .. "button[0.4,"..(doc.FORMSPEC.HEIGHT-0.95)..";3.5,0.75;doc_button_goto_entry;"..F("Open Entry").."]"
-				formstring = formstring .. "label["..(doc.FORMSPEC.WIDTH-4.5)..","..(doc.FORMSPEC.HEIGHT-0.85)..";"..minetest.formspec_escape(S("Number of entries: @1", total)).."\n"
-				local viewed = doc.get_viewed_count(playername, id)
-				local hidden = total - revealed
-				local new = total - viewed - hidden
-				if viewed < total then
-					formstring = formstring .. colorize(COLOR_NOT_VIEWED, minetest.formspec_escape(S("New entries: @1", new)))
-					if hidden > 0 then
-						formstring = formstring .. "\n"
-						formstring = formstring .. colorize(COLOR_HIDDEN, minetest.formspec_escape(S("Hidden entries: @1", hidden))).."]"
-					else
-						formstring = formstring .. "]"
-					end
-				else
-					formstring = formstring .. F("All entries read.").."]"
-				end
-			end
-		else
-			formstring = formstring .. "label[0.4,1.2;"..F("This category is empty.").."]"..
-				"button[0.4,2.2;3.5,0.8;doc_button_goto_main;"..F("Go to Category List").."]"
-		end
-	end
-	return formstring
+	return doc.formspec_entry(id, doc.data.players[playername].entry, playername)
 end
 
 function doc.formspec_entry_navigation(category_id, entry_id)
@@ -927,8 +892,8 @@ function doc.formspec_entry_navigation(category_id, entry_id)
 		return ""
 	end
 	local formstring = ""
-	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-2.1)..","..(doc.FORMSPEC.HEIGHT-0.8)..";0.8,0.65;doc_button_goto_prev;"..F("<").."]"
-	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-1.2)..","..(doc.FORMSPEC.HEIGHT-0.8)..";0.8,0.65;doc_button_goto_next;"..F(">").."]"
+	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-1.8)..","..(doc.FORMSPEC.HEIGHT-0.6)..";0.65,0.5;doc_button_goto_prev;"..F("<").."]"
+	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-1.0)..","..(doc.FORMSPEC.HEIGHT-0.6)..";0.65,0.5;doc_button_goto_next;"..F(">").."]"
 	formstring = formstring .. "tooltip[doc_button_goto_prev;"..F("Show previous entry").."]"
 	formstring = formstring .. "tooltip[doc_button_goto_next;"..F("Show next entry").."]"
 	return formstring
@@ -939,16 +904,23 @@ function doc.formspec_entry(category_id, entry_id, playername)
 	if category_id == nil then
 		formstring = "label[0.4,0.7;"..F("Help > (No Category)") .. "]"..
 			"label[0.4,1.2;"..F("You haven't chosen a category yet. Please choose one in the category list first.").."]"..
-			"button[0.4,2.2;3.5,0.8;doc_button_goto_main;"..F("Go to Category List").."]"
+			"button[0.4,2.2;3.5,0.8;doc_button_goto_main;"..F("< All Categories").."]"
 	elseif entry_id == nil then
-		formstring = "label[0.4,0.7;"..minetest.formspec_escape(S("Help > @1 > (No Entry)", doc.data.categories[category_id].def.name)) .. "]"
-		if doc.get_entry_count(category_id) >= 1 then
-			formstring = formstring .. "label[0.4,1.2;"..F("You haven't chosen an entry yet. Please choose one in the entry list first.").."]"..
-				"button[0.4,2.2;3.5,0.8;doc_button_goto_category;"..F("Go to Entry List").."]"
-		else
-			formstring = formstring .. "label[0.4,1.2;"..F("This category does not have any entries.").."]"..
-				"button[0.4,2.2;3.5,0.8;doc_button_goto_main;"..F("Go to Category List").."]"
+		local total = doc.get_entry_count(category_id)
+		if total >= 1 then
+			-- Auto-select first revealed entry if available
+			local entries = doc.get_sorted_entry_names(category_id)
+			for i=1, #entries do
+				if doc.entry_revealed(playername, category_id, entries[i]) then
+					doc.data.players[playername].entry = entries[i]
+					doc.data.players[playername].catsel = i
+					return doc.formspec_entry(category_id, entries[i], playername)
+				end
+			end
 		end
+		formstring = "button[0.4,0.5;2.8,0.65;doc_button_goto_main;"..F("< All Categories").."]"..
+			"label[3.4,0.8;"..minetest.formspec_escape(S("Help > @1", doc.data.categories[category_id].def.name)) .. "]"..
+			"label[0.4,1.4;"..minetest.colorize("#999999", F("No entries available in this category.")).."]"
 	else
 		local category = doc.data.categories[category_id]
 		local entry = get_entry(category_id, entry_id)
@@ -956,9 +928,12 @@ function doc.formspec_entry(category_id, entry_id, playername)
 		if ename == nil or ename == "" then
 			ename = S("Nameless entry (@1)", entry_id)
 		end
-		formstring = "label[0.4,0.7;"..minetest.formspec_escape(S("Help > @1 > @2", category.def.name, ename)).."]"
-		formstring = formstring .. category.def.build_formspec(entry.data, playername)
-		formstring = formstring .. doc.formspec_entry_navigation(category_id, entry_id)
+		formstring = "button[0.4,0.5;2.8,0.65;doc_button_goto_main;"..F("< All Categories").."]"..
+			"label[3.4,0.8;"..minetest.formspec_escape(S("Help > @1 > @2", category.def.name, ename)).."]"..
+			"label[0.4,1.4;"..F("Topics / Articles:").."]"..
+			doc.generate_entry_list(category_id, playername)..
+			category.def.build_formspec(entry.data, playername)..
+			doc.formspec_entry_navigation(category_id, entry_id)
 	end
 	return formstring
 end
@@ -966,7 +941,7 @@ end
 function doc.process_form(player,formname,fields)
 	local playername = player:get_player_name()
 	--[[ process clicks on the tab header ]]
-	if(formname == "doc:main" or formname == "doc:category" or formname == "doc:entry") then
+	if(formname == "doc:main" or formname == "doc:entry" or formname == "doc:category") then
 		if fields.doc_header ~= nil then
 			local tab = tonumber(fields.doc_header)
 			local formspec, subformname, contents
@@ -977,9 +952,21 @@ function doc.process_form(player,formname,fields)
 				contents = doc.formspec_main(playername)
 				subformname = "main"
 			elseif(tab==2) then
-				contents = doc.formspec_category(cid, playername)
-				subformname = "category"
-			elseif(tab==3) then
+				if cid == nil then
+					cid = doc.data.category_order[1]
+					doc.data.players[playername].category = cid
+				end
+				if eid == nil and cid ~= nil then
+					local entries = doc.get_sorted_entry_names(cid)
+					for i=1, #entries do
+						if doc.entry_revealed(playername, cid, entries[i]) then
+							eid = entries[i]
+							doc.data.players[playername].entry = eid
+							doc.data.players[playername].catsel = i
+							break
+						end
+					end
+				end
 				doc.data.players[playername].galidx = 1
 				contents = doc.formspec_entry(cid, eid, playername)
 				if cid ~= nil and eid ~= nil then
@@ -995,12 +982,26 @@ function doc.process_form(player,formname,fields)
 	if(formname == "doc:main") then
 		for cid,_ in pairs(doc.data.categories) do
 			if fields["doc_button_category_"..cid] then
-				doc.data.players[playername].catsel = nil
 				doc.data.players[playername].category = cid
-				doc.data.players[playername].entry = nil
+				local entries = doc.get_sorted_entry_names(cid)
+				local first_eid = nil
+				local first_idx = nil
+				for i=1, #entries do
+					if doc.entry_revealed(playername, cid, entries[i]) then
+						first_eid = entries[i]
+						first_idx = i
+						break
+					end
+				end
+				doc.data.players[playername].entry = first_eid
+				doc.data.players[playername].catsel = first_idx or 1
 				doc.data.players[playername].entry_textlist_needs_updating = true
-				local formspec = doc.formspec_core(2)..doc.formspec_category(cid, playername)
-				minetest.show_formspec(playername, "doc:category", formspec)
+				doc.data.players[playername].galidx = 1
+				if first_eid then
+					doc.mark_entry_as_viewed(playername, cid, first_eid)
+				end
+				local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, first_eid, playername)
+				minetest.show_formspec(playername, "doc:entry", formspec)
 				break
 			end
 		end
@@ -1008,104 +1009,99 @@ function doc.process_form(player,formname,fields)
 			local event = minetest.explode_textlist_event(fields["doc_mainlist"])
 			local cid = doc.data.category_order[event.index]
 			if cid ~= nil then
-				if event.type == "CHG" then
-					doc.data.players[playername].catsel = nil
-					doc.data.players[playername].category = cid
-					doc.data.players[playername].entry = nil
-					doc.data.players[playername].entry_textlist_needs_updating = true
-				elseif event.type == "DCL" then
-					doc.data.players[playername].catsel = nil
-					doc.data.players[playername].category = cid
-					doc.data.players[playername].entry = nil
-					doc.data.players[playername].entry_textlist_needs_updating = true
-					local formspec = doc.formspec_core(2)..doc.formspec_category(cid, playername)
-					minetest.show_formspec(playername, "doc:category", formspec)
+				doc.data.players[playername].category = cid
+				local entries = doc.get_sorted_entry_names(cid)
+				local first_eid = nil
+				local first_idx = nil
+				for i=1, #entries do
+					if doc.entry_revealed(playername, cid, entries[i]) then
+						first_eid = entries[i]
+						first_idx = i
+						break
+					end
+				end
+				doc.data.players[playername].entry = first_eid
+				doc.data.players[playername].catsel = first_idx or 1
+				doc.data.players[playername].entry_textlist_needs_updating = true
+				doc.data.players[playername].galidx = 1
+				if first_eid then
+					doc.mark_entry_as_viewed(playername, cid, first_eid)
+				end
+				if event.type == "DCL" then
+					local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, first_eid, playername)
+					minetest.show_formspec(playername, "doc:entry", formspec)
 				end
 			end
 		end
 		if fields["doc_button_goto_category"] then
-			local cid = doc.data.players[playername].category
-			doc.data.players[playername].catsel = nil
-			doc.data.players[playername].entry = nil
+			local cid = doc.data.players[playername].category or doc.data.category_order[1]
+			local entries = doc.get_sorted_entry_names(cid)
+			local first_eid = nil
+			local first_idx = nil
+			for i=1, #entries do
+				if doc.entry_revealed(playername, cid, entries[i]) then
+					first_eid = entries[i]
+					first_idx = i
+					break
+				end
+			end
+			doc.data.players[playername].category = cid
+			doc.data.players[playername].entry = first_eid
+			doc.data.players[playername].catsel = first_idx or 1
 			doc.data.players[playername].entry_textlist_needs_updating = true
-			local formspec = doc.formspec_core(2)..doc.formspec_category(cid, playername)
-			minetest.show_formspec(playername, "doc:category", formspec)
+			doc.data.players[playername].galidx = 1
+			if first_eid then
+				doc.mark_entry_as_viewed(playername, cid, first_eid)
+			end
+			local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, first_eid, playername)
+			minetest.show_formspec(playername, "doc:entry", formspec)
 		end
 		if fields["doc_setting_notify_on_reveal"] then
 			doc.data.players[playername].stored_data.notify_on_reveal = fields["doc_setting_notify_on_reveal"] == "true"
 		end
-	elseif(formname == "doc:category") then
-		if fields["doc_button_goto_entry"] then
-			local cid = doc.data.players[playername].category
-			if cid ~= nil then
-				local eid = nil
-				local eids, catsel = doc.data.players[playername].entry_ids, doc.data.players[playername].catsel
-				if eids ~= nil and catsel ~= nil then
-					eid = eids[catsel]
-				end
-				doc.data.players[playername].galidx = 1
-				local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, eid, playername)
-				minetest.show_formspec(playername, "doc:entry", formspec)
-				doc.mark_entry_as_viewed(playername, cid, eid)
-			end
-		end
+	elseif(formname == "doc:entry" or formname == "doc:category") then
 		if fields["doc_button_goto_main"] then
 			local formspec = doc.formspec_core(1)..doc.formspec_main(playername)
 			minetest.show_formspec(playername, "doc:main", formspec)
-		end
-		if fields["doc_catlist"] then
+		elseif fields["doc_catlist"] then
 			local event = minetest.explode_textlist_event(fields["doc_catlist"])
-			if event.type == "CHG" then
+			local cid = doc.data.players[playername].category
+			local eids = doc.data.players[playername].entry_ids
+			if eids ~= nil and eids[event.index] ~= nil then
+				local eid = eids[event.index]
 				doc.data.players[playername].catsel = event.index
-				doc.data.players[playername].entry = doc.data.players[playername].entry_ids[event.index]
-				doc.data.players[playername].entry_textlist_needs_updating = true
-			elseif event.type == "DCL" then
-				local cid = doc.data.players[playername].category
-				local eid = nil
-				local eids, catsel = doc.data.players[playername].entry_ids, event.index
-				if eids ~= nil and catsel ~= nil then
-					eid = eids[catsel]
-				end
-				doc.mark_entry_as_viewed(playername, cid, eid)
-				doc.data.players[playername].entry_textlist_needs_updating = true
+				doc.data.players[playername].entry = eid
 				doc.data.players[playername].galidx = 1
-				local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, eid, playername)
+				doc.mark_entry_as_viewed(playername, cid, eid)
+				local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, eid, playername)
 				minetest.show_formspec(playername, "doc:entry", formspec)
 			end
-		end
-	elseif(formname == "doc:entry") then
-		if fields["doc_button_goto_main"] then
-			local formspec = doc.formspec_core(1)..doc.formspec_main(playername)
-			minetest.show_formspec(playername, "doc:main", formspec)
-		elseif fields["doc_button_goto_category"] then
-			local formspec = doc.formspec_core(2)..doc.formspec_category(doc.data.players[playername].category, playername)
-			minetest.show_formspec(playername, "doc:category", formspec)
 		elseif fields["doc_button_goto_next"] then
-			if doc.data.players[playername].catsel == nil then return end -- emergency exit
+			if doc.data.players[playername].catsel == nil then return end
 			local eids = doc.data.players[playername].entry_ids
 			local cid = doc.data.players[playername].category
-			local new_catsel= doc.data.players[playername].catsel + 1
+			local new_catsel = doc.data.players[playername].catsel + 1
 			local new_eid = eids[new_catsel]
 			if #eids > 1 and new_catsel <= #eids then
 				doc.mark_entry_as_viewed(playername, cid, new_eid)
 				doc.data.players[playername].catsel = new_catsel
 				doc.data.players[playername].entry = new_eid
 				doc.data.players[playername].galidx = 1
-				local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, new_eid, playername)
+				local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, new_eid, playername)
 				minetest.show_formspec(playername, "doc:entry", formspec)
 			end
 		elseif fields["doc_button_goto_prev"] then
-			if doc.data.players[playername].catsel == nil then return end -- emergency exit
+			if doc.data.players[playername].catsel == nil then return end
 			local eids = doc.data.players[playername].entry_ids
 			local cid = doc.data.players[playername].category
-			local new_catsel= doc.data.players[playername].catsel - 1
+			local new_catsel = doc.data.players[playername].catsel - 1
 			local new_eid = eids[new_catsel]
 			if #eids > 1 and new_catsel >= 1 then
 				doc.mark_entry_as_viewed(playername, cid, new_eid)
 				doc.data.players[playername].catsel = new_catsel
 				doc.data.players[playername].entry = new_eid
 				doc.data.players[playername].galidx = 1
-				local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, new_eid, playername)
+				local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, new_eid, playername)
 				minetest.show_formspec(playername, "doc:entry", formspec)
 			end
 		elseif fields["doc_button_gallery_prev"] then
@@ -1113,14 +1109,14 @@ function doc.process_form(player,formname,fields)
 			if doc.data.players[playername].galidx - doc.data.players[playername].galrows > 0 then
 				doc.data.players[playername].galidx = doc.data.players[playername].galidx - doc.data.players[playername].galrows
 			end
-			local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, eid, playername)
+			local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, eid, playername)
 			minetest.show_formspec(playername, "doc:entry", formspec)
 		elseif fields["doc_button_gallery_next"] then
 			local cid, eid = doc.get_selection(playername)
 			if doc.data.players[playername].galidx + doc.data.players[playername].galrows <= doc.data.players[playername].maxgalidx then
 				doc.data.players[playername].galidx = doc.data.players[playername].galidx + doc.data.players[playername].galrows
 			end
-			local formspec = doc.formspec_core(3)..doc.formspec_entry(cid, eid, playername)
+			local formspec = doc.formspec_core(2)..doc.formspec_entry(cid, eid, playername)
 			minetest.show_formspec(playername, "doc:entry", formspec)
 		end
 	else
