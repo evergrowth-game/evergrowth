@@ -673,26 +673,35 @@ function doc.formspec_main(playername)
 	local notify_checkbox_x, notify_checkbox_y
 	if doc.get_category_count() >= 1 then
 		formstring = formstring .. F("Please select a category you wish to learn more about:").."]"
-		if doc.get_category_count() <= (CATEGORYFIELDSIZE.WIDTH * CATEGORYFIELDSIZE.HEIGHT)  then
+		local total_cats = doc.data.category_count
+		if total_cats <= (CATEGORYFIELDSIZE.WIDTH * CATEGORYFIELDSIZE.HEIGHT) then
+			local num_cols = 1
+			if total_cats > 5 then
+				num_cols = 2
+			end
+			if total_cats > 16 then
+				num_cols = math.min(CATEGORYFIELDSIZE.WIDTH, math.ceil(total_cats / CATEGORYFIELDSIZE.HEIGHT))
+			end
+			local items_per_col = math.ceil(total_cats / num_cols)
+			local bw = doc.FORMSPEC.WIDTH / num_cols
 			local y = 1
 			local x = 1
 			-- Show all categories in order
 			for c=1,#doc.data.category_order do
 				local id = doc.data.category_order[c]
 				local data = doc.data.categories[id]
-				local bw = doc.FORMSPEC.WIDTH / math.floor(((doc.data.category_count-1) / CATEGORYFIELDSIZE.HEIGHT)+1)
 				-- Skip categories which do not exist
 				if data ~= nil then
-					-- Category buton
+					-- Category button
 					local button = "button["..((x-1)*bw)..","..y..";"..bw..",1;doc_button_category_"..id..";"..minetest.formspec_escape(data.def.name).."]"
 					local tooltip = ""
 					-- Optional description
 					if data.def.description ~= nil then
-					tooltip = "tooltip[doc_button_category_"..id..";"..minetest.formspec_escape(data.def.description).."]"
+						tooltip = "tooltip[doc_button_category_"..id..";"..minetest.formspec_escape(data.def.description).."]"
 					end
 					formstring = formstring .. button .. tooltip
 					y = y + 1
-					if y > CATEGORYFIELDSIZE.HEIGHT then
+					if y > items_per_col then
 						x = x + 1
 						y = 1
 					end
