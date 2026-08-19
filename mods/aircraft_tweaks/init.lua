@@ -332,7 +332,16 @@ minetest.register_on_mods_loaded(function()
     end
 
     if minetest.get_modpath("heli") then
+        if minetest.registered_tools["heli:heli"] then
+            local tool_def = minetest.registered_tools["heli:heli"]
+            local craft_def = table.copy(tool_def)
+            craft_def.type = "craftitem"
+            minetest.unregister_item("heli:heli")
+            minetest.register_craftitem(":heli:heli", craft_def)
+            minetest.log("action", "[aircraft_tweaks] Re-registered heli:heli as craftitem")
+        end
         apply_helicopter_tweaks("heli:heli")
     end
 end)
+
 
