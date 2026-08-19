@@ -29,20 +29,22 @@ doc.FORMSPEC.HEIGHT = 10.5
 
 --[[ Recommended bounding box coordinates for widgets to be placed in entry pages. Make sure
 all entry widgets are completely inside these coordinates to avoid overlapping. ]]
-doc.FORMSPEC.ENTRY_START_X = 0.4
-doc.FORMSPEC.ENTRY_START_Y = 1.6
-doc.FORMSPEC.ENTRY_END_X = doc.FORMSPEC.WIDTH - 0.4
-doc.FORMSPEC.ENTRY_END_Y = doc.FORMSPEC.HEIGHT - 0.8
+doc.FORMSPEC.ENTRY_START_X = 0
+doc.FORMSPEC.ENTRY_START_Y = 0.5
+doc.FORMSPEC.ENTRY_END_X = doc.FORMSPEC.WIDTH
+doc.FORMSPEC.ENTRY_END_Y = doc.FORMSPEC.HEIGHT - 0.5
 doc.FORMSPEC.ENTRY_WIDTH = doc.FORMSPEC.ENTRY_END_X - doc.FORMSPEC.ENTRY_START_X
 doc.FORMSPEC.ENTRY_HEIGHT = doc.FORMSPEC.ENTRY_END_Y - doc.FORMSPEC.ENTRY_START_Y
 
--- Internal helper variables
-local DOC_INTRO = S("Explorer's Field Codex & Knowledge Base")
+--TODO: Use container formspec element later
 
-local COLOR_NOT_VIEWED = "#d4973b"	-- amber gold
-local COLOR_VIEWED = "#faeedd"		-- warm ivory
-local COLOR_HIDDEN = "#7d6a58"		-- leather muted brown
-local COLOR_ERROR = "#d9534f"		-- crimson error
+-- Internal helper variables
+local DOC_INTRO = S("This is the help.")
+
+local COLOR_NOT_VIEWED = "#00FFFF"	-- cyan
+local COLOR_VIEWED = "#FFFFFF"		-- white
+local COLOR_HIDDEN = "#999999"		-- gray
+local COLOR_ERROR = "#FF0000"		-- red
 
 local CATEGORYFIELDSIZE = {
 	WIDTH = math.ceil(doc.FORMSPEC.WIDTH / 4),
@@ -486,7 +488,8 @@ doc.widgets.text = function(data, x, y, width, height)
 	if x == nil then
 		x = doc.FORMSPEC.ENTRY_START_X
 	end
-	local xfix = x + 0.15
+	-- Offset to table[], which was used for this in a previous version
+	local xfix = x + 0.35
 	if y == nil then
 		y = doc.FORMSPEC.ENTRY_START_Y
 	end
@@ -496,15 +499,17 @@ doc.widgets.text = function(data, x, y, width, height)
 	if height == nil then
 		height = doc.FORMSPEC.ENTRY_HEIGHT
 	end
-	local heightfix = height
+	-- Weird offset for textarea[]
+	local heightfix = height + 1
 
-	-- Background parchment card
-	local formstring = "box["..tostring(x)..","..tostring(y)..";"..tostring(width)..","..tostring(height)..";#1c1611]" ..
-			"textarea["..tostring(xfix)..","..tostring(y+0.1)..";"..tostring(width-0.3)..","..tostring(heightfix)..";;;"..minetest.formspec_escape(data).."]"
+	-- Also add background box
+	local formstring = "box["..tostring(x-0.175)..","..tostring(y)..";"..tostring(width)..","..tostring(height)..";#000000]" ..
+			"textarea["..tostring(xfix)..","..tostring(y)..";"..tostring(width)..","..tostring(heightfix)..";;;"..minetest.formspec_escape(data).."]"
 	return formstring
 end
 
 -- Image gallery
+-- Currently, only one gallery per entry is supported. TODO: Add support for multiple galleries in an entry (low priority)
 doc.widgets.gallery = function(imagedata, playername, x, y, aspect_ratio, width, rows, align_left, align_top)
 	if playername == nil then return nil end -- emergency exit
 
@@ -542,7 +547,7 @@ doc.widgets.gallery = function(imagedata, playername, x, y, aspect_ratio, width,
 	local bw = 0.5
 	local buttonoffset = 0
 	if #imagedata > rows then
-		totalimagewidth = width - bw*2 - 0.2
+		totalimagewidth = width - bw*2
 		iw = totalimagewidth / rows
 		ih = iw * aspect_ratio
 		if align_top == false then
@@ -560,7 +565,7 @@ doc.widgets.gallery = function(imagedata, playername, x, y, aspect_ratio, width,
 			formstring = formstring .. "tooltip[doc_button_gallery_prev;"..tt.."]"
 		end
 		if (imageindex + rows) <= #imagedata then
-			local rightx = x + width - bw
+			local rightx = buttonoffset + (x + rows * iw)
 			formstring = formstring .. "button["..rightx..","..y..";"..bw..","..ih..";doc_button_gallery_next;"..F(">").."]"
 			if rows == 1 then
 				tt = F("Show next image")
@@ -569,7 +574,7 @@ doc.widgets.gallery = function(imagedata, playername, x, y, aspect_ratio, width,
 			end
 			formstring = formstring .. "tooltip[doc_button_gallery_next;"..tt.."]"
 		end
-		buttonoffset = bw + 0.1
+		buttonoffset = bw
 	else
 		totalimagewidth = width
 		iw = totalimagewidth / rows
@@ -580,20 +585,19 @@ doc.widgets.gallery = function(imagedata, playername, x, y, aspect_ratio, width,
 	end
 	for i=imageindex, math.min(#imagedata, (imageindex-1)+rows) do
 		local xoffset = buttonoffset + (x + pos * iw)
-		local slot_w = iw - 0.15
-		local slot_h = ih
-		formstring = formstring .. "box["..xoffset..","..y..";"..slot_w..","..slot_h..";#261e16]"
+		local nx = xoffset - 0.2
+		local ny = y - 0.05
 		if imagedata[i].imagetype == "item" then
-			formstring = formstring .. "item_image["..(xoffset+0.1)..","..(y+0.1)..";"..(slot_w-0.2)..","..(slot_h-0.2)..";"..imagedata[i].image.."]"
+			formstring = formstring .. "item_image["..xoffset..","..y..";"..iw..","..ih..";"..imagedata[i].image.."]"
 		else
-			formstring = formstring .. "image["..(xoffset+0.1)..","..(y+0.1)..";"..(slot_w-0.2)..","..(slot_h-0.2)..";"..imagedata[i].image.."]"
+			formstring = formstring .. "image["..xoffset..","..y..";"..iw..","..ih..";"..imagedata[i].image.."]"
 		end
-		local caption_str = imagedata[i].caption or tostring(i)
-		formstring = formstring .. "label["..(xoffset+0.1)..","..(y+slot_h-0.25)..";"..minetest.colorize("#d4973b", minetest.formspec_escape(caption_str)).."]"
+		formstring = formstring .. "label["..nx..","..ny..";"..i.."]"
 		pos = pos + 1
 	end
+	local bw, bh
 
-	return formstring, ih + 0.1
+	return formstring, ih
 end
 
 -- Direct formspec
@@ -655,32 +659,20 @@ end)
 
 function doc.formspec_core(tab)
 	if tab == nil then tab = 1 else tab = tostring(tab) end
-	return "formspec_version[6]"..
-	"size["..doc.FORMSPEC.WIDTH..","..doc.FORMSPEC.HEIGHT.."]"..
-	"bgcolor[#18130f;false]"..
-	"style_type[button;bgcolor=#34281f;textcolor=#faeedd;border=true;border_color=#4d3b2e;border_width=1]"..
-	"style_type[button:hover;bgcolor=#48382b;textcolor=#ffe4b5;border_color=#d4973b]"..
-	"style_type[button:pressed;bgcolor=#221a14;textcolor=#d4973b;border_color=#c28b38]"..
-	"style_type[tabheader;textcolor=#baa893;textcolor_active=#faeedd;bgcolor=#221a14;bgcolor_active=#34281f;border=true;border_color=#4d3b2e]"..
-	"style_type[checkbox;textcolor=#d8c8b4]"..
-	"style_type[textlist;bgcolor=#1e1712;textcolor=#faeedd;border=true;border_color=#4d3b2e]"..
-	"style_type[textarea;textcolor=#faeedd;bgcolor=#1e1712]"..
-	"style_type[label;textcolor=#faeedd]"..
-	"box[0,0.6;"..doc.FORMSPEC.WIDTH..","..(doc.FORMSPEC.HEIGHT-0.6)..";#251d16]"..
-	"box[0.15,0.75;"..(doc.FORMSPEC.WIDTH-0.3)..","..(doc.FORMSPEC.HEIGHT-0.9)..";#1a140f]"..
+	return "size["..doc.FORMSPEC.WIDTH..","..doc.FORMSPEC.HEIGHT.."]"..
 	"tabheader[0,0;doc_header;"..
-	minetest.formspec_escape(S("Field Manuals")) .. "," ..
-	minetest.formspec_escape(S("Chapter List")) .. "," ..
-	minetest.formspec_escape(S("Field Notes")) .. ";"
+	minetest.formspec_escape(S("Category list")) .. "," ..
+	minetest.formspec_escape(S("Entry list")) .. "," ..
+	minetest.formspec_escape(S("Entry")) .. ";"
 	..tab..";false;false]"
+	-- Let the Game decide on the style, such as background, etc.
 end
 
 function doc.formspec_main(playername)
-	local formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-		"label[0.6,1.25;"..minetest.colorize("#d4973b", F("Explorer's Field Codex & Manuals")).."]"..
-		"label[7.5,1.25;"..minetest.colorize("#baa893", F("Select a manual to open:")).."]"
+	local formstring = "textarea[0.35,0;"..doc.FORMSPEC.WIDTH..",1;;;"..minetest.formspec_escape(DOC_INTRO) .. "\n"
 	local notify_checkbox_x, notify_checkbox_y
 	if doc.get_category_count() >= 1 then
+		formstring = formstring .. F("Please select a category you wish to learn more about:").."]"
 		local total_cats = doc.data.category_count
 		if total_cats <= (CATEGORYFIELDSIZE.WIDTH * CATEGORYFIELDSIZE.HEIGHT) then
 			local num_cols = 1
@@ -691,9 +683,7 @@ function doc.formspec_main(playername)
 				num_cols = math.min(CATEGORYFIELDSIZE.WIDTH, math.ceil(total_cats / CATEGORYFIELDSIZE.HEIGHT))
 			end
 			local items_per_col = math.ceil(total_cats / num_cols)
-			local col_w = (doc.FORMSPEC.WIDTH - 0.8) / num_cols
-			local bw = col_w - 0.25
-			local bh = 0.85
+			local bw = doc.FORMSPEC.WIDTH / num_cols
 			local y = 1
 			local x = 1
 			-- Show all categories in order
@@ -702,10 +692,8 @@ function doc.formspec_main(playername)
 				local data = doc.data.categories[id]
 				-- Skip categories which do not exist
 				if data ~= nil then
-					local px = 0.5 + (x-1)*col_w
-					local py = 1.7 + (y-1)*1.05
 					-- Category button
-					local button = "button["..px..","..py..";"..bw..","..bh..";doc_button_category_"..id..";"..minetest.formspec_escape(data.def.name).."]"
+					local button = "button["..((x-1)*bw)..","..y..";"..bw..",1;doc_button_category_"..id..";"..minetest.formspec_escape(data.def.name).."]"
 					local tooltip = ""
 					-- Optional description
 					if data.def.description ~= nil then
@@ -719,10 +707,10 @@ function doc.formspec_main(playername)
 					end
 				end
 			end
-			notify_checkbox_x = 0.5
+			notify_checkbox_x = 0
 			notify_checkbox_y = doc.FORMSPEC.HEIGHT-0.5
 		else
-			formstring = formstring .. "textlist[0.4,1.7;"..(doc.FORMSPEC.WIDTH-0.8)..","..(doc.FORMSPEC.HEIGHT-2.8)..";doc_mainlist;"
+			formstring = formstring .. "textlist[0,1;"..(doc.FORMSPEC.WIDTH-0.2)..","..(doc.FORMSPEC.HEIGHT-2)..";doc_mainlist;"
 			for c=1,#doc.data.category_order do
 				local id = doc.data.category_order[c]
 				local data = doc.data.categories[id]
@@ -737,15 +725,15 @@ function doc.formspec_main(playername)
 				formstring = formstring .. doc.data.categories[doc.data.players[playername].category].order_position
 			end
 			formstring = formstring .. "]"
-			formstring = formstring .. "button[0.5,"..(doc.FORMSPEC.HEIGHT-1.05)..";3.5,0.75;doc_button_goto_category;"..F("Open Manual").."]"
-			notify_checkbox_x = 4.5
-			notify_checkbox_y = doc.FORMSPEC.HEIGHT-0.7
+			formstring = formstring .. "button[0,"..(doc.FORMSPEC.HEIGHT-1)..";3,1;doc_button_goto_category;"..F("Show category").."]"
+			notify_checkbox_x = 3.5
+			notify_checkbox_y = doc.FORMSPEC.HEIGHT-1
 		end
 		local text
 		if minetest.get_modpath("central_message") then
-			text = F("Notify me when new field notes are recorded")
+			text = F("Notify me when new help is available")
 		else
-			text = F("Play notification sound when new field notes are recorded")
+			text = F("Play notification sound when new help is available")
 		end
 		formstring = formstring .. "checkbox["..notify_checkbox_x..","..notify_checkbox_y..";doc_setting_notify_on_reveal;"..text..";"..
 		tostring(doc.data.players[playername].stored_data.notify_on_reveal == true) .. "]"
@@ -792,7 +780,7 @@ function doc.generate_entry_list(cid, playername)
 	or doc.data.players[playername].catsel_list == nil
 	or doc.data.players[playername].category ~= cid
 	or doc.data.players[playername].entry_textlist_needs_updating == true then
-		local entry_textlist = "textlist[0.4,1.6;"..(doc.FORMSPEC.WIDTH-0.8)..","..(doc.FORMSPEC.HEIGHT-2.8)..";doc_catlist;"
+		local entry_textlist = "textlist[0,1;"..(doc.FORMSPEC.WIDTH-0.2)..","..(doc.FORMSPEC.HEIGHT-2)..";doc_catlist;"
 		local counter = 0
 		doc.data.players[playername].entry_ids = {}
 		local entries = doc.get_sorted_entry_names(cid)
@@ -897,41 +885,41 @@ end
 function doc.formspec_category(id, playername)
 	local formstring
 	if id == nil then
-		formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-			"label[0.6,1.25;"..minetest.colorize("#d4973b", F("Codex > (No Category)")).."]"..
-			"label[0.5,2.0;"..minetest.colorize("#faeedd", F("You haven't chosen a category yet. Please choose one in the category list first.")).."]"..
-			"button[0.5,3.0;3.5,0.75;doc_button_goto_main;"..F("Go to Category List").."]"
+		formstring = "label[0,0;"..F("Help > (No Category)") .. "]"
+		formstring = formstring .. "label[0,0.5;"..F("You haven't chosen a category yet. Please choose one in the category list first.").."]"
+		formstring = formstring .. "button[0,1;3,1;doc_button_goto_main;"..F("Go to category list").."]"
 	else
-		formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-			"label[0.6,1.25;"..minetest.colorize("#d4973b", minetest.formspec_escape(S("Field Codex > @1", doc.data.categories[id].def.name))).."]"
+		formstring = "label[0,0;"..minetest.formspec_escape(S("Help > @1", doc.data.categories[id].def.name)).."]"
 		local total = doc.get_entry_count(id)
 		if total >= 1 then
 			local revealed = doc.get_revealed_count(playername, id)
 			if revealed == 0 then
-				formstring = formstring .. "label[0.5,2.0;"..minetest.colorize("#baa893", minetest.formspec_escape(S("Currently all entries in this category are hidden from you.").."\n"..S("Unlock new entries by progressing in the game."))).."]"..
-					"button[0.5,3.0;3.5,0.75;doc_button_goto_main;"..F("Go to Category List").."]"
+				formstring = formstring .. "label[0,0.5;"..minetest.formspec_escape(S("Currently all entries in this category are hidden from you.").."\n"..S("Unlock new entries by progressing in the game.")).."]"
+				formstring = formstring .. "button[0,1.5;3,1;doc_button_goto_main;"..F("Go to category list").."]"
 			else
+				formstring = formstring .. "label[0,0.5;"..F("This category has the following entries:").."]"
 				formstring = formstring .. doc.generate_entry_list(id, playername)
-				formstring = formstring .. "button[0.4,"..(doc.FORMSPEC.HEIGHT-0.95)..";3.5,0.75;doc_button_goto_entry;"..F("Read Article").."]"
-				formstring = formstring .. "label["..(doc.FORMSPEC.WIDTH-4)..","..(doc.FORMSPEC.HEIGHT-0.85)..";"..minetest.colorize("#baa893", minetest.formspec_escape(S("Articles: @1", total))).."\n"
+				formstring = formstring .. "button[0,"..(doc.FORMSPEC.HEIGHT-1)..";3,1;doc_button_goto_entry;"..F("Show entry").."]"
+				formstring = formstring .. "label["..(doc.FORMSPEC.WIDTH-4)..","..(doc.FORMSPEC.HEIGHT-1)..";"..minetest.formspec_escape(S("Number of entries: @1", total)).."\n"
 				local viewed = doc.get_viewed_count(playername, id)
 				local hidden = total - revealed
 				local new = total - viewed - hidden
+				-- TODO/FIXME: Check if number of hidden/viewed entries is always correct
 				if viewed < total then
-					formstring = formstring .. colorize(COLOR_NOT_VIEWED, minetest.formspec_escape(S("New: @1", new)))
+					formstring = formstring .. colorize(COLOR_NOT_VIEWED, minetest.formspec_escape(S("New entries: @1", new)))
 					if hidden > 0 then
 						formstring = formstring .. "\n"
-						formstring = formstring .. colorize(COLOR_HIDDEN, minetest.formspec_escape(S("Hidden: @1", hidden))).."]"
+						formstring = formstring .. colorize(COLOR_HIDDEN, minetest.formspec_escape(S("Hidden entries: @1", hidden))).."]"
 					else
 						formstring = formstring .. "]"
 					end
 				else
-					formstring = formstring .. colorize("#baa893", F("All articles read.")).."]"
+					formstring = formstring .. F("All entries read.").."]"
 				end
 			end
 		else
-			formstring = formstring .. "label[0.5,2.0;"..minetest.colorize("#baa893", F("This category is empty.")).."]"..
-				"button[0.5,3.0;3.5,0.75;doc_button_goto_main;"..F("Go to Category List").."]"
+			formstring = formstring .. "label[0,0.5;"..F("This category is empty.").."]"
+			formstring = formstring .. "button[0,1.5;3,1;doc_button_goto_main;"..F("Go to category list").."]"
 		end
 	end
 	return formstring
@@ -942,8 +930,8 @@ function doc.formspec_entry_navigation(category_id, entry_id)
 		return ""
 	end
 	local formstring = ""
-	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-2.1)..","..(doc.FORMSPEC.HEIGHT-0.75)..";0.8,0.65;doc_button_goto_prev;"..F("<").."]"
-	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-1.2)..","..(doc.FORMSPEC.HEIGHT-0.75)..";0.8,0.65;doc_button_goto_next;"..F(">").."]"
+	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-2)..","..(doc.FORMSPEC.HEIGHT-0.5)..";1,1;doc_button_goto_prev;"..F("<").."]"
+	formstring = formstring .. "button["..(doc.FORMSPEC.WIDTH-1)..","..(doc.FORMSPEC.HEIGHT-0.5)..";1,1;doc_button_goto_next;"..F(">").."]"
 	formstring = formstring .. "tooltip[doc_button_goto_prev;"..F("Show previous entry").."]"
 	formstring = formstring .. "tooltip[doc_button_goto_next;"..F("Show next entry").."]"
 	return formstring
@@ -952,29 +940,28 @@ end
 function doc.formspec_entry(category_id, entry_id, playername)
 	local formstring
 	if category_id == nil then
-		formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-			"label[0.6,1.25;"..minetest.colorize("#d4973b", F("Codex > (No Category)")).."]"..
-			"label[0.5,2.0;"..minetest.colorize("#faeedd", F("You haven't chosen a category yet. Please choose one in the category list first.")).."]"..
-			"button[0.5,3.0;3.5,0.75;doc_button_goto_main;"..F("Go to Category List").."]"
+		formstring = "label[0,0;"..F("Help > (No Category)") .. "]"
+		formstring = formstring .. "label[0,0.5;"..F("You haven't chosen a category yet. Please choose one in the category list first.").."]"
+		formstring = formstring .. "button[0,1;3,1;doc_button_goto_main;"..F("Go to category list").."]"
 	elseif entry_id == nil then
-		formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-			"label[0.6,1.25;"..minetest.colorize("#d4973b", minetest.formspec_escape(S("Field Codex > @1 > (No Entry)", doc.data.categories[category_id].def.name))).."]"
+		formstring = "label[0,0;"..minetest.formspec_escape(S("Help > @1 > (No Entry)", doc.data.categories[category_id].def.name)) .. "]"
 		if doc.get_entry_count(category_id) >= 1 then
-			formstring = formstring .. "label[0.5,2.0;"..minetest.colorize("#faeedd", F("You haven't chosen an entry yet. Please choose one in the entry list first.")).."]"..
-				"button[0.5,3.0;3.5,0.75;doc_button_goto_category;"..F("Go to Article List").."]"
+			formstring = formstring .. "label[0,0.5;"..F("You haven't chosen an entry yet. Please choose one in the entry list first.").."]"
+			formstring = formstring .. "button[0,1.5;3,1;doc_button_goto_category;"..F("Go to entry list").."]"
 		else
-			formstring = formstring .. "label[0.5,2.0;"..minetest.colorize("#baa893", F("This category does not have any entries.")).."]"..
-				"button[0.5,3.0;3.5,0.75;doc_button_goto_main;"..F("Go to Category List").."]"
+			formstring = formstring .. "label[0,0.5;"..F("This category does not have any entries.").."]"
+			formstring = formstring .. "button[0,1.5;3,1;doc_button_goto_main;"..F("Go to category list").."]"
 		end
 	else
+
 		local category = doc.data.categories[category_id]
 		local entry = get_entry(category_id, entry_id)
 		local ename = entry.name
 		if ename == nil or ename == "" then
 			ename = S("Nameless entry (@1)", entry_id)
 		end
-		formstring = "box[0.4,0.9;"..(doc.FORMSPEC.WIDTH-0.8)..",0.55;#2d221a]"..
-			"label[0.6,1.25;"..minetest.colorize("#d4973b", minetest.formspec_escape(S("Field Codex > @1 > @2", category.def.name, ename))).."]"
+		formstring = "style_type[textarea;textcolor=#FFFFFF]"
+		formstring = formstring .. "label[0,0;"..minetest.formspec_escape(S("Help > @1 > @2", category.def.name, ename)).."]"
 		formstring = formstring .. category.def.build_formspec(entry.data, playername)
 		formstring = formstring .. doc.formspec_entry_navigation(category_id, entry_id)
 	end
