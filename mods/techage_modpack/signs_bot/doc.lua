@@ -8,32 +8,16 @@
 	GPLv3
 	See LICENSE.txt for more information
 
-	Signs Bot: Ingame Documentation
+	Signs Bot: Ingame Documentation (Integrated into Industry & Automation manual)
 
 ]]--
 
--- Load support for I18n.
 local S = signs_bot.S
 
 signs_bot.doc = {}
 
 if not minetest.get_modpath("doc") then
 	return
-end
-
-local function formspec(data)
-	if data.image then
-		local image = "image["..(doc.FORMSPEC.ENTRY_WIDTH - 3)..",0;3,2;"..data.image.."]"
-		local formstring = doc.widgets.text(data.text, doc.FORMSPEC.ENTRY_START_X, doc.FORMSPEC.ENTRY_START_Y+1.6, doc.FORMSPEC.ENTRY_WIDTH, doc.FORMSPEC.ENTRY_HEIGHT - 1.6)
-		return image..formstring
-	elseif data.item then
-		local box = "box["..(doc.FORMSPEC.ENTRY_WIDTH - 1.6)..",0;1,1.1;#BBBBBB]"
-		local image = "item_image["..(doc.FORMSPEC.ENTRY_WIDTH - 1.5)..",0.1;1,1;"..data.item.."]"
-		local formstring = doc.widgets.text(data.text, doc.FORMSPEC.ENTRY_START_X, doc.FORMSPEC.ENTRY_START_Y+0.8, doc.FORMSPEC.ENTRY_WIDTH, doc.FORMSPEC.ENTRY_HEIGHT - 0.8)
-		return box..image..formstring
-	else
-		return doc.entry_builders.text(data.text)
-	end
 end
 
 local start_doc = table.concat({
@@ -93,7 +77,6 @@ local sensor_doc = table.concat({
 	S("Additional sensors and actuator can be added by other mods."),
 }, "\n")
 
-
 local tool_doc = table.concat({
 	S("To send a signal from a sensor to an actuator, the sensor has to be connected (paired) with actuator."),
 	S("To connect sensor and actuator, the Sensor Connection Tool has to be used."),
@@ -105,7 +88,6 @@ local tool_doc = table.concat({
 	S("when the Bot is in the state 'on'. Otherwise the sensor signal will stop the Bot,"),
 	S("instead of starting it."),
 }, "\n")
-
 
 local inventory_doc = table.concat({
 	S("The following applies to all commands that are used to place items in the bot inventory, like:"),
@@ -139,55 +121,51 @@ local inventory_doc = table.concat({
 	S("If the number found is smaller than requested, he tries to take the rest out of any slot."),
 }, "\n")
 
+minetest.register_on_mods_loaded(function()
+	if not doc.get_category_definition("techage_industry") then
+		return
+	end
 
-local sorting_data = {"start", "control", "sensor_doc", "tool", "invent",
-	"box", "bot_flap", "duplicator",
-	"bot_sensor", "node_sensor", "crop_sensor", "chest", "timer",
-	"changer", "sensor_extender", "and", "delayer",
-	"farming", "pattern", "copy3x3x3", "flowers", "aspen", 
-	"sign_cmnd", "sign_right", "sign_left", "sign_take", "sign_add", "sign_stop", "sign_blank"}
+	doc.add_entry("techage_industry", "signs_bot_overview", {
+		name = "Signs Bot: Getting Started",
+		data = {
+			text = start_doc,
+			images = {
+				{ image = "signs_bot:box", imagetype = "item", caption = "Signs Bot Box" },
+			},
+		},
+	})
 
-if minetest.global_exists("minecart") then
-	table.insert(sorting_data, "cart_sensor")
-	table.insert(sorting_data, "sign_add_cart")
-	table.insert(sorting_data, "sign_take_cart")
-end
+	doc.add_entry("techage_industry", "signs_bot_control", {
+		name = "Signs Bot: Programming & Signs",
+		data = {
+			text = control_doc,
+			images = {
+				{ image = "signs_bot:sign_command", imagetype = "item", caption = "Command Sign" },
+				{ image = "signs_bot:sign_right", imagetype = "item", caption = "Turn Right" },
+				{ image = "signs_bot:sign_left", imagetype = "item", caption = "Turn Left" },
+			},
+		},
+	})
 
-if minetest.global_exists("xdecor") then
-	table.insert(sorting_data, "water")
-	table.insert(sorting_data, "soup")
-end
+	doc.add_entry("techage_industry", "signs_bot_sensors", {
+		name = "Signs Bot: Sensors & Actuators",
+		data = {
+			text = sensor_doc .. "\n\n" .. tool_doc,
+			images = {
+				{ image = "signs_bot:sensor_tool", imagetype = "item", caption = "Connection Tool" },
+				{ image = "signs_bot:bot_sensor", imagetype = "item", caption = "Bot Sensor" },
+			},
+		},
+	})
 
-doc.add_category("signs_bot",
-{
-	name = S("Signs Bot"),
-	description = S("A robot controlled by signs, used for automated work"),
-	sorting = "custom",
-	build_formspec = formspec,
-	sorting_data = sorting_data,
-})
-
-doc.add_entry("signs_bot", "start", {
-	name = S("Start the Bot"),
-	data = {text = start_doc, image = "signs_bot_doc_image.png"},
-})
-
-doc.add_entry("signs_bot", "control", {
-	name = S("Control the Bot"),
-	data = {text = control_doc, image = "signs_bot_doc_image.png"},
-})
-
-doc.add_entry("signs_bot", "sensor_doc", {
-	name = S("Sensors and Actuators"),
-	data = {text = sensor_doc, image = "signs_bot_doc_image.png"},
-})
-
-doc.add_entry("signs_bot", "tool", {
-	name = S("Connecting sensors and actuator"),
-	data = {text = tool_doc, image = "signs_bot_doc_image.png"},
-})
-
-doc.add_entry("signs_bot", "invent", {
-	name = S("Bot inventory behavior"),
-	data = {text = inventory_doc, image = "signs_bot_doc_image.png"},
-})
+	doc.add_entry("techage_industry", "signs_bot_inventory", {
+		name = "Signs Bot: Inventory Logic",
+		data = {
+			text = inventory_doc,
+			images = {
+				{ image = "signs_bot:box", imagetype = "item", caption = "Signs Bot Box" },
+			},
+		},
+	})
+end)
