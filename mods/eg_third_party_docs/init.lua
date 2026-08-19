@@ -517,23 +517,19 @@ doc.add_entry("techage_industry", "power_grids", {
 -- ==========================================
 minetest.register_on_mods_loaded(function()
 	doc.set_category_order({
-		-- Column 1: Core Player Guides
+		-- Column 1: Core Player Manuals
 		"basics",
 		"survival",
 		"farming_wildlife",
 		"combat",
 		"magic",
 		"vehicles",
-		"eg_settlers_guide",
 
-		-- Column 2: Advanced, Industry & Encyclopedia
+		-- Column 2: Advanced Systems & Settlements
+		"eg_settlers_guide",
 		"techage_industry",
 		"minecart",
-		"signs_bot",
 		"castle_gates",
-		"nodes",
-		"tools",
-		"craftitems",
 		"advanced",
 	})
 end)
