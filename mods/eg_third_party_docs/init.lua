@@ -86,3 +86,9 @@ if minetest.get_modpath("techage_modpack") then
 		data = "Techage is a massive industrial mod. You can browse the Encyclopedia to learn how to craft and use its individual machines, generate and route power, and automate production.",
 	})
 end
+
+-- ==========================================
+-- 6. Weapons & Combat (bweapons)
+-- ==========================================
+dofile(minetest.get_modpath("eg_third_party_docs") .. "/weapons.lua")
+
