@@ -1274,29 +1274,30 @@ local function gather_descs()
 			local name, ld, uh, im
 			local forced = false
 			if def._doc_items_create_entry == true and def ~= nil then forced = true end
-			name = get_entry_name(id)
-			if not (((def.description == nil or def.description == "") and def._doc_items_entry_name == nil) or (def._doc_items_create_entry == false) or (suppressed[id] == true)) or forced then
-				if def._doc_items_longdesc then
-					ld = def._doc_items_longdesc
-				end
-				if help.longdesc[id] ~= nil then
-					ld = help.longdesc[id]
-				end
-				if def._doc_items_usagehelp then
-					uh = def._doc_items_usagehelp
-				end
-				if help.usagehelp[id] ~= nil then
-					uh = help.usagehelp[id]
-				end
-				if def._doc_items_image then
-					im = def._doc_items_image
-				end
+			if def._doc_items_longdesc then
+				ld = def._doc_items_longdesc
+			end
+			if help.longdesc[id] ~= nil then
+				ld = help.longdesc[id]
+			end
+			if def._doc_items_usagehelp then
+				uh = def._doc_items_usagehelp
+			end
+			if help.usagehelp[id] ~= nil then
+				uh = help.usagehelp[id]
+			end
+			if def._doc_items_image then
+				im = def._doc_items_image
+			end
+
+			local has_doc = (ld ~= nil or uh ~= nil or forced or id == "air" or id == "")
+			if has_doc and not (((def.description == nil or def.description == "") and def._doc_items_entry_name == nil) or (def._doc_items_create_entry == false) or (suppressed[id] == true)) then
+				name = get_entry_name(id)
 				local hidden
 				if id == "air" or id == ""  then hidden = false end
 				if type(def._doc_items_hidden) == "boolean" then
 					hidden = def._doc_items_hidden
 				end
-				local custom_image
 				name = scrub_newlines(name)
 				local infotable = {
 					name = name,
