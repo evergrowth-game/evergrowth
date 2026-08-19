@@ -110,7 +110,7 @@ doc.add_entry("combat", "torch_ordnance", {
 -- ==========================================
 doc.add_category("magic", {
 	name = "Magic & Enchantment",
-	description = "Guide to mana reserves, utility spellbooks, elemental staves, arcane tomes, alchemy, and enchanting.",
+	description = "Guide to mana reserves, utility tomes, elemental staves, arcane combat magic, alchemy, and enchanting.",
 	build_formspec = doc.entry_builders.text_and_gallery,
 })
 
@@ -124,28 +124,34 @@ doc.add_entry("magic", "mana_pool", {
 			"Mana naturally regenerates at a steady rate of +1 Mana every 0.2 seconds (+5 Mana per second). Consuming Mana Potions accelerates this regeneration rate.",
 		images = {
 			{ image = "mana_icon.png", imagetype = "image", caption = "Mana Reserve" },
-			{ image = "gadgets_consumables:potion_mana", imagetype = "item", caption = "Mana Potion" },
+			{ image = "gadgets_consumables:potion_mana_regen_01", imagetype = "item", caption = "Mana Potion" },
 		},
 	},
 })
 
 doc.add_entry("magic", "spellbooks", {
-	name = "Utility Spellbooks",
+	name = "Utility Tomes",
 	data = {
-		text = "Spellbooks channel direct magical effects from your mana reserves with zero durability wear:\n\n" ..
-			"• Spellbook of Flight (25 Mana):\n" ..
-			"Propels the caster into the air with a sustained upward velocity boost, ideal for scaling cliffs or escaping danger.\n\n" ..
-			"• Spellbook of Blink (30 Mana):\n" ..
-			"Instantly teleports the caster to the targeted surface within line of sight.\n\n" ..
-			"• Spellbook of Earth (35 Mana):\n" ..
-			"Transmutes targeted stone and geological blocks into altered states.\n\n" ..
-			"• Spellbook of Light (15 Mana):\n" ..
-			"Conjures a permanent glowing orb of pure light at the targeted position to illuminate dark caverns.",
+		text = "Arcane tomes channel utility spells directly from your mana reserves:\n\n" ..
+			"• Tome of Speed (100 Mana):\n" ..
+			"Infuses the caster with accelerated movement speed for 60 seconds.\n\n" ..
+			"• Tome of Jump (100 Mana):\n" ..
+			"Enhances the caster's jump height for 60 seconds.\n\n" ..
+			"• Tome of Gravity (100 Mana):\n" ..
+			"Reduces gravitational pull on the caster for 60 seconds.\n\n" ..
+			"• Tome of Blink (150 Mana):\n" ..
+			"Instantly teleports the caster to the targeted surface within 50 meters.\n\n" ..
+			"• Tome of Magical Bridge (100 Mana):\n" ..
+			"Conjures a 20×3 temporary glowing bridge directly in front of the caster for 30 seconds.\n\n" ..
+			"• Tome of Magical Light (100 Mana):\n" ..
+			"Transmutes pointed stone into a permanent glowing Magic Lantern node.",
 		images = {
-			{ image = "gadgets_magic:spellbook_flight", imagetype = "item", caption = "Spellbook of Flight" },
-			{ image = "gadgets_magic:spellbook_blink", imagetype = "item", caption = "Spellbook of Blink" },
-			{ image = "gadgets_magic:spellbook_earth", imagetype = "item", caption = "Spellbook of Earth" },
-			{ image = "gadgets_magic:spellbook_light", imagetype = "item", caption = "Spellbook of Light" },
+			{ image = "gadgets_magic:tome_speed", imagetype = "item", caption = "Tome of Speed" },
+			{ image = "gadgets_magic:tome_jump", imagetype = "item", caption = "Tome of Jump" },
+			{ image = "gadgets_magic:tome_gravity", imagetype = "item", caption = "Tome of Gravity" },
+			{ image = "gadgets_magic:tome_blink", imagetype = "item", caption = "Tome of Blink" },
+			{ image = "gadgets_magic:tome_bridge", imagetype = "item", caption = "Tome of Bridge" },
+			{ image = "gadgets_magic:tome_light", imagetype = "item", caption = "Tome of Light" },
 		},
 	},
 })
@@ -154,9 +160,9 @@ doc.add_entry("magic", "staves", {
 	name = "Elemental & Utility Staves",
 	data = {
 		text = "Staves focus magical energy into terrain alteration and low-cost spellcasting:\n\n" ..
-			"• Druid's Staff:\n" ..
+			"• Druid's Staff (64 uses):\n" ..
 			"Revitalizes barren ground by advancing blocks through geological stages (Stone → Cobble → Gravel → Sand → Dirt → Grass) and sprouting wild flora.\n\n" ..
-			"• Staff of Earth:\n" ..
+			"• Staff of Earth (64 uses):\n" ..
 			"Excavates stone, ore, and soil in a 3×3 cube radius in a single cast.\n\n" ..
 			"• Combat Staves (Fireball, Ice Shard, Electrosphere):\n" ..
 			"Cast elemental offensive spells at reduced mana costs (10–15 Mana) using staff durability.\n\n" ..
@@ -200,7 +206,7 @@ doc.add_entry("magic", "enchanting", {
 			"• The Grindstone:\n" ..
 			"Place any enchanted item into a Grindstone to strip its enchantments and return the item to its clean base state.",
 		images = {
-			{ image = "x_enchanting:enchantment_table", imagetype = "item", caption = "Enchanting Table" },
+			{ image = "x_enchanting:table", imagetype = "item", caption = "Enchanting Table" },
 			{ image = "default:bookshelf", imagetype = "item", caption = "Bookshelf" },
 			{ image = "default:mese_crystal", imagetype = "item", caption = "Mese Crystal" },
 			{ image = "x_enchanting:grindstone", imagetype = "item", caption = "Grindstone" },
@@ -230,7 +236,7 @@ doc.add_entry("survival", "armor", {
 			{ image = "3d_armor:chestplate_steel", imagetype = "item", caption = "Steel Chestplate" },
 			{ image = "3d_armor:leggings_steel", imagetype = "item", caption = "Steel Leggings" },
 			{ image = "3d_armor:boots_steel", imagetype = "item", caption = "Steel Boots" },
-			{ image = "3d_armor:shield_steel", imagetype = "item", caption = "Steel Shield" },
+			{ image = "shields:shield_steel", imagetype = "item", caption = "Steel Shield" },
 		},
 	},
 })
@@ -272,7 +278,7 @@ doc.add_entry("survival", "death_compass", {
 			"• Death Compass:\n" ..
 			"Upon respawning after death, holding a Death Compass will cause its needle to point directly toward the exact coordinates of your last death site, helping you retrieve lost items.",
 		images = {
-			{ image = "death_compass:compass", imagetype = "item", caption = "Death Compass" },
+			{ image = "death_compass:inactive", imagetype = "item", caption = "Death Compass" },
 		},
 	},
 })
@@ -297,7 +303,7 @@ doc.add_entry("vehicles", "controls_fuel", {
 			"  - Space: Ascend (Planes/Helicopters) or Surface (Submarines)\n" ..
 			"  - Shift (Sneak): Descend / Submerge\n\n" ..
 			"• Accepted Fuels:\n" ..
-			"Engines accept Biofuel (biofuel:biofuel, biofuel:fuel_can) or Techage Gasoline (techage:ta3_canister_gasoline, techage:ta3_barrel_gasoline). Right-click the vehicle with fuel in hand to refuel.",
+			"Engines accept Biofuel (biofuel:fuel_can, biofuel:bottle_fuel) or Techage Gasoline (techage:ta3_canister_gasoline, techage:ta3_barrel_gasoline). Right-click the vehicle with fuel in hand to refuel.",
 		images = {
 			{ image = "biofuel:fuel_can", imagetype = "item", caption = "Biofuel Canister" },
 			{ image = "techage:ta3_canister_gasoline", imagetype = "item", caption = "Techage Gasoline" },
@@ -342,7 +348,7 @@ doc.add_entry("vehicles", "aircraft", {
 		images = {
 			{ image = "supercub:supercub", imagetype = "item", caption = "Super Cub" },
 			{ image = "pa28:pa28", imagetype = "item", caption = "PA-28 Cherokee" },
-			{ image = "hidroplane:hidroplane", imagetype = "item", caption = "Hidroplane" },
+			{ image = "hidroplane:hidro", imagetype = "item", caption = "Hidroplane" },
 			{ image = "heli:heli", imagetype = "item", caption = "Helicopter" },
 		},
 	},
@@ -358,7 +364,7 @@ doc.add_entry("vehicles", "watercraft", {
 			"Advanced submersible vessel. Use Space and Shift to control dive depth and surface safely.",
 		images = {
 			{ image = "motorboat:boat", imagetype = "item", caption = "Motorboat" },
-			{ image = "nautilus:nautilus", imagetype = "item", caption = "Nautilus Submarine" },
+			{ image = "nautilus:boat", imagetype = "item", caption = "Nautilus Submarine" },
 		},
 	},
 })
@@ -383,7 +389,7 @@ doc.add_entry("vehicles", "elevators_teleport", {
 -- ==========================================
 doc.add_category("farming_wildlife", {
 	name = "Farming & Wildlife",
-	description = "Guide to agriculture, specialized farm tools, animal husbandry, and defensive combat.",
+	description = "Guide to agriculture, specialized farm tools, animal husbandry, and wilderness threats.",
 	build_formspec = doc.entry_builders.text_and_gallery,
 })
 
@@ -416,6 +422,7 @@ doc.add_entry("farming_wildlife", "farmtools", {
 		images = {
 			{ image = "farmtools:sickle_steel", imagetype = "item", caption = "Steel Sickle" },
 			{ image = "farmtools:scythe_steel", imagetype = "item", caption = "Steel Scythe" },
+			{ image = "farmtools:rake_steel", imagetype = "item", caption = "Steel Rake" },
 		},
 	},
 })
@@ -440,15 +447,16 @@ doc.add_entry("farming_wildlife", "animals", {
 })
 
 doc.add_entry("farming_wildlife", "threats_raiders", {
-	name = "Hostile Threats & Raiders",
+	name = "Hostile Monsters & Raiders",
 	data = {
-		text = "Dangers of the wilderness:\n\n" ..
-			"• Nighttime Monsters:\n" ..
-			"Hostile monsters spawn in dark subterranean caverns and across the surface under low light levels at night.\n\n" ..
-			"• Raider Plunderers:\n" ..
-			"Hostile raiders are stationed as stationary guardians around valuable loot caches located in and around ancient ruins.",
+		text = "Threats encountered throughout the world:\n\n" ..
+			"• Subterranean & Night Monsters:\n" ..
+			"Hostile creatures spawn in low light conditions inside caves and across the surface at night.\n\n" ..
+			"• Raiders & Plunderers:\n" ..
+			"Hostile raider factions (Pirates, Stick Plunderers, Crossbow Plunderers, and Flask Plunderers) spawn in ruined structures near valuable loot chests (booty nodes). They actively detect players within 20 blocks and attack using melee weapons, crossbow bolts, or explosive flasks. Defeating them yields Gold Lumps.",
 		images = {
 			{ image = "raiders:bootynode", imagetype = "item", caption = "Ruin Booty Node" },
+			{ image = "default:gold_lump", imagetype = "item", caption = "Gold Lump" },
 		},
 	},
 })
@@ -528,4 +536,3 @@ end)
 -- 8. ITEM ENCYCLOPEDIA OVERRIDES
 -- ==========================================
 dofile(minetest.get_modpath("eg_third_party_docs") .. "/item_docs.lua")
-

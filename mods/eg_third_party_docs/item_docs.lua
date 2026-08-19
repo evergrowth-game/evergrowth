@@ -61,19 +61,19 @@ local item_docs = {
 	-- ==========================================
 	["bweapons_hitech_pack:laser_gun"] = {
 		longdesc = "A directed-energy weapon emitting a focused laser beam with pin-point accuracy over a 100-meter range. Operates on internal electrical charge (128 shots capacity).",
-		usagehelp = "Left-click to fire. When discharged, hold the weapon and right-click (or sneak + right-click) with a Battery (techage:ta4_battery) in your inventory, or combine them in any crafting grid to fully recharge.",
+		usagehelp = "Left-click to fire. When discharged, hold the weapon and right-click (or sneak + right-click) with a Battery in your inventory, or combine them in any crafting grid to fully recharge.",
 	},
 	["bweapons_hitech_pack:particle_gun"] = {
 		longdesc = "A rapid-cadence energy projector that accelerates charged subatomic particles into high-speed pulses (64 shots capacity).",
-		usagehelp = "Left-click to fire rapid particle bursts. To recharge, right-click with a Battery (techage:ta4_battery) in inventory or combine in any crafting grid.",
+		usagehelp = "Left-click to fire rapid particle bursts. To recharge, right-click with a Battery in inventory or combine in any crafting grid.",
 	},
 	["bweapons_hitech_pack:plasma_gun"] = {
 		longdesc = "A heavy energy projector that discharges bolts of superheated ionized plasma with area impact (32 shots capacity).",
-		usagehelp = "Left-click to fire. To recharge, right-click with a Battery (techage:ta4_battery) in inventory or combine in any crafting grid.",
+		usagehelp = "Left-click to fire. To recharge, right-click with a Battery in inventory or combine in any crafting grid.",
 	},
 	["bweapons_hitech_pack:rail_gun"] = {
 		longdesc = "An advanced electromagnetic railgun that accelerates magnetic slugs to hyper-velocity over extreme distances. Requires both battery power and physical Railgun Slugs.",
-		usagehelp = "Requires Railgun Slugs (bweapons_hitech_pack:rail_slug) in inventory to fire. Left-click to shoot. To recharge electrical power, right-click with a Battery (techage:ta4_battery) in inventory or combine in any crafting grid.",
+		usagehelp = "Requires Railgun Slugs (bweapons_hitech_pack:rail_slug) in inventory to fire. Left-click to shoot. To recharge electrical power, right-click with a Battery in inventory or combine in any crafting grid.",
 	},
 	["bweapons_hitech_pack:missile_launcher"] = {
 		longdesc = "A heavy tactical missile launcher that fires guided rocket-propelled missiles with a destructive explosion radius.",
@@ -139,39 +139,47 @@ local item_docs = {
 	},
 
 	-- ==========================================
-	-- 6. Utility Spellbooks & Staves (gadgets_magic)
+	-- 6. Utility Tomes & Staves (gadgets_magic)
 	-- ==========================================
-	["gadgets_magic:spellbook_flight"] = {
-		longdesc = "An arcane manual containing levitation incantations. Propels the caster upward into the air with a sustained velocity boost.",
-		usagehelp = "Consumes 25 Mana. Left-click while holding to launch into the air.",
+	["gadgets_magic:tome_speed"] = {
+		longdesc = "An arcane tome that temporarily increases the caster's running velocity for 60 seconds.",
+		usagehelp = "Consumes 100 Mana. Left-click while holding to activate.",
 	},
-	["gadgets_magic:spellbook_blink"] = {
-		longdesc = "An arcane manual of spatial distortion. Instantly teleports the caster to the targeted position in sight.",
-		usagehelp = "Consumes 30 Mana. Left-click while pointing at a target location to teleport.",
+	["gadgets_magic:tome_jump"] = {
+		longdesc = "An arcane tome that temporarily augments the caster's jumping height for 60 seconds.",
+		usagehelp = "Consumes 100 Mana. Left-click while holding to activate.",
 	},
-	["gadgets_magic:spellbook_earth"] = {
-		longdesc = "An arcane manual of transmutation. Converts earth and stone blocks into altered geological states.",
-		usagehelp = "Consumes 35 Mana. Left-click on targeted terrain nodes to transmute.",
+	["gadgets_magic:tome_gravity"] = {
+		longdesc = "An arcane tome that temporarily reduces gravitational pull on the caster for 60 seconds.",
+		usagehelp = "Consumes 100 Mana. Left-click while holding to activate.",
 	},
-	["gadgets_magic:spellbook_light"] = {
-		longdesc = "An arcane manual of illumination. Conjures a stationary sphere of pure light at the targeted position.",
-		usagehelp = "Consumes 15 Mana. Left-click to place a light sphere.",
+	["gadgets_magic:tome_blink"] = {
+		longdesc = "An arcane tome of spatial distortion. Instantly teleports the caster to the targeted position within 50 meters.",
+		usagehelp = "Consumes 150 Mana. Left-click while pointing at a target surface to teleport.",
+	},
+	["gadgets_magic:tome_bridge"] = {
+		longdesc = "An arcane tome that conjures a temporary 20×3 glowing bridge in front of the caster for 30 seconds.",
+		usagehelp = "Consumes 100 Mana. Left-click while holding to create a bridge.",
+	},
+	["gadgets_magic:tome_light"] = {
+		longdesc = "An arcane tome that permanently transmutes pointed stone into a glowing Magic Lantern block.",
+		usagehelp = "Consumes 100 Mana. Left-click on a stone node to transmute it into a light block.",
 	},
 	["gadgets_magic:staff_druid"] = {
 		longdesc = "A nature-infused wooden staff capable of revitalizing barren stone into living soil and wild flora. Transmutes Stone → Cobble → Gravel → Sand → Dirt → Grass.",
-		usagehelp = "Left-click on stone, dirt, or soil nodes to advance their geological state and sprout wild plants. Repaired with a Februm Crystal (magic_materials:februm_crystal).",
+		usagehelp = "Left-click on stone, dirt, or soil nodes to advance their geological state and sprout wild plants (64 uses). Repaired with a Februm Crystal (magic_materials:februm_crystal).",
 	},
 	["gadgets_magic:staff_earth"] = {
-		longdesc = "A heavy earth-shaping staff that excavates rock and soil in a 3×3 radius.",
-		usagehelp = "Left-click on minable blocks to excavate a 3×3 area. Repaired with a Februm Crystal (magic_materials:februm_crystal).",
+		longdesc = "A heavy earth-shaping staff that excavates rock and soil in a 3×3 radius in a single cast.",
+		usagehelp = "Left-click on minable blocks to excavate a 3×3 area (64 uses). Repaired with a Februm Crystal (magic_materials:februm_crystal).",
 	},
 
 	-- ==========================================
 	-- 7. Consumables & Reagents
 	-- ==========================================
-	["gadgets_consumables:potion_mana"] = {
-		longdesc = "A crystalline flask filled with shimmering blue mana essence.",
-		usagehelp = "Right-click while holding to drink. Instantly restores +15 Mana and grants temporary mana regeneration.",
+	["gadgets_consumables:potion_mana_regen_01"] = {
+		longdesc = "A potion infused with mana-regenerating herbs.",
+		usagehelp = "Right-click while holding to drink. Accelerates mana regeneration for 60 seconds.",
 	},
 	["magic_materials:februm_crystal"] = {
 		longdesc = "A dense fire-attuned crystal used as a catalyst in enchanting and for repairing magical staves on a crafting table.",
@@ -192,7 +200,7 @@ local item_docs = {
 	-- ==========================================
 	-- 8. Survival Tools
 	-- ==========================================
-	["death_compass:compass"] = {
+	["death_compass:inactive"] = {
 		longdesc = "A specialized compass calibrated to point directly toward the coordinates of your last death location.",
 		usagehelp = "Hold in hand or keep in inventory to follow the needle toward your lost items.",
 	},
