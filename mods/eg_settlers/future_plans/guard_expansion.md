@@ -45,7 +45,12 @@ Proposed non-biological entities to provide continuous 24/7 defense without beds
 - **Role:** Heavy blunt defender. High HP, slow movement, knockback attacks.
 - **Attributes:** HP 120, Speed 1.5, Damage 6.
 - **Requirements:** No bed (`self.home_pos = nil`), no food satiation checks.
-- **Anchor Node:** **Golem Pedestal** (`eg_settlers:golem_pedestal`) — A carved rune/terracotta base defining the golem's home coordinate.
+- **Model Options:**
+  - `mobs_dungeon_master.b3d` (Reuses the broad, hulking Land Guard silhouette).
+  - `mobs_stone_monster.b3d` (Alternative rocky/earthen golem mesh).
+- **Texture Design:**
+  - Traditional molded clay texture (`eg_settlers_golem_clay.png`): unadorned terracotta/clay surface with simple carved facial features and earthen shading.
+- **Anchor Node:** **Golem Pedestal** (`eg_settlers:golem_pedestal`) — A carved clay/terracotta base defining the golem's home coordinate.
 - **Tether:** 30-node patrol radius centered on its Golem Pedestal.
 - **Activation:** Crafted Golem Core item used on a placed Golem Pedestal to spawn the entity.
 
@@ -57,6 +62,25 @@ Proposed non-biological entities to provide continuous 24/7 defense without beds
 - **Tether:** 35-node patrol radius centered on its Automaton Station.
 - **Activation:** Crafted Automaton Core item inserted into a placed Automaton Station.
 - **Textures:** Texture options are located in [`../../../research/automata/`](file:///Users/Aresh/Desktop/Projects/evergrowth/research/automata) (`character_735.png`, `character_2293.png`).
+
+### 3.3 Relocation & Removal
+- **Anchor Node Mining:** Digging a Golem Pedestal or Automaton Station removes the bound entity and drops both the anchor node and its activation core.
+- **Direct Relocation:** Shift + Right-Clicking an active construct returns its core item to the player's inventory and despawns the entity, freeing the anchor node.
+
+### 3.4 Crafting & Materials
+- **Golem Pedestal (`eg_settlers:golem_pedestal`):** `default:clay` (x4), `default:stone` (x4).
+- **Golem Core (`eg_settlers:golem_core`):** `default:clay` (x4), `default:gold_lump` (x2), `dye:red` (x1).
+- **Automaton Station (`eg_settlers:automaton_station`):** `default:steel_ingot` (x4), `default:copper_ingot` (x2), `techage` steel plate / component (if available).
+- **Automaton Core (`eg_settlers:automaton_core`):** `default:steel_ingot` (x4), `default:copper_ingot` (x2), `default:mese_crystal_fragment` (x2).
+
+### 3.5 Settlement DB & Town Ledger Integration
+- **Census Exemption:** Constructs do not occupy villager population slots, housing deeds, or bed assignments.
+- **Defense Score:** Each active construct registers under the settlement's defense rating in `api/settlement_db.lua`, adding to the town's security power displayed on the Town Ledger.
+
+### 3.6 Targeting & Aggro Rules
+- **Hostile Mobs:** Engages all `type = "monster"` entities within view range.
+- **Criminals:** Engages players with active assault/murder records in the local settlement database.
+- **Friendlies:** Ignores non-criminal players, passive mobs, and civilian settlers. Cannot be damaged by friendly non-criminal players.
 
 ---
 
