@@ -94,10 +94,6 @@ local function reload_with_battery(itemstack, user, def)
 
     if inv:contains_item("main", "techage:ta4_battery") then
         inv:remove_item("main", "techage:ta4_battery 1")
-        local leftover = inv:add_item("main", "techage:ta4_battery_empty 1")
-        if leftover and not leftover:is_empty() then
-            minetest.add_item(user:get_pos(), leftover)
-        end
         itemstack:set_wear(0)
         local sound = def.reload_sound or "bweapons_hitech_pack_laser_gun_reload"
         minetest.sound_play(sound, {
@@ -202,7 +198,6 @@ minetest.register_on_mods_loaded(function()
                 type = "shapeless",
                 output = name,
                 recipe = {name, "techage:ta4_battery"},
-                replacements = {{"techage:ta4_battery", "techage:ta4_battery_empty"}},
             })
         end
     end
