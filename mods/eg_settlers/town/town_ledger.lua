@@ -27,6 +27,18 @@ local function get_formspec(sid, player_name, tab_index)
         local roster_list = ""
         for pos_str, res in pairs(s.residents) do
             local prof = res.profession or "Unknown"
+            if prof == "guard" then
+                local rpos = minetest.string_to_pos(pos_str)
+                if rpos then
+                    local rmeta = minetest.get_meta(rpos)
+                    local shift = rmeta:get_string("guard_shift")
+                    if shift == "night" then
+                        prof = S("Night Guard")
+                    elseif shift == "day" then
+                        prof = S("Day Guard")
+                    end
+                end
+            end
             local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
             if roster_list == "" then
                 roster_list = minetest.formspec_escape(entry)

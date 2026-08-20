@@ -308,12 +308,19 @@ for _, entity_name in ipairs(target_entities) do
                     -- 2. Schedule & Engagement Logic (Settlers Only)
                     if self.is_villager then
                         local current_time = minetest.get_timeofday() * 24000
-                        local is_night = (current_time > 18500 or current_time < 4500) and self.evergrowth_profession ~= "guard"
-                        
-                        --[[ FUTURE: Cache variables for fast path-following loop
-                        self._cached_is_night = is_night
-                        self._cached_day_target = self.job_pos or self.home_pos
-                        ]]
+                        local is_off_duty = false
+                        if self.evergrowth_profession == "guard" then
+                            if self.guard_shift == "night" then
+                                -- Night Guard: off-duty / sleeping during day (6500 to 16500)
+                                is_off_duty = (current_time >= 6500 and current_time < 16500)
+                            else
+                                -- Day Guard (default): off-duty / sleeping during night (18500 to 4500)
+                                is_off_duty = (current_time >= 18500 or current_time < 4500)
+                            end
+                        else
+                            -- Non-guard villagers: off-duty / sleeping during night (18500 to 4500)
+                            is_off_duty = (current_time >= 18500 or current_time < 4500)
+                        end
                         
                         -- Defensive check: verify Job Block / Deed still exists
                         if self.job_pos then
@@ -360,9 +367,12 @@ for _, entity_name in ipairs(target_entities) do
                             end
                         end
                         
-                        -- Schedule: Nighttime return home bed shelter, Daytime active at job workstation
-                        if is_night then
-                            self._was_night = true
+                        -- Deferred Wake / Combat check for off-duty guards responding to alarms or attacked
+                        local is_fighting = (self.evergrowth_profession == "guard" and self.attack and self.attack:get_pos() ~= nil)
+
+                        -- Schedule: Off-duty return home bed shelter, On-duty active at job workstation
+                        if is_off_duty and not is_fighting then
+                            self._was_off_duty = true
                             local night_target = self.home_pos or self.job_pos
                             if night_target then
                                 local dist_home = vector.distance(pos, night_target)
@@ -410,10 +420,13 @@ for _, entity_name in ipairs(target_entities) do
                                 self.order = "stand"
                             end
                         else
-                            -- Daytime
+                            -- On-duty (or off-duty guard actively in combat)
                             
-                            -- Sunrise teleport: on night→day transition, teleport to job block
-                            if self._was_night and not is_night then
+                            -- Shift start teleport: on off-duty -> on-duty transition, teleport to job block
+                            if self._was_off_duty and not is_off_duty then
+                                if self.order == "stand" or self.order == "go_home" then
+                                    self.order = "wander"
+                                end
                                 local day_target = self.job_pos or self.home_pos
                                 if day_target then
                                     local dest = {x = day_target.x, y = day_target.y + 0.5, z = day_target.z}
@@ -451,11 +464,7 @@ for _, entity_name in ipairs(target_entities) do
                                     end
                                 end
                             end
-                            self._was_night = is_night
-                            
-                            if self.order == "stand" or self.order == "go_home" then
-                                self.order = "wander"
-                            end
+                            self._was_off_duty = is_off_duty
                             
                             -- Anti-Wander check (Workstation Tether)
                             local day_target = self.job_pos or self.home_pos
@@ -590,6 +599,48 @@ for _, entity_name in ipairs(target_entities) do
             end
             self.object:set_hp(self.health)
             self.old_health = self.health
+
+            -- Guard shift auto-initialization for existing/legacy guards
+            if not self.guard_shift or self.guard_shift == "" then
+                if self.job_pos then
+                    local jmeta = minetest.get_meta(self.job_pos)
+                    local s = jmeta:get_string("guard_shift")
+                    if s and s ~= "" then
+                        self.guard_shift = s
+                    end
+                end
+                if not self.guard_shift or self.guard_shift == "" then
+                    local pos = self.object:get_pos() or self.job_pos or self.home_pos
+                    local my_index = 1
+                    if pos then
+                        local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                        if sid then
+                            local residents = eg_settlers.db.get_residents(sid)
+                            local guard_keys = {}
+                            for p_str, res in pairs(residents) do
+                                if res.profession == "guard" then
+                                    table.insert(guard_keys, p_str)
+                                end
+                            end
+                            table.sort(guard_keys)
+                            local my_key = self.job_pos and minetest.pos_to_string(self.job_pos) or ""
+                            for idx, k in ipairs(guard_keys) do
+                                if k == my_key then
+                                    my_index = idx
+                                    break
+                                end
+                            end
+                        end
+                    end
+                    self.guard_shift = (my_index % 2 == 1) and "day" or "night"
+                end
+                if self.job_pos then
+                    local jmeta = minetest.get_meta(self.job_pos)
+                    if jmeta and jmeta:get_string("guard_shift") == "" then
+                        jmeta:set_string("guard_shift", self.guard_shift)
+                    end
+                end
+            end
         end
     end
 
@@ -636,13 +687,21 @@ for _, entity_name in ipairs(target_entities) do
                     meta:set_string("profession", prof)
                     meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
                     meta:set_int("health", hp)
+                    if self.guard_shift then
+                        meta:set_string("guard_shift", self.guard_shift)
+                    end
                     if self.trades then
                         meta:set_string("trades", minetest.serialize(self.trades))
                     end
 
                     local desc = contract:get_definition().description
                     local formatted_prof = prof:gsub("^%l", string.upper)
-                    meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
+                    if prof == "guard" and self.guard_shift then
+                        local shift_label = self.guard_shift == "night" and S("Night Guard") or S("Day Guard")
+                        meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. shift_label .. "\n" .. S("Health: ") .. tostring(hp))
+                    else
+                        meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
+                    end
 
                     -- Mark old Job Block as vacant and Bed/Deed as unassigned
                     if self.home_pos then
