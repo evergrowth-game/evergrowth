@@ -600,50 +600,42 @@ for _, entity_name in ipairs(target_entities) do
             self.object:set_hp(self.health)
             self.old_health = self.health
 
-            -- Guard shift auto-initialization for existing/legacy guards
-            if not self.guard_shift or self.guard_shift == "" then
-                if self.job_pos then
-                    local jmeta = minetest.get_meta(self.job_pos)
-                    local s = jmeta:get_string("guard_shift")
-                    if s and s ~= "" then
-                        self.guard_shift = s
-                    end
-                end
-                if not self.guard_shift or self.guard_shift == "" then
-                    local pos = self.object:get_pos() or self.job_pos or self.home_pos
-                    local my_index = 1
-                    if pos then
-                        local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-                        if sid then
-                            local residents = eg_settlers.db.get_residents(sid)
-                            local guard_keys = {}
-                            for p_str, res in pairs(residents) do
-                                if res.profession == "guard" then
-                                    table.insert(guard_keys, p_str)
-                                end
+            -- Guard shift auto-initialization & synchronization for all guards
+            local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
+            local s = jmeta and jmeta:get_string("guard_shift")
+            if s and s ~= "" then
+                self.guard_shift = s
+            else
+                local pos = self.object:get_pos() or self.job_pos or self.home_pos
+                local my_index = 1
+                if pos then
+                    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                    if sid then
+                        local residents = eg_settlers.db.get_residents(sid)
+                        local guard_keys = {}
+                        for p_str, res in pairs(residents) do
+                            if res.profession == "guard" then
+                                table.insert(guard_keys, p_str)
                             end
-                            table.sort(guard_keys)
-                            local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
-                            local my_name = self.game_name or self.nametag or ""
-                            for idx, k in ipairs(guard_keys) do
-                                local r_info = residents[k]
-                                if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
-                                    my_index = idx
-                                    break
-                                end
+                        end
+                        table.sort(guard_keys)
+                        local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
+                        local my_name = self.game_name or self.nametag or ""
+                        for idx, k in ipairs(guard_keys) do
+                            local r_info = residents[k]
+                            if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
+                                my_index = idx
+                                break
                             end
                         end
                     end
-                    self.guard_shift = (my_index % 2 == 1) and "day" or "night"
                 end
-                if self.job_pos then
-                    local jmeta = minetest.get_meta(self.job_pos)
-                    if jmeta and jmeta:get_string("guard_shift") == "" then
-                        jmeta:set_string("guard_shift", self.guard_shift)
-                        local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
-                        local rname = self.nametag or self.game_name or "Guard"
-                        jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
-                    end
+                self.guard_shift = (my_index % 2 == 1) and "day" or "night"
+                if jmeta then
+                    jmeta:set_string("guard_shift", self.guard_shift)
+                    local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
+                    local rname = self.nametag or self.game_name or "Guard"
+                    jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
                 end
             end
 
