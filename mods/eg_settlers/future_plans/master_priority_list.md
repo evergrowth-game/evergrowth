@@ -55,23 +55,37 @@ This document consolidates all planned features, multiplayer fixes, and infrastr
     * Override `minetest.is_protected(pos, name)` to make the Town Ledger a massive protection block, blocking unauthorized building/digging within the town's radius.
     * Ensure deeds/job blocks can only be placed if the player has permission (hooking into `areas` or `protector` mods).
 
-## Phase 4: Quality of Life & Usability (Cancelled / Omitted)
-*Improving the player experience for town planning.*
+## Phase 4: Construct Defenders & Guard Expansion ([guard_expansion.md](guard_expansion.md))
+*Non-sleeping construct defenders that do not require beds or food.*
 
-12. **Visual Boundary Markers (Cancelled):** 
-    * *Cancelled:* Visual boundary highlights at the 200-block settlement radius introduce viewport occlusion and engine chunk-culling limitations. Feature removed from project scope.
+12. **Clay Golem (`eg_settlers:golem_clay`):**
+    * Heavy blunt defender (HP 120, Damage 6) bound to a Golem Pedestal.
+    * Activated with a Golem Core item; 30-block patrol tether.
+13. **Automaton / Robot (`eg_settlers:automaton`):**
+    * Techage-compatible sentry defender (HP 80, Speed 2.5, Damage 5) bound to an Automaton Station.
+    * Activated with an Automaton Core item; 35-block patrol tether.
 
-## Phase 5: Advanced Logistics & Trade Hubs
-*Complex, modular systems for inter-town trading. These explicitly require the Phase 1 Ownership system to prevent griefing.*
+## Phase 5: Automated Tech Defenses ([tech_defenses.md](tech_defenses.md))
+*Non-magical defensive infrastructure satisfying Tier 3 Village progression.*
 
-13. **Modular Trade Hubs:** 
+14. **Automated Sentry Turret (`eg_settlers:sentry_turret`):**
+    * Dual-component architecture: base node + rotating turret head child entity.
+    * 3D raycast target acquisition, ammo consumption, muzzle flashes, and tracer particles.
+15. **Surveillance Spotlight (`eg_settlers:spotlight`):**
+    * Automated night searchlight with dynamic ground illumination.
+    * Hostile detection triggers a 35-block Guard distress alarm.
+
+## Phase 6: Advanced Logistics & Trade Hubs ([trade_hubs.md](trade_hubs.md))
+*Complex, modular systems for inter-town trading.*
+
+16. **Modular Trade Hubs:** 
     * Implement a multi-block "Trade Post" structure centered around a "Trade Desk". 
     * Shipping capacity is determined by building physical "Cargo Crate" nodes around it.
-14. **Dockmaster's Ledger:** 
+17. **Dockmaster's Ledger:** 
     * A static interaction node for managing trade routes (bulk player logistics or passive export for gold lumps) without relying on wandering NPCs.
-15. **Containerized Physical Loading:** 
+18. **Containerized Physical Loading:** 
     * Allow players to pack goods into "Shipping Crate" nodes and place them on a "Loading Bay". 
     * When a shipment departs, the physical crate nodes are removed from the world.
-16. **Visual Trade Vehicles:** 
+19. **Visual Trade Vehicles:** 
     * Spawn non-loaded-chunk-dependent visual Caravan or Ship entities that navigate along player-placed "Trade Roads" or "Channel Buoys".
     * Dynamically attach individual cargo container models to the base vehicle using `set_attach()` to visually represent the load capacity.
