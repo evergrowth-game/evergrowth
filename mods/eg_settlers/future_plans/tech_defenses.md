@@ -1,12 +1,12 @@
 # Tech Defenses: Sentry Turret & Surveillance Spotlight
 
-This document specifies the technical design, engine implementation, and asset pipeline for automated tech-based defenses in `eg_settlers` as alternatives and complements to the magical Sentinel Ward Stone.
+This document specifies the technical design, engine implementation, and asset pipeline for automated tech-based defenses in `eg_settlers` as alternatives and complements to the magical Ward Stone.
 
 ---
 
 ## 1. Context & Design Goals
 
-The **Sentinel Ward Stone** provides omnidirectional magical aura defense (dealing 10 damage to hostiles within 15 blocks every second). For tech-oriented settlements, players need non-magical defensive infrastructure that:
+The **Ward Stone** provides omnidirectional magical aura defense (dealing 10 damage to hostiles within 15 blocks every second). For tech-oriented settlements, players need non-magical defensive infrastructure that:
 1. Fulfills the town defense infrastructure requirement (satisfying Tier 3 Village progression in `settlement_db.lua` alongside or in place of the Ward Stone).
 2. Introduces line-of-sight kinetic defense with ammo/maintenance considerations.
 3. Integrates with the existing settler Guard alarm system.
