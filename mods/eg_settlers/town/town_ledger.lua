@@ -86,31 +86,32 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         end
     end
     local total_guards = day_guard_count + night_guard_count
-    local guard_ratio = resident_count > 0 and math.floor((total_guards / resident_count) * 100) or 0
 
     local formspec = "formspec_version[4]" ..
         "size[14.5,9.5]" ..
         "box[0,0;14.5,9.5;#181A20]"
     
     if is_auth then
-        formspec = formspec .. "tabheader[0.4,0.3;13.7,0.65;ledger_tabs;" .. S("Overview & Roster") .. "," .. S("Access Control") .. "," .. S("Law & Defenses") .. ";" .. tab_index .. ";true;false]"
+        formspec = formspec .. "tabheader[0.4,0.3;13.7,0.65;ledger_tabs;" .. S("Overview & Roster") .. "," .. S("Access Control") .. "," .. S("Law & Incidents") .. ";" .. tab_index .. ";true;false]"
     end
 
-    -- Top Header Summary Card (y=1.0 to 2.3)
+    -- Top Header Summary Card (y=1.0 to 2.35)
     formspec = formspec ..
         "box[0.4,1.0;13.7,1.35;#23262F]" ..
         "label[0.7,1.55;" .. minetest.colorize("#AAAAAA", S("Town Name:")) .. "]" ..
-        "field[2.5,1.2;3.7,0.75;town_name;;" .. minetest.formspec_escape(s.name) .. "]"
+        "field[2.3,1.2;3.4,0.75;town_name;;" .. minetest.formspec_escape(s.name) .. "]"
         
     if is_auth then
-        formspec = formspec .. "button[6.4,1.2;1.5,0.75;rename;" .. S("Rename") .. "]"
+        formspec = formspec .. "button[5.9,1.2;1.4,0.75;rename;" .. S("Rename") .. "]"
     end
 
     formspec = formspec ..
-        "box[8.1,1.2;2.8,0.75;#1C1E24]" ..
-        "label[8.3,1.55;" .. minetest.colorize("#FFAA00", tier_name) .. " " .. minetest.colorize("#DDDDDD", "(" .. resident_count .. "/" .. tier_cap .. ")") .. "]" ..
-        "box[11.1,1.2;2.6,0.75;#1C1E24]" ..
-        "label[11.4,1.55;" .. status_text .. "]"
+        "box[7.5,1.2;2.3,0.75;#1C1E24]" ..
+        "label[7.7,1.55;" .. minetest.colorize("#FFAA00", tier_name) .. " " .. minetest.colorize("#DDDDDD", "(" .. resident_count .. "/" .. tier_cap .. ")") .. "]" ..
+        "box[10.0,1.2;2.0,0.75;#1C1E24]" ..
+        "label[10.2,1.55;" .. status_text .. "]" ..
+        "box[12.2,1.2;1.7,0.75;#1C1E24]" ..
+        "label[12.35,1.55;" .. minetest.colorize("#00FFFF", "Wards: " .. tostring(ward_stone_count)) .. "]"
         
     if is_owner then
         formspec = formspec .. "button[12.7,0.35;1.4,0.55;disband_prompt;" .. minetest.colorize("#FF6666", S("Disband")) .. "]"
@@ -155,7 +156,7 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
             "tablecolumns[text,align=left;text,align=left;text,align=center;text,align=center]" ..
             "table[0.7,3.15;13.1,4.35;roster_table;" .. table_rows .. ";" .. selected_idx .. "]"
 
-        -- Resident Inspector / Shift Action Bar (y=7.9 to 9.1)
+        -- Resident Inspector / Shift Action Bar (y=7.9 to 9.15)
         formspec = formspec ..
             "box[0.4,7.9;13.7,1.25;#23262F]"
             
@@ -214,13 +215,14 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         end
 
     elseif tab_index == 3 and is_auth then
-        -- Tab 3: Law & Defenses
+        -- Tab 3: Law & Incidents (Split-Column Layout)
+        
+        -- Left Panel: Incident Log & Mortality
         local death_cells = {}
         local deaths = s.death_log or {}
         if #deaths == 0 then
             table.insert(death_cells, "-")
-            table.insert(death_cells, S("No settler casualties recorded"))
-            table.insert(death_cells, "-")
+            table.insert(death_cells, S("No casualties recorded"))
             table.insert(death_cells, "-")
             table.insert(death_cells, "-")
         else
@@ -230,7 +232,6 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
                 table.insert(death_cells, minetest.formspec_escape(dt))
                 table.insert(death_cells, minetest.formspec_escape(d.settler_name or "Settler"))
                 table.insert(death_cells, minetest.formspec_escape(d.cause or "Unknown"))
-                table.insert(death_cells, minetest.formspec_escape(d.killer or "Unknown"))
                 table.insert(death_cells, minetest.formspec_escape(pstr))
             end
         end
@@ -238,15 +239,14 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local total_historical = (s.historical_fallen_count or 0) + #deaths
 
         formspec = formspec ..
-            "box[0.4,2.5;13.7,6.65;#23262F]" ..
-            "label[0.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Town Defenses & Telemetry ──")) .. "]" ..
-            "label[0.7,3.25;" .. S("Active Ward Stones:") .. " " .. minetest.colorize("#00FF00", tostring(ward_stone_count)) .. "    |    " .. S("Guard Coverage:") .. " " .. minetest.colorize("#00FFFF", string.format("%d Guards (%d%%)", total_guards, guard_ratio)) .. "]" ..
-            "label[0.7,3.85;" .. minetest.colorize("#FFFFFF", S("── Settler Incident Log (Recent Deaths) ──")) .. "]" ..
-            "tablecolumns[text,align=left;text,align=left;text,align=left;text,align=left;text,align=center]" ..
-            "table[0.7,4.15;13.1,1.5;death_table;" .. death_rows .. ";0]" ..
-            "label[0.7,5.8;" .. S("Total Historical Mortality Count: ") .. minetest.colorize("#FFAA00", tostring(total_historical)) .. "]" ..
-            "label[0.7,6.25;" .. minetest.colorize("#FFFFFF", S("── Settlement Criminal Records & Fines ──")) .. "]"
+            "box[0.4,2.5;6.7,6.65;#23262F]" ..
+            "label[0.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Settler Incident Log ──")) .. "]" ..
+            "tablecolumns[text,align=left;text,align=left;text,align=left;text,align=center]" ..
+            "table[0.7,3.15;6.1,4.75;death_table;" .. death_rows .. ";0]" ..
+            "box[0.7,8.1;6.1,0.8;#1C1E24]" ..
+            "label[0.9,8.5;" .. S("Lifetime Settler Casualties: ") .. minetest.colorize("#FFAA00", tostring(total_historical)) .. "]"
 
+        -- Right Panel: Criminal Records & Fines
         local criminal_cells = {}
         local records = s.criminal_records or {}
         local count_rec = 0
@@ -273,19 +273,26 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local criminal_rows = table.concat(criminal_cells, ",")
 
         formspec = formspec ..
+            "box[7.4,2.5;6.7,6.65;#23262F]" ..
+            "label[7.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Criminal Registry & Fines ──")) .. "]" ..
             "tablecolumns[text,align=left;text,align=left]" ..
-            "table[0.7,6.55;13.1,1.35;wanted_table;" .. criminal_rows .. ";0]"
+            "table[7.7,3.15;6.1,4.75;wanted_table;" .. criminal_rows .. ";0]"
 
         local prec = eg_settlers.db.get_criminal_record(sid, player_name)
         if prec and ((prec.assault_count and prec.assault_count > 0) or (prec.murder_count and prec.murder_count > 0)) then
-            if prec.assault_count and prec.assault_count > 0 then
-                formspec = formspec .. "button[0.7,8.1;6.3,0.75;pay_assault_fine;" .. S("Pay Assault Fine (50 Lumps)") .. "]"
-            end
-            if prec.murder_count and prec.murder_count > 0 then
-                formspec = formspec .. "button[7.4,8.1;6.3,0.75;pay_murder_fine;" .. S("Pay Murder Fine (200 Lumps)") .. "]"
+            if prec.assault_count and prec.assault_count > 0 and prec.murder_count and prec.murder_count > 0 then
+                formspec = formspec ..
+                    "button[7.7,8.1;2.9,0.75;pay_assault_fine;" .. S("Pay Assault (50)") .. "]" ..
+                    "button[10.9,8.1;2.9,0.75;pay_murder_fine;" .. S("Pay Murder (200)") .. "]"
+            elseif prec.assault_count and prec.assault_count > 0 then
+                formspec = formspec .. "button[7.7,8.1;6.1,0.75;pay_assault_fine;" .. S("Pay Assault Restitution Fine (50 Lumps)") .. "]"
+            elseif prec.murder_count and prec.murder_count > 0 then
+                formspec = formspec .. "button[7.7,8.1;6.1,0.75;pay_murder_fine;" .. S("Pay Murder Restitution Fine (200 Lumps)") .. "]"
             end
         else
-            formspec = formspec .. "label[0.7,8.25;" .. minetest.colorize("#00FF00", S("Your standing in this settlement is clean.")) .. "]"
+            formspec = formspec ..
+                "box[7.7,8.1;6.1,0.8;#1C1E24]" ..
+                "label[7.9,8.5;" .. minetest.colorize("#00FF00", S("● Your standing in this town is clean.")) .. "]"
         end
     end
         
