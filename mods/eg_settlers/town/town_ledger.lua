@@ -64,31 +64,31 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
     local status_text = s.satiated == 1 and minetest.colorize("#44FF44", S("● Well-Fed")) or minetest.colorize("#FF4444", S("● Starving"))
     
     local formspec = "formspec_version[4]" ..
-        "size[13,9.5]" ..
-        "box[0,0;13,9.5;#181A20]"
+        "size[14.5,9.5]" ..
+        "box[0,0;14.5,9.5;#181A20]"
     
     if is_auth then
-        formspec = formspec .. "tabheader[0.4,0.3;12.2,0.65;ledger_tabs;" .. S("Overview & Roster") .. "," .. S("Access Control") .. "," .. S("Law & Justice") .. ";" .. tab_index .. ";true;false]"
+        formspec = formspec .. "tabheader[0.4,0.3;13.7,0.65;ledger_tabs;" .. S("Overview & Roster") .. "," .. S("Access Control") .. "," .. S("Law & Justice") .. ";" .. tab_index .. ";true;false]"
     end
 
     -- Top Header Summary Card (y=1.0 to 2.3)
     formspec = formspec ..
-        "box[0.4,1.0;12.2,1.35;#23262F]" ..
+        "box[0.4,1.0;13.7,1.35;#23262F]" ..
         "label[0.7,1.45;" .. minetest.colorize("#AAAAAA", S("Town Name:")) .. "]" ..
-        "field[2.0,1.2;3.8,0.75;town_name;;" .. minetest.formspec_escape(s.name) .. "]"
+        "field[2.0,1.2;4.2,0.75;town_name;;" .. minetest.formspec_escape(s.name) .. "]"
         
     if is_auth then
-        formspec = formspec .. "button[6.0,1.2;1.5,0.75;rename;" .. S("Rename") .. "]"
+        formspec = formspec .. "button[6.4,1.2;1.5,0.75;rename;" .. S("Rename") .. "]"
     end
 
     formspec = formspec ..
-        "box[7.7,1.2;2.4,0.75;#1C1E24]" ..
-        "label[7.9,1.55;" .. minetest.colorize("#FFAA00", tier_name) .. " " .. minetest.colorize("#DDDDDD", "(" .. resident_count .. "/" .. tier_cap .. ")") .. "]" ..
-        "box[10.3,1.2;2.1,0.75;#1C1E24]" ..
-        "label[10.5,1.55;" .. status_text .. "]"
+        "box[8.2,1.2;2.8,0.75;#1C1E24]" ..
+        "label[8.4,1.55;" .. minetest.colorize("#FFAA00", tier_name) .. " " .. minetest.colorize("#DDDDDD", "(" .. resident_count .. "/" .. tier_cap .. ")") .. "]" ..
+        "box[11.2,1.2;2.5,0.75;#1C1E24]" ..
+        "label[11.5,1.55;" .. status_text .. "]"
         
     if is_owner then
-        formspec = formspec .. "button[11.2,0.35;1.4,0.55;disband_prompt;" .. minetest.colorize("#FF6666", S("Disband")) .. "]"
+        formspec = formspec .. "button[12.7,0.35;1.4,0.55;disband_prompt;" .. minetest.colorize("#FF6666", S("Disband")) .. "]"
     end
 
     if tab_index == 1 or not is_auth then
@@ -114,14 +114,14 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local table_rows = table.concat(table_cells, ",")
 
         formspec = formspec ..
-            "box[0.4,2.5;12.2,5.2;#23262F]" ..
+            "box[0.4,2.5;13.7,5.2;#23262F]" ..
             "label[0.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Town Resident Census ──")) .. "]" ..
-            "tablecolumns[text,align=left,width=18;text,align=left,width=12;text,align=center,width=10;text,align=center,width=10]" ..
-            "table[0.7,3.15;11.6,4.35;roster_table;" .. table_rows .. ";" .. selected_idx .. "]"
+            "tablecolumns[text,align=left;text,align=left;text,align=center;text,align=center]" ..
+            "table[0.7,3.15;13.1,4.35;roster_table;" .. table_rows .. ";" .. selected_idx .. "]"
 
         -- Resident Inspector / Shift Action Bar (y=7.9 to 9.1)
         formspec = formspec ..
-            "box[0.4,7.9;12.2,1.25;#23262F]"
+            "box[0.4,7.9;13.7,1.25;#23262F]"
             
         if selected_res then
             if selected_res.profession == "guard" then
@@ -132,7 +132,7 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
                     "label[0.7,8.7;" .. minetest.colorize("#888888", S("Workstation: ") .. selected_res.pos_str) .. "]"
                     
                 if is_auth then
-                    formspec = formspec .. "button[8.5,8.15;3.8,0.75;toggle_guard_shift;" .. target_btn_label .. "]"
+                    formspec = formspec .. "button[10.0,8.15;3.8,0.75;toggle_guard_shift;" .. target_btn_label .. "]"
                 end
             else
                 local prof_title = selected_res.profession:gsub("_", " "):gsub("^%l", string.upper)
@@ -153,25 +153,25 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local assoc_rows = table.concat(assoc_list, ",")
 
         formspec = formspec ..
-            "box[0.4,2.5;12.2,6.65;#23262F]" ..
+            "box[0.4,2.5;13.7,6.65;#23262F]" ..
             "label[0.7,2.9;" .. S("Town Owner: ") .. minetest.colorize("#FFFF00", s.owner) .. "]"
             
         if is_owner then
             formspec = formspec ..
-                "field[0.7,3.6;4.5,0.75;new_owner;;" .. S("Transfer Ownership to...") .. "]" ..
-                "button[5.4,3.6;2.5,0.75;transfer_owner;" .. S("Transfer") .. "]"
+                "field[0.7,3.6;5.0,0.75;new_owner;;" .. S("Transfer Ownership to...") .. "]" ..
+                "button[6.0,3.6;2.5,0.75;transfer_owner;" .. S("Transfer") .. "]"
         end
         
         formspec = formspec ..
             "label[0.7,4.8;" .. minetest.colorize("#FFFFFF", S("── Authorized Associates ──")) .. "]" ..
-            "tablecolumns[text,align=left,width=24]" ..
-            "table[0.7,5.1;11.6,2.6;assoc_table;" .. assoc_rows .. ";0]"
+            "tablecolumns[text,align=left]" ..
+            "table[0.7,5.1;13.1,2.6;assoc_table;" .. assoc_rows .. ";0]"
             
         if is_owner then
             formspec = formspec ..
-                "field[0.7,8.1;4.5,0.75;assoc_name;;" .. S("Player Name") .. "]" ..
-                "button[5.4,8.1;2.5,0.75;add_assoc;" .. S("Add Associate") .. "]" ..
-                "button[8.1,8.1;2.0,0.75;remove_assoc;" .. S("Remove") .. "]"
+                "field[0.7,8.1;5.0,0.75;assoc_name;;" .. S("Player Name") .. "]" ..
+                "button[6.0,8.1;2.5,0.75;add_assoc;" .. S("Add Associate") .. "]" ..
+                "button[8.8,8.1;2.0,0.75;remove_assoc;" .. S("Remove") .. "]"
         end
 
     elseif tab_index == 3 and is_auth then
@@ -191,10 +191,10 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local total_historical = (s.historical_fallen_count or 0) + #deaths
 
         formspec = formspec ..
-            "box[0.4,2.5;12.2,6.65;#23262F]" ..
+            "box[0.4,2.5;13.7,6.65;#23262F]" ..
             "label[0.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Settler Incident Log (Recent Deaths) ──")) .. "]" ..
-            "tablecolumns[text,align=left,width=8;text,align=left,width=12;text,align=left,width=10;text,align=left,width=10;text,align=center,width=8]" ..
-            "table[0.7,3.15;11.6,1.8;death_table;" .. death_rows .. ";0]" ..
+            "tablecolumns[text,align=left;text,align=left;text,align=left;text,align=left;text,align=center]" ..
+            "table[0.7,3.15;13.1,1.8;death_table;" .. death_rows .. ";0]" ..
             "label[0.7,5.15;" .. S("Total Historical Mortality Count: ") .. minetest.colorize("#FFAA00", tostring(total_historical)) .. "]" ..
             "label[0.7,5.65;" .. minetest.colorize("#FFFFFF", S("── Settlement Criminal Records & Fines ──")) .. "]"
 
@@ -217,16 +217,16 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         local criminal_rows = table.concat(criminal_cells, ",")
 
         formspec = formspec ..
-            "tablecolumns[text,align=left,width=14;text,align=left,width=26]" ..
-            "table[0.7,5.95;11.6,1.8;wanted_table;" .. criminal_rows .. ";0]"
+            "tablecolumns[text,align=left;text,align=left]" ..
+            "table[0.7,5.95;13.1,1.8;wanted_table;" .. criminal_rows .. ";0]"
 
         local prec = eg_settlers.db.get_criminal_record(sid, player_name)
         if prec and ((prec.assault_count and prec.assault_count > 0) or (prec.murder_count and prec.murder_count > 0)) then
             if prec.assault_count and prec.assault_count > 0 then
-                formspec = formspec .. "button[0.7,8.0;5.6,0.75;pay_assault_fine;" .. S("Pay Assault Fine (50 Lumps)") .. "]"
+                formspec = formspec .. "button[0.7,8.0;6.3,0.75;pay_assault_fine;" .. S("Pay Assault Fine (50 Lumps)") .. "]"
             end
             if prec.murder_count and prec.murder_count > 0 then
-                formspec = formspec .. "button[6.7,8.0;5.6,0.75;pay_murder_fine;" .. S("Pay Murder Fine (200 Lumps)") .. "]"
+                formspec = formspec .. "button[7.4,8.0;6.3,0.75;pay_murder_fine;" .. S("Pay Murder Fine (200 Lumps)") .. "]"
             end
         else
             formspec = formspec .. "label[0.7,8.25;" .. minetest.colorize("#00FF00", S("Your standing in this settlement is clean.")) .. "]"
