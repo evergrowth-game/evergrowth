@@ -251,6 +251,14 @@ function eg_settlers.db.unregister_resident(settlement_id, deed_pos)
     end
 end
 
+function eg_settlers.db.get_residents(settlement_id)
+    local s = db_data.settlements[settlement_id]
+    if s and s.residents then
+        return s.residents
+    end
+    return {}
+end
+
 function eg_settlers.db.get_resident_count(settlement_id)
     local s = db_data.settlements[settlement_id]
     if not s then return 0 end
