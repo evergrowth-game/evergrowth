@@ -591,10 +591,8 @@ for _, entity_name in ipairs(target_entities) do
             self.hp_max = 50
             self.object:set_properties({hp_max = 50})
 
-            -- Clamp health to valid range and sync engine HP
-            if self.health and self.health > 0 then
-                if self.health > 50 then self.health = 50 end
-            else
+            -- Restore/scale guard health up to 50 max
+            if not self.health or self.health <= 0 or self.health == 20 or self.health > 50 then
                 self.health = 50
             end
             self.object:set_hp(self.health)
@@ -691,7 +689,10 @@ for _, entity_name in ipairs(target_entities) do
                     local meta = contract:get_meta()
                     local rname = self.nametag or self.game_name or "Settler"
                     local prof = self.evergrowth_profession or "merchant"
-                    local hp = self.health or 20
+                    local hp = self.health or (prof == "guard" and 50 or 20)
+                    if prof == "guard" and (hp <= 0 or hp == 20 or hp > 50) then
+                        hp = 50
+                    end
 
                     meta:set_string("resident_name", rname)
                     meta:set_string("profession", prof)

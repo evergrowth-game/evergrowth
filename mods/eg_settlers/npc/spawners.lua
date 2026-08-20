@@ -111,11 +111,12 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 ent.attack_monsters = true
                 ent.damage = 10
                 ent.hp_max = 50
-                ent.health = 50
+                local target_hp = (override_data and override_data.health and override_data.health > 20 and override_data.health <= 50) and override_data.health or 50
+                ent.health = target_hp
                 ent.view_range = 30
                 ent.guard_shift = override_data.guard_shift or "day"
                 obj:set_properties({hp_max = 50})
-                obj:set_hp(50)
+                obj:set_hp(target_hp)
             end
             if is_villager then
                 ent.home_pos = override_data.home_pos or {x=pos.x, y=pos.y, z=pos.z}
