@@ -458,6 +458,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     local sel_idx = player_selected_resident[name] or 1
                     local selected_res = res_list[sel_idx]
                     if selected_res and selected_res.profession == "guard" and selected_res.rpos then
+                        minetest.load_area(selected_res.rpos, selected_res.rpos)
                         local rmeta = minetest.get_meta(selected_res.rpos)
                         local cur_shift = rmeta:get_string("guard_shift")
                         if cur_shift == "" then cur_shift = "day" end
@@ -465,26 +466,39 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                         rmeta:set_string("guard_shift", new_shift)
                         
                         local shift_title = new_shift == "night" and S("Night Shift") or S("Day Shift")
+                        local new_label = new_shift == "night" and "Night Guard" or "Day Guard"
                         local rname = rmeta:get_string("resident_name")
                         if rname == "" then rname = selected_res.name end
+                        
+                        -- Update resident name string to reflect new shift
+                        if rname:find("Day Guard") or rname:find("Night Guard") then
+                            rname = rname:gsub("Day Guard", new_label):gsub("Night Guard", new_label)
+                            rmeta:set_string("resident_name", rname)
+                        end
                         rmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
                         
-                        -- Find and update active live guard entity
-                        local objs = minetest.get_objects_inside_radius(selected_res.rpos, 80)
+                        -- Synchronize settlement database record
+                        local pos_key = selected_res.pos_str
+                        if s and s.residents and s.residents[pos_key] then
+                            s.residents[pos_key].name = rname
+                            eg_settlers.db.mark_dirty()
+                        end
+                        
+                        -- Find and update active live guard entity across settlement area (150m radius)
+                        local objs = minetest.get_objects_inside_radius(selected_res.rpos, 150)
                         for _, obj in ipairs(objs) do
                             local ent = obj:get_luaentity()
                             if ent and ent.is_villager and ent.evergrowth_profession == "guard" then
                                 local is_target = false
                                 if ent.job_pos and vector.distance(ent.job_pos, selected_res.rpos) < 1.0 then
                                     is_target = true
-                                elseif ent.game_name and (ent.game_name == selected_res.name or ent.game_name == selected_res.raw_name) then
+                                elseif ent.game_name and (ent.game_name == selected_res.name or ent.game_name == selected_res.raw_name or ent.game_name == rname) then
                                     is_target = true
                                 end
                                 if is_target then
                                     ent.guard_shift = new_shift
                                     if ent.game_name then
-                                        local new_label = new_shift == "night" and "Night Guard" or "Day Guard"
-                                        ent.game_name = ent.game_name:gsub("Day Guard", new_label):gsub("Night Guard", new_label):gsub("Guard", new_label)
+                                        ent.game_name = ent.game_name:gsub("Day Guard", new_label):gsub("Night Guard", new_label)
                                         ent.nametag = ent.game_name
                                         ent.object:set_properties({nametag = ent.nametag})
                                     end
