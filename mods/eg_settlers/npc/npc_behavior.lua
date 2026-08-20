@@ -623,9 +623,11 @@ for _, entity_name in ipairs(target_entities) do
                                 end
                             end
                             table.sort(guard_keys)
-                            local my_key = self.job_pos and minetest.pos_to_string(self.job_pos) or ""
+                            local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
+                            local my_name = self.game_name or self.nametag or ""
                             for idx, k in ipairs(guard_keys) do
-                                if k == my_key then
+                                local r_info = residents[k]
+                                if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
                                     my_index = idx
                                     break
                                 end
@@ -638,7 +640,23 @@ for _, entity_name in ipairs(target_entities) do
                     local jmeta = minetest.get_meta(self.job_pos)
                     if jmeta and jmeta:get_string("guard_shift") == "" then
                         jmeta:set_string("guard_shift", self.guard_shift)
+                        local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
+                        local rname = self.nametag or self.game_name or "Guard"
+                        jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
                     end
+                end
+            end
+
+            -- Synchronize nametag label with resolved shift
+            if self.game_name and self.game_name ~= "" and self.guard_shift then
+                if self.guard_shift == "night" and self.game_name:find("Day Guard") then
+                    self.game_name = self.game_name:gsub("Day Guard", "Night Guard")
+                    self.nametag = self.game_name
+                    self.object:set_properties({nametag = self.nametag})
+                elseif self.guard_shift == "day" and self.game_name:find("Night Guard") then
+                    self.game_name = self.game_name:gsub("Night Guard", "Day Guard")
+                    self.nametag = self.game_name
+                    self.object:set_properties({nametag = self.nametag})
                 end
             end
         end
