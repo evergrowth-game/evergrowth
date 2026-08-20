@@ -117,7 +117,7 @@ local function get_formspec(sid, player_name, tab_index, selected_idx)
         formspec = formspec ..
             "box[0.4,2.5;13.7,5.2;#23262F]" ..
             "label[0.7,2.85;" .. minetest.colorize("#FFFFFF", S("── Town Resident Census ──")) .. "]" ..
-            "tablecolumns[text,align=left;text,align=left;text,align=center;text,align=center]" ..
+            "tablecolumns[text,align=left,width=14;text,align=left,width=10;text,align=center,width=7;text,align=center,width=7]" ..
             "table[0.7,3.15;13.1,4.35;roster_table;" .. table_rows .. ";" .. selected_idx .. "]"
 
         -- Resident Inspector / Shift Action Bar (y=7.9 to 9.15)
