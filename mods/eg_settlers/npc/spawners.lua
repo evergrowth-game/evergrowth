@@ -113,6 +113,7 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                 ent.hp_max = 50
                 ent.health = 50
                 ent.view_range = 30
+                ent.guard_shift = override_data.guard_shift or "day"
                 obj:set_properties({hp_max = 50})
                 obj:set_hp(50)
             end
@@ -143,8 +144,13 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
             else
                 local name_list = is_female and female_names or male_names
                 local name = name_list[math.random(#name_list)]
-                local display_prof = profession:gsub("_", " "):gsub("(%a)([%w_']*)", function(first, rest) return first:upper() .. rest:lower() end)
-                ent.nametag = name .. " the " .. display_prof
+                if profession == "guard" and ent.guard_shift then
+                    local shift_label = ent.guard_shift == "night" and "Night Guard" or "Day Guard"
+                    ent.nametag = name .. " the " .. shift_label
+                else
+                    local display_prof = profession:gsub("_", " "):gsub("(%a)([%w_']*)", function(first, rest) return first:upper() .. rest:lower() end)
+                    ent.nametag = name .. " the " .. display_prof
+                end
             end
             ent.game_name = ent.nametag
             

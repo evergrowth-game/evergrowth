@@ -62,11 +62,37 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
             end
         end
 
+        -- Guard Shift Determination
+        local guard_shift = nil
+        if prof_id == "guard" then
+            local guard_count = 0
+            if sid then
+                local residents = eg_settlers.db.get_residents(sid)
+                for _, res in pairs(residents) do
+                    if res.profession == "guard" then
+                        guard_count = guard_count + 1
+                    end
+                end
+            else
+                local p1 = vector.subtract(under_pos, 200)
+                local p2 = vector.add(under_pos, 200)
+                local nodes = minetest.find_nodes_in_area(p1, p2, {"eg_settlers:job_block_guard"})
+                for _, npos in ipairs(nodes) do
+                    local nmeta = minetest.get_meta(npos)
+                    if nmeta:get_int("occupied") == 1 then
+                        guard_count = guard_count + 1
+                    end
+                end
+            end
+            guard_shift = (guard_count % 2 == 0) and "day" or "night"
+        end
+
         -- Spawn Villager
         local spawn_pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local npc_name = eg_settlers.spawn_trader(spawn_pos, prof_id, true, {
             home_pos = bed_pos,
             job_pos = under_pos,
+            guard_shift = guard_shift,
         })
 
         -- Bind Job Block & Bed Metadata
@@ -75,7 +101,13 @@ minetest.register_craftitem("eg_settlers:hiring_contract", {
         block_meta:set_string("profession", prof_id)
         block_meta:set_string("job_pos", minetest.pos_to_string(under_pos))
         block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
-        block_meta:set_string("infotext", S("Workstation: ") .. prof_id:sub(1,1):upper() .. prof_id:sub(2) .. "\n" .. S("Resident: ") .. (npc_name or prof_id))
+        if guard_shift then
+            block_meta:set_string("guard_shift", guard_shift)
+            local shift_title = guard_shift == "night" and S("Night Shift") or S("Day Shift")
+            block_meta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. (npc_name or prof_id))
+        else
+            block_meta:set_string("infotext", S("Workstation: ") .. prof_id:sub(1,1):upper() .. prof_id:sub(2) .. "\n" .. S("Resident: ") .. (npc_name or prof_id))
+        end
 
         eg_settlers.assign_bed(bed_pos, npc_name or prof_id)
 
@@ -245,6 +277,23 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         end
 
         local meta = itemstack:get_meta()
+        local saved_shift = meta:get_string("guard_shift")
+        local guard_shift = (saved_shift ~= "") and saved_shift or nil
+        local profession = meta:get_string("profession")
+        if profession == "" then profession = prof_id end
+
+        if profession == "guard" and not guard_shift then
+            local sid_check = eg_settlers.db.find_nearest_settlement(under_pos, 200)
+            local guard_count = 0
+            if sid_check then
+                local residents = eg_settlers.db.get_residents(sid_check)
+                for _, res in pairs(residents) do
+                    if res.profession == "guard" then guard_count = guard_count + 1 end
+                end
+            end
+            guard_shift = (guard_count % 2 == 0) and "day" or "night"
+        end
+
         local trades_str = meta:get_string("trades")
         local override_data = {
             nametag = meta:get_string("resident_name"),
@@ -253,9 +302,8 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
             trades = (trades_str ~= "") and minetest.deserialize(trades_str) or nil,
             home_pos = bed_pos,
             job_pos = under_pos,
+            guard_shift = guard_shift,
         }
-        local profession = meta:get_string("profession")
-        if profession == "" then profession = prof_id end
 
         local spawn_pos = eg_settlers.get_safe_spawn_pos(pointed_thing) or pointed_thing.above
         local npc_name = eg_settlers.spawn_trader(spawn_pos, profession, true, override_data)
@@ -265,7 +313,13 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         block_meta:set_string("profession", profession)
         block_meta:set_string("job_pos", minetest.pos_to_string(under_pos))
         block_meta:set_string("home_pos", minetest.pos_to_string(bed_pos))
-        block_meta:set_string("infotext", S("Workstation: ") .. profession .. "\n" .. S("Resident: ") .. (npc_name or "Villager"))
+        if guard_shift then
+            block_meta:set_string("guard_shift", guard_shift)
+            local shift_title = guard_shift == "night" and S("Night Shift") or S("Day Shift")
+            block_meta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. (npc_name or "Villager"))
+        else
+            block_meta:set_string("infotext", S("Workstation: ") .. profession .. "\n" .. S("Resident: ") .. (npc_name or "Villager"))
+        end
 
         eg_settlers.assign_bed(bed_pos, npc_name or "Villager")
 
