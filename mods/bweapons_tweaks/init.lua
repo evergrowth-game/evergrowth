@@ -260,3 +260,20 @@ for name, recipes in pairs(custom_recipes) do
         end
     end
 end
+
+-- Wrap all bweapons projectile entities to propagate shooter ownership into TNT/settlement protection
+minetest.register_on_mods_loaded(function()
+    for name, entity_def in pairs(minetest.registered_entities) do
+        if name:match("^bweapons_") and entity_def.on_step then
+            local orig_on_step = entity_def.on_step
+            entity_def.on_step = function(self, dtime)
+                local owner_name = minetest.is_player(self.owner) and self.owner:get_player_name() or ""
+                bweapons.current_shooter = owner_name
+                local res = orig_on_step(self, dtime)
+                bweapons.current_shooter = nil
+                return res
+            end
+        end
+    end
+end)
+
