@@ -1,20 +1,20 @@
 # Evergrowth Villages: NPC Daily Schedules, Job Blocks & Pathfinding
 
-This document outlines the technical implementation for **Workplace Deeds** (job blocks), a **daily schedule state machine**, **social congregation**, and the lightweight **`navigate_to` pathfinding wrapper** that powers NPC movement between locations.
+This document outlines the technical implementation for the **daily schedule state machine**, **inter-settler scheduled visits**, and the lightweight **`navigate_to` pathfinding wrapper** that powers NPC movement between locations.
 
 ---
 
 ## 1. Pathfinding: The `navigate_to` Wrapper
 
-All scheduled movement (work, social, home) is powered by a single reusable function that wraps the engine's C++ A* pathfinder (`core.find_path`). This replaces the current teleport-to-home and dumb-walk-to-tether behaviors with real obstacle-aware navigation, plus a teleport fallback for edge cases.
+All scheduled movement (work, social, home) is powered by a single reusable function that wraps the engine's C++ A* pathfinder (`core.find_path`). This replaces the current instant-teleport and dumb-walk-to-tether behaviors with obstacle-aware navigation and safe teleport fallbacks.
 
 ### Why Not Use `go_to()` / `smart_mobs()`?
 
-The existing mobs_redo pathfinding (`smart_mobs` in `api.lua:1440`) only fires during combat (`state == "attack"`). The `go_to(pos)` helper abuses this by spawning a phantom entity and "attacking" it — but this causes NPCs to run at combat speed, risks target-switching if a real enemy appears, and creates ephemeral entities. We need a clean, schedule-driven alternative.
+The existing mobs_redo pathfinding (`smart_mobs` in `api.lua:1440`) only fires during combat (`state == "attack"`). The `go_to(pos)` helper abuses this by spawning a phantom entity and "attacking" it — causing NPCs to run at combat speed, risking target-switching if an enemy appears, and leaving state resets that freeze non-combat entities. We need a clean, schedule-driven alternative.
 
 ### Architecture
 
-A new function, `eg_settlers.navigate_to(self, target_pos)`, is called **once** when an NPC transitions between schedule phases (e.g., wander → work). It is NOT called every tick.
+`eg_settlers.navigate_to(self, target_pos)` is called **once** when an NPC transitions between schedule phases (e.g., commute $\rightarrow$ work). It is NOT called every tick.
 
 ```
 navigate_to(self, target_pos)
@@ -22,100 +22,151 @@ navigate_to(self, target_pos)
 ├── 1. Is NPC already within 2 blocks of target?
 │   └── YES → Skip. Set state to arrived.
 │
-├── 2. Does NPC have line_of_sight to target? (core.line_of_sight)
-│   └── YES → Dumb-walk (yaw_to_pos + set_velocity). No A* needed.
+├── 2. Does NPC have line_of_sight to target? (core.line_of_sight with eye offset)
+│   └── YES → Direct walk (yaw_to_pos + set_velocity).
 │
-├── 3. Call core.find_path(npc_pos, target_pos, ...)
+├── 3. Pre-pathing Door Check:
+│   └── Scan and open any closed door within 1.5 blocks of NPC via doors.get(pos):open()
+│       (Ensures A* pathfinder is not blocked when starting inside closed bedrooms)
+│
+├── 4. Call core.find_path(npc_pos, target_pos, ...)
 │   ├── Path found → Store in self._nav_waypoints. Begin waypoint walk.
-│   └── Path NOT found → Teleport to target (fallback).
+│   └── Path NOT found → Fallback safe teleport (eg_settlers.safe_teleport).
 │
-└── 4. Waypoint following runs in on_step:
-    ├── Each tick: check distance to current waypoint
-    ├── Within 0.6 blocks → pop waypoint, yaw to next
+└── 5. Waypoint following runs in on_step(self, dtime):
+    ├── Check for closed doors within 1.5 blocks ahead and auto-open (doors.get(pos):open())
+    ├── Track opened doors in self._nav_opened_doors and close once NPC is 2+ blocks away
+    ├── Distance to current waypoint < 0.8 → pop waypoint, yaw to next
     ├── All waypoints consumed → arrived
-    └── Stuck timer > 10s with no progress → teleport (fallback)
+    └── Stuck timer > 10s with no progress → fallback safe teleport (eg_settlers.safe_teleport)
 ```
 
 ### Parameters for `core.find_path`
 
 | Parameter | Value | Rationale |
 |---|---|---|
-| `searchdistance` | 25 | Covers tether radius (14 for civilians, 45 for guards). Keep small to limit CPU. |
-| `max_jump` | 1 | Villages are mostly flat. NPCs shouldn't parkour. |
-| `max_drop` | 3 | Allow walking down short stairways / slopes. |
-| `algorithm` | `"A*_noprefetch"` | Default engine algorithm. Fastest for short paths. |
+| `searchdistance` | 25 | Covers settlement tether radius. Keeps CPU cost low. |
+| `max_jump` | 1 | Standard step/jump height. |
+| `max_drop` | 3 | Allows walking down slopes and staircases. |
+| `algorithm` | `"A*_noprefetch"` | Engine default. Fastest for short settlement paths. |
 
-### Performance Budget
+### Door Interaction & Obstacle Resolution
 
-Pathfinding calls happen **only on schedule transitions**, not every tick:
+Standard `core.find_path` treats closed door nodes (`group:door`) as solid (`walkable = true`). Calling `find_path` while inside a closed residence will return `nil` if the exit door is shut.
 
-*   **Per NPC per game-day:** ~4-6 `find_path` calls (home→work, work→wander, wander→work, work→social, social→home).
-*   **15 NPCs:** ~60-90 calls per game-day, spread across real-time hours.
-*   **Cost per call:** Negligible at `searchdistance=25` in open village terrain. Engine A* runs in C++.
+In the Minetest Game `doors` mod, all door state variants (`_a`, `_b`, `_c`, `_d`) define `walkable = true`. Therefore, inspecting node definition flags (`def.walkable`) cannot distinguish open vs. closed doors. Door state must be checked and manipulated using the official `doors.get(pos)` API:
 
-The expensive scenario — maze-like geometry with no valid path — is handled by the teleport fallback, which kills the search instantly.
+1. **Pre-Pathing Door Open:** In `navigate_to()`, before executing `core.find_path()`, scan 1.5 blocks around the NPC. If `doors.get(pos)` returns a door where `not door:state()`, call `door:open()` and track the position in `self._nav_opened_doors`.
+2. **Proximity Auto-Opener in Waypoint Loop:** While following waypoints in `on_step`, scan 1.5 blocks around the NPC. If a nearby door is closed (`not door:state()`), call `door:open()` and append to `self._nav_opened_doors`.
+3. **Door Closure:** On each `on_step`, iterate `self._nav_opened_doors`. If the NPC is $\ge 2.0$ blocks away from an opened door, call `door:close()` and remove it from the tracking list.
 
-### Enabling Pathfinding on Traders
-
-Currently `mobs_npc:trader` has `pathfinding = false` ([trader.lua:70](../../../mobs_npc/trader.lua)). This must be set to `true` (or `1`) at spawn time inside `spawn_trader()`:
-
-```lua
-ent.pathfinding = 1
-```
-
-This enables the `self.path` data structure that mobs_redo initializes on activation (`api.lua:2890`). Our wrapper doesn't use `smart_mobs` directly, but we need `self.path` to exist for compatibility.
-
-### Implementation: New Fields on NPC Entity
+### Implementation: New Entity Fields
 
 | Field | Type | Persisted? | Purpose |
 |---|---|---|---|
-| `self._nav_waypoints` | `table` or `nil` | No (runtime only) | Current A* waypoint list being followed |
-| `self._nav_target` | `vector` or `nil` | No | Final destination of current navigation |
-| `self._nav_stuck_timer` | `number` | No | Seconds since last meaningful movement |
-| `self._nav_last_pos` | `vector` or `nil` | No | Position at last stuck-check |
+| `self._nav_waypoints` | `table` or `nil` | No (runtime only) | Current A* waypoint list |
+| `self._nav_target` | `vector` or `nil` | No | Final destination |
+| `self._nav_stuck_timer` | `number` | No | Elapsed seconds without position change |
+| `self._nav_last_pos` | `vector` or `nil` | No | Position at last tick check |
 | `self._nav_state` | `string` or `nil` | No | `"walking"`, `"arrived"`, or `nil` |
+| `self._nav_opened_doors`| `table` or `nil` | No | List of door positions opened to close behind NPC |
 
-### Implementation: Waypoint Following (in `on_step`)
+### Safe Teleport Helper (`eg_settlers.safe_teleport`)
 
-The following logic runs inside the existing `_behavior_timer > 1.0` check in `npc_behavior.lua`, gated on `self._nav_waypoints ~= nil`:
+Refactor the existing inline bed/job teleportation offset loop into a reusable helper in `npc_behavior.lua`:
 
 ```lua
--- Waypoint following (runs every behavior tick, ~1s)
+function eg_settlers.safe_teleport(self, target_pos)
+    if not target_pos then return false end
+    local dest = {x = target_pos.x, y = target_pos.y + 0.5, z = target_pos.z}
+    local offsets = {
+        {x=0, y=0.5, z=0}, {x=0, y=1.0, z=0},
+        {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
+        {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
+        {x=0, y=-0.5, z=1}, {x=0, y=-0.5, z=-1},
+        {x=1, y=-0.5, z=0}, {x=-1, y=-0.5, z=0},
+    }
+    for _, off in ipairs(offsets) do
+        local test_pos = {x = target_pos.x + off.x, y = target_pos.y + off.y, z = target_pos.z + off.z}
+        local test_head = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
+        local node1 = minetest.get_node(test_pos)
+        local node2 = minetest.get_node(test_head)
+        local def1 = minetest.registered_nodes[node1.name]
+        local def2 = minetest.registered_nodes[node2.name]
+        if def1 and not def1.walkable and def2 and not def2.walkable then
+            dest = test_pos
+            break
+        end
+    end
+    self.object:set_pos(dest)
+    return true
+end
+```
+
+### Waypoint Following (in `on_step`)
+
+Runs inside the behavior loop in `npc_behavior.lua` when `self._nav_waypoints ~= nil`:
+
+```lua
 if self._nav_waypoints and #self._nav_waypoints > 0 then
     local wp = self._nav_waypoints[1]
     local dist_to_wp = vector.distance(pos, wp)
 
-    if dist_to_wp < 1.5 then
-        -- Reached waypoint, advance to next
-        table.remove(self._nav_waypoints, 1)
+    -- Proximity door opener
+    local door_nodes = minetest.find_nodes_in_area(
+        vector.subtract(pos, {x=1.5, y=0.5, z=1.5}),
+        vector.add(pos, {x=1.5, y=1.5, z=1.5}),
+        {"group:door"}
+    )
+    for _, dpos in ipairs(door_nodes) do
+        local door = doors.get(dpos)
+        if door and not door:state() then
+            door:open()
+            self._nav_opened_doors = self._nav_opened_doors or {}
+            table.insert(self._nav_opened_doors, dpos)
+        end
+    end
 
+    -- Close doors left behind
+    if self._nav_opened_doors then
+        for i = #self._nav_opened_doors, 1, -1 do
+            local dpos = self._nav_opened_doors[i]
+            if vector.distance(pos, dpos) >= 2.0 then
+                local door = doors.get(dpos)
+                if door and door:state() then
+                    door:close()
+                end
+                table.remove(self._nav_opened_doors, i)
+            end
+        end
+    end
+
+    if dist_to_wp < 0.8 then
+        table.remove(self._nav_waypoints, 1)
         if #self._nav_waypoints == 0 then
-            -- Arrived at destination
             self._nav_waypoints = nil
             self._nav_state = "arrived"
             self.order = "stand"
             self:set_velocity(0)
             self:set_animation("stand")
         else
-            -- Face next waypoint
             self:yaw_to_pos(self._nav_waypoints[1])
             self:set_velocity(self.walk_velocity)
             self:set_animation("walk")
         end
     else
-        -- Still walking toward current waypoint
         self:yaw_to_pos(wp)
         self:set_velocity(self.walk_velocity)
         self:set_animation("walk")
     end
 
-    -- Stuck detection
-    self._nav_stuck_timer = (self._nav_stuck_timer or 0) + 1.0
+    -- Stuck detection (accumulates real frame delta time)
+    self._nav_stuck_timer = (self._nav_stuck_timer or 0) + dtime
     local last = self._nav_last_pos or pos
     if vector.distance(pos, last) < 0.3 then
-        if self._nav_stuck_timer > 10 then
-            -- Stuck too long, teleport to final destination
-            self.object:set_pos(self._nav_target)
+        if self._nav_stuck_timer > 10.0 then
+            -- Fallback teleport with safety offsets
+            eg_settlers.safe_teleport(self, self._nav_target)
             self._nav_waypoints = nil
             self._nav_state = "arrived"
             self._nav_stuck_timer = 0
@@ -127,97 +178,24 @@ if self._nav_waypoints and #self._nav_waypoints > 0 then
         self._nav_stuck_timer = 0
     end
     self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
-
-    -- Suppress normal wander/tether while navigating
     return
 end
 ```
 
-### Fallback Hierarchy
-
-1. **Line-of-sight clear** → dumb walk (cheapest)
-2. **A\* path found** → waypoint walk (normal case)
-3. **A\* returns nil** → immediate teleport
-4. **A\* path found but NPC stuck >10s** → teleport to destination
-
 ---
 
-## 2. Workplace Deeds (Job Blocks)
+## 2. Job Block & Home Anchor Architecture
 
-### Concept
+Settlers bind to two physical anchor points in the world:
 
-A **Workplace Deed** is a placeable node that designates a block as the work location for a specific profession. It is structurally analogous to the Housing Deed — a wall-mounted sign the player places inside a workshop, forge, tavern, etc.
-
-When a villager NPC is assigned a workplace (via a contract-on-deed interaction, or an auto-assignment system), their `work_pos` field is set to the Workplace Deed's coordinates. The NPC then navigates there during work hours.
-
-### Node Registration
-
-```lua
-minetest.register_node("eg_settlers:workplace_deed", {
-    description = S("Workplace Deed"),
-    drawtype = "nodebox",
-    tiles = {"default_sign_wall_steel.png^[multiply:#4A90D9"},  -- Blue tint
-    inventory_image = "default_sign_steel.png^[multiply:#4A90D9",
-    -- ... (same nodebox as housing_deed) ...
-    groups = {choppy = 2, dig_immediate = 2, attached_node = 1},
-
-    on_construct = function(pos)
-        local meta = minetest.get_meta(pos)
-        meta:set_int("occupied", 0)
-        meta:set_string("profession", "")
-        meta:set_string("worker_name", "")
-        meta:set_string("infotext", S("Workplace Deed (Vacant)"))
-    end,
-
-    -- Same can_dig / on_rightclick pattern as housing_deed
-})
-```
-
-### Alternative: Profession-Mapped Existing Blocks
-
-Instead of (or in addition to) a dedicated Workplace Deed node, NPCs could be assigned to path toward existing profession-relevant nodes:
-
-| Profession | Target Node(s) | Group |
-|---|---|---|
-| Smith | `default:furnace`, `anvil:anvil` | `group:evergrowth_workplace_smith` |
-| Brewer | `wine:wine_barrel` | `group:evergrowth_workplace_brewer` |
-| Farmer | `farming:soil_wet` (any) | `group:evergrowth_workplace_farmer` |
-| Librarian | `default:bookshelf` | `group:evergrowth_workplace_librarian` |
-| Mage | `x_enchanting:table` | `group:evergrowth_workplace_mage` |
-| Miner | `default:stone_with_coal` (nearest) | N/A (uses find_node_near) |
-
-This approach uses `minetest.find_node_near(home_pos, radius, target_nodes)` to auto-discover work targets without the player needing to place a deed. It is more immersive but less controllable.
-
-**Recommended approach:** Use explicit **Workplace Deeds** as the primary system (player places them intentionally), with the auto-discovery as a future enhancement.
-
-### NPC Entity Fields
-
-| Field | Type | Persisted? | Purpose |
-|---|---|---|---|
-| `self.work_pos` | `vector` or `nil` | Yes (staticdata) | Assigned workplace coordinates |
-| `self.social_pos` | `vector` or `nil` | Yes (staticdata) | Cached tavern/gathering coordinates |
-
-These must be added to the entity's `get_staticdata` and `on_activate` serialization, alongside the existing `home_pos`.
-
-### Assignment Flow
-
-Uses the same contract-on-deed pattern as Housing Deeds:
-
-1. Player crafts a Workplace Deed (recipe: `default:paper` + `dye:blue`).
-2. Player places it inside a building (e.g., the forge).
-3. Player right-clicks the deed while holding a Blacksmith's Contract (or the NPC's Relocation Contract).
-4. The deed's metadata stores the assigned profession and worker name.
-5. The NPC's `work_pos` is set to the deed's coordinates.
-
-**Alternatively**, for simpler initial implementation: the NPC auto-discovers the nearest Workplace Deed matching their profession within the tether radius, using `minetest.find_nodes_in_area()` on a slow timer (~60s).
+1. **`self.job_pos` (Job Block):** A profession-specific workstation node (`eg_settlers:job_block_<profession>`) registered in `town/job_blocks.lua`. Bound when the player places a Hiring Contract (`eg_settlers:hiring_contract`) on the block. Persisted on the entity instance, in the job block node metadata, and in `eg_settlers.db` (`residents[key].pos`).
+2. **`self.home_pos` (Bed):** A bed node (`group:bed`) within settlement bounds. Bound during hiring or auto-discovered if homeless. Persisted on the entity instance, in the bed node metadata, and in the job block node metadata (`job_meta:get_string("home_pos")`).
 
 ---
 
 ## 3. Daily Schedule State Machine
 
-### Overview
-
-The current binary day/night check in `npc_behavior.lua` (lines 74-140) is replaced with a multi-phase schedule driven by `minetest.get_timeofday() * 24000`.
+The binary day/night check in `npc_behavior.lua` is replaced with a multi-phase schedule driven by `minetest.get_timeofday() * 24000`.
 
 ### Schedule Definition
 
@@ -225,160 +203,269 @@ The current binary day/night check in `npc_behavior.lua` (lines 74-140) is repla
 local SCHEDULES = {
     default = {
         {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
-        {start = 4500,  stop = 5500,  phase = "commute", target = "work_pos"},
-        {start = 5500,  stop = 11000, phase = "work",    target = "work_pos"},
+        {start = 4500,  stop = 5500,  phase = "commute", target = "job_pos"},
+        {start = 5500,  stop = 11000, phase = "work",    target = "job_pos"},
         {start = 11000, stop = 12500, phase = "wander",  target = nil},
-        {start = 12500, stop = 17000, phase = "work",    target = "work_pos"},
-        {start = 17000, stop = 18500, phase = "social",  target = "social_pos"},
+        {start = 12500, stop = 17000, phase = "work",    target = "job_pos"},
+        {start = 17000, stop = 18500, phase = "social",  target = nil},
         {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
     },
-    guard = {
-        {start = 0,     stop = 6000,  phase = "sleep",   target = "home_pos"},
-        {start = 6000,  stop = 18000, phase = "patrol",  target = nil},
-        {start = 18000, stop = 24000, phase = "patrol",  target = nil},
+    guard_day = {
+        {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
+        {start = 4500,  stop = 18500, phase = "patrol",  target = nil},
+        {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
+    },
+    guard_night = {
+        {start = 0,     stop = 6500,  phase = "patrol",  target = nil},
+        {start = 6500,  stop = 16500, phase = "sleep",   target = "home_pos"},
+        {start = 16500, stop = 24000, phase = "patrol",  target = nil},
     },
 }
 ```
 
 ### Phase Behaviors
 
-| Phase | Movement | NPC State | Animation | Duration |
+| Phase | Movement | State | Animation | Duration |
 |---|---|---|---|---|
-| `sleep` | Navigate to `home_pos`, stand still | `order = "stand"` | `"stand"` | Night hours |
-| `commute` | Navigate to `work_pos` | `order = "walk"` | `"walk"` | ~1000 ticks (~1 min real) |
-| `work` | Stand at `work_pos` | `order = "stand"` | `"stand"` | Morning + afternoon |
-| `wander` | Free roam within tether | `order = "wander"` | varies | Lunch break |
-| `social` | Navigate to `social_pos` | `order = "stand"` | `"stand"` | Evening |
-| `patrol` | Wander with extended tether | `order = "wander"` | varies | Guards only |
+| `sleep` | Navigate to `home_pos` bed | `order = "stand"` | `"stand"` | Night (18500–4500) for standard villagers |
+| `commute` | Navigate to `job_pos` | `order = "walk"` | `"walk"` | Dawn (4500–5500) |
+| `work` | Stay at `job_pos` | `order = "stand"` | `"stand"` | Morning (5500–11000) & Afternoon (12500–17000) |
+| `wander` | Midday break / supply-chain visits | `order = "wander"` | varies | Midday (11000–12500) |
+| `social` | Tavern / Library visits | `order = "stand"` | `"stand"` | Dusk (17000–18500) |
+| `patrol` | Patrol within extended tether | `order = "wander"` | varies | Guards only (split by day/night shift) |
 
-### Phase Transition Logic
+### Staggered Schedule Shifts (CPU Spike Mitigation)
 
-A new field `self._current_phase` tracks which schedule phase the NPC is in. On each behavior tick (~1s), the scheduler checks if the current game time has moved past the current phase's `stop` boundary. If so:
-
-1. Look up the new phase from the schedule table.
-2. If the new phase has a `target` field:
-   a. Resolve the target position (e.g., `self[entry.target]`).
-   b. Call `eg_settlers.navigate_to(self, target_pos)`.
-3. If the new phase is `"wander"`, set `self.order = "wander"` and clear navigation.
-4. Update `self._current_phase`.
-
-**Key principle:** `navigate_to` is called exactly **once** per phase transition, not every tick. The waypoint-following in `on_step` handles the actual movement.
-
-### Graceful Degradation
-
-If an NPC has no `work_pos` assigned, work phases fall back to `"wander"`. If no `social_pos` is found, social phases fall back to `"wander"`. The NPC always has `home_pos` (set at Housing Deed assignment), so sleep is always valid.
+To prevent all villagers in a settlement from invoking `core.find_path` on the exact same server step during global phase boundaries (e.g. exactly at `4500` dawn commute), each NPC generates an in-memory jitter offset on initialization:
 
 ```lua
-local target_field = schedule_entry.target
-local target_pos = target_field and self[target_field] or nil
+self._schedule_jitter = self._schedule_jitter or math.random(-200, 200)
+local effective_time = (minetest.get_timeofday() * 24000 + self._schedule_jitter) % 24000
+```
 
-if not target_pos then
-    -- No destination assigned for this phase, just wander
-    self.order = "wander"
-else
-    eg_settlers.navigate_to(self, target_pos)
+This distributes pathfinding and navigation across a ~20-second window, keeping step times smooth even in large towns.
+
+### MapBlock / Chunk Activation Fast Catch-Up (`on_activate`)
+
+When a player re-enters an area after several in-game hours, entities reactivate via `on_activate(self, staticdata, dtime)`. Attempting pathfinding over large time jumps causes NPCs to walk to outdated locations or navigate across newly loaded geometry.
+
+In `base_entity.on_activate`:
+```lua
+if self.is_villager and dtime > 0 then
+    local current_time = (minetest.get_timeofday() * 24000 + (self._schedule_jitter or 0)) % 24000
+    local schedule_key = "default"
+    if self.evergrowth_profession == "guard" then
+        schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+    else
+        schedule_key = self.evergrowth_profession or "default"
+    end
+    local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+    
+    for _, entry in ipairs(schedule) do
+        if current_time >= entry.start and current_time < entry.stop then
+            self._current_phase = entry.phase
+            local target_pos = entry.target and self[entry.target]
+            if target_pos then
+                eg_settlers.safe_teleport(self, target_pos)
+            end
+            break
+        end
+    end
+    self._nav_waypoints = nil
+    self._nav_state = "arrived"
 end
 ```
 
----
+### Phase Transition Execution
 
-## 4. Social Congregation (Tavern System)
-
-### Concept
-
-During the `social` phase (evening), a percentage of village NPCs navigate to a shared gathering point — typically the tavern (brewer's workplace) or a town square node.
-
-### Social Node Discovery
-
-Each NPC discovers their `social_pos` using a periodic scan (not every tick — once per game day, or on phase transition):
+`self._current_phase` tracks the active phase. On each 1-second behavior tick:
 
 ```lua
--- Find nearest social gathering node within tether range
-local social_nodes = minetest.find_nodes_in_area(
-    vector.subtract(home_pos, {x=50, y=10, z=50}),
-    vector.add(home_pos, {x=50, y=10, z=50}),
-    {"eg_settlers:workplace_deed"}  -- filter for brewer's workplace
-)
-```
+local current_time = (minetest.get_timeofday() * 24000 + (self._schedule_jitter or 0)) % 24000
+local schedule_key = "default"
+if self.evergrowth_profession == "guard" then
+    schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+else
+    schedule_key = self.evergrowth_profession or "default"
+end
+local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+local new_entry = nil
 
-The result is cached in `self.social_pos` and persisted in staticdata. It only needs to be recalculated if the node is destroyed or moved.
+for _, entry in ipairs(schedule) do
+    if current_time >= entry.start and current_time < entry.stop then
+        new_entry = entry
+        break
+    end
+end
 
-### Gathering Behavior
-
-Not all NPCs go to the tavern every night. A random roll determines participation:
-
-```lua
-if phase == "social" then
-    if math.random(100) <= 70 then  -- 70% chance to socialize
-        local offset = {
-            x = math.random(-3, 3),
-            y = 0,
-            z = math.random(-3, 3)
-        }
-        local gather_pos = vector.add(self.social_pos, offset)
-        eg_settlers.navigate_to(self, gather_pos)
-    else
-        self.order = "wander"  -- Stay home tonight
+if new_entry and new_entry.phase ~= self._current_phase then
+    self._current_phase = new_entry.phase
+    
+    if new_entry.phase == "wander" then
+        -- Check for midday supply-chain visit target (50% internal roll)
+        local visit_pos = eg_settlers.get_supply_chain_target(self)
+        if visit_pos then
+            eg_settlers.navigate_to(self, visit_pos)
+        else
+            self.order = "wander"
+        end
+    elseif new_entry.phase == "social" then
+        -- Check for library or tavern visit target (internal roll & distribution)
+        local visit_pos = eg_settlers.get_social_target(self)
+        if visit_pos then
+            eg_settlers.navigate_to(self, visit_pos)
+        else
+            self.order = "wander"
+        end
+    elseif new_entry.target then
+        local target_pos = self[new_entry.target]
+        if target_pos then
+            eg_settlers.navigate_to(self, target_pos)
+        else
+            self.order = "wander"
+        end
     end
 end
 ```
 
-The random offset prevents NPCs from stacking on top of each other at the social node.
+---
 
-### Social Node Types
+## 4. Congregation & Scheduled Visits
 
-| Node | Who Gathers | When |
+During `wander` (midday) and `social` (evening) phases, settlers can navigate to other villagers' job blocks (`eg_settlers:job_block_<prof>`).
+
+### 4.1 Evening Brewer (Tavern) Visits (`17000 - 18500`)
+
+A random subset of all settlers (e.g., 50% chance) visits the Brewer's workstation (`eg_settlers:job_block_brewer`) during the evening social window. Settlers who fail the roll remain in their local area wandering near their job block or residence.
+
+```lua
+function eg_settlers.get_tavern_target(self)
+    -- Random subset roll: 50% chance to socialize at the Brewer's workstation
+    if math.random(100) > 50 then return nil end
+
+    local brewer_blocks = minetest.find_nodes_in_area(
+        vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
+        vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
+        {"eg_settlers:job_block_brewer"}
+    )
+    if #brewer_blocks > 0 then
+        local base = brewer_blocks[1]
+        return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+    end
+    return nil
+end
+```
+
+### 4.2 Midday Supply-Chain Visits (`11000 - 12500`)
+
+Upstream resource gatherers have a random chance (e.g., 50%) to visit downstream processors during the lunch break.
+
+| Settler Profession | Target Workstation Node | Narrative Action |
 |---|---|---|
-| Brewer's Workplace (Tavern) | All professions | Evening social phase |
-| Town Ledger / Job Board | All professions | Could add a "morning meeting" phase |
-| Church / Temple (future) | All professions | Specific day of the week? |
+| **Miner** | `eg_settlers:job_block_smith` | Delivers ores to forge |
+| **Lumberjack** | `eg_settlers:job_block_carpenter` | Delivers timber to workshop |
+| **Farmer** | `eg_settlers:job_block_brewer` or `eg_settlers:job_block_rancher` | Delivers grains/crops |
+| **Gunsmith** | `eg_settlers:job_block_smith` | Confers at anvil |
+| **Technologist** | `eg_settlers:job_block_roboticist` or `eg_settlers:job_block_automobile_mechanic` | Reviews machinery |
+| **Fisher** | `eg_settlers:job_block_brewer` | Delivers fish to kitchen |
+
+```lua
+local SUPPLY_CHAIN_MAP = {
+    miner = "eg_settlers:job_block_smith",
+    lumberjack = "eg_settlers:job_block_carpenter",
+    farmer = "eg_settlers:job_block_brewer",
+    gunsmith = "eg_settlers:job_block_smith",
+    technologist = "eg_settlers:job_block_roboticist",
+    fisher = "eg_settlers:job_block_brewer",
+}
+
+function eg_settlers.get_supply_chain_target(self)
+    -- Random subset roll: 50% chance to visit partner
+    if math.random(100) > 50 then return nil end
+
+    local target_node = SUPPLY_CHAIN_MAP[self.evergrowth_profession]
+    if not target_node then return nil end
+
+    local nodes = minetest.find_nodes_in_area(
+        vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
+        vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
+        {target_node}
+    )
+    if #nodes > 0 then
+        local base = nodes[1]
+        return {x = base.x + math.random(-1, 1), y = base.y, z = base.z + math.random(-1, 1)}
+    end
+    return nil
+end
+```
+
+### 4.3 Educated Profession Social Distribution (Library vs. Brewer)
+
+Educated and technical professions (`mage`, `technologist`, `roboticist`) do not exclusively visit the library. During the evening social phase, their destination is distributed as follows:
+- **40% Chance:** Visit the Librarian's job block (`eg_settlers:job_block_librarian`).
+- **35% Chance:** Visit the Brewer's job block (`eg_settlers:job_block_brewer`).
+- **25% Chance:** Stay and wander near their own workstation/home.
+
+```lua
+local LIBRARY_VISITORS = {
+    mage = true,
+    technologist = true,
+    roboticist = true,
+}
+
+function eg_settlers.get_social_target(self)
+    local prof = self.evergrowth_profession
+    local roll = math.random(100)
+
+    if LIBRARY_VISITORS[prof] then
+        if roll <= 40 then
+            -- 40% chance: Visit Library
+            local nodes = minetest.find_nodes_in_area(
+                vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
+                vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
+                {"eg_settlers:job_block_librarian"}
+            )
+            if #nodes > 0 then
+                local base = nodes[1]
+                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+            end
+        elseif roll <= 75 then
+            -- 35% chance: Visit Brewer
+            return eg_settlers.get_tavern_target(self)
+        end
+        -- Remaining 25%: Wander locally
+        return nil
+    end
+
+    -- Non-educated professions check standard Brewer target
+    return eg_settlers.get_tavern_target(self)
+end
+```
 
 ---
 
-## 5. Staticdata Persistence
-
-The following fields must survive entity unload/reload. They are added to the mobs_redo serialization cycle. Since mobs_redo auto-serializes all fields on the entity table that are basic types (string, number, table of basic types), **these should persist automatically** as long as they are set directly on `self`:
-
-*   `self.work_pos` — `{x=N, y=N, z=N}` or `nil`
-*   `self.social_pos` — `{x=N, y=N, z=N}` or `nil`
-*   `self._current_phase` — `string` (schedule phase name)
-
-**Verification required:** Confirm that mobs_redo's `get_staticdata` / `on_activate` round-trips these fields. If not, they must be explicitly added to the serialization in `npc_behavior.lua`'s `on_activate` override.
-
-Navigation state (`_nav_waypoints`, `_nav_stuck_timer`, etc.) is intentionally NOT persisted. When an NPC reloads, the scheduler immediately evaluates the current game time and transitions to the correct phase, re-triggering `navigate_to` if needed.
-
----
-
-## 6. File Changes Summary
+## 5. File Changes Summary
 
 | File | Change |
 |---|---|
-| `npc_behavior.lua` | Replace day/night branch with schedule state machine. Add waypoint-following logic to `on_step`. Add `navigate_to()` function. |
-| `settlement.lua` | Register `workplace_deed` node (or new file `workplace.lua`). |
-| `spawners.lua` | Set `ent.pathfinding = 1` on all spawned traders. Add `work_pos` to `spawn_trader` override_data. |
-| `contracts.lua` | Support contract-on-workplace-deed interaction for assigning workers. |
-| `init.lua` | Load new `workplace.lua` if separated out. |
-| `trades.lua` | No changes. |
+| `npc_behavior.lua` | Replace binary day/night branch with schedule state machine. Add waypoint-following, door auto-opener, and `eg_settlers.safe_teleport()` to `on_step`. Add `navigate_to()` function. |
+| `town/job_blocks.lua` | No schema changes. Existing `eg_settlers:job_block_<prof>` nodes serve as navigation targets. |
+| `town/contracts.lua` | No changes. Existing hiring contract flow already binds `self.job_pos` and `self.home_pos`. |
 
 ### Estimated Scope
 
 | Component | New Lines (approx) |
 |---|---|
-| `navigate_to()` + waypoint following | ~100-120 |
-| Schedule state machine (replacing day/night) | ~60-80 |
-| Workplace Deed node + crafting | ~60-80 |
-| Social congregation logic | ~30-40 |
-| Contract-on-workplace interaction | ~40-50 |
-| Staticdata verification / fixes | ~10-20 |
-| **Total** | **~300-390** |
+| `navigate_to()` + `safe_teleport()` + waypoint following + door opener | ~130-150 |
+| Schedule state machine (supporting guard shifts) | ~70-90 |
+| Visit resolution functions (tavern, supply chain, library) | ~40-50 |
+| **Total** | **~240-290** |
 
 ---
 
-## 7. Implementation Order
+## 6. Implementation Order
 
-1. **`navigate_to` wrapper + waypoint following** — Foundation for everything else. Can be tested immediately by replacing the existing tether-walk and night-teleport with `navigate_to(self, self.home_pos)`.
-2. **Schedule state machine** — Replace binary day/night with multi-phase. Initially all non-sleep phases just wander (no `work_pos` yet).
-3. **Workplace Deed node** — Register the node, add `work_pos` to NPC entity, wire up assignment.
-4. **Work phase integration** — Schedule's work phases now call `navigate_to(self, self.work_pos)`.
-5. **Social congregation** — Add social node discovery, random participation, crowd offset.
-6. **Polish** — Tune timing, add chat barks ("Time for a drink!", "Back to the forge."), particle effects on arrival.
+1. **`navigate_to` wrapper + `safe_teleport` helper + waypoint following + door opener:** Implement in `npc_behavior.lua` and test navigating between bed and job block without teleporting.
+2. **Schedule state machine:** Replace day/night check with multi-phase table (`sleep`, `commute`, `work`, `wander`, `social`) and guard shift routing.
+3. **Scheduled visits integration:** Wire up supply-chain, library, and tavern lookups during `wander` and `social` phase transitions.
+4. **Tuning & verification:** Verify timing transitions and stuck teleport fallback reliability across diverse village layouts.
