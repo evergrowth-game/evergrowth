@@ -277,12 +277,11 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
         end
 
         local meta = itemstack:get_meta()
-        local saved_shift = meta:get_string("guard_shift")
-        local guard_shift = (saved_shift ~= "") and saved_shift or nil
         local profession = meta:get_string("profession")
         if profession == "" then profession = prof_id end
 
-        if profession == "guard" and not guard_shift then
+        local guard_shift = nil
+        if profession == "guard" then
             local sid_check = eg_settlers.db.find_nearest_settlement(under_pos, 200)
             local guard_count = 0
             if sid_check then
@@ -290,13 +289,32 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
                 for _, res in pairs(residents) do
                     if res.profession == "guard" then guard_count = guard_count + 1 end
                 end
+            else
+                local p1 = vector.subtract(under_pos, 200)
+                local p2 = vector.add(under_pos, 200)
+                local nodes = minetest.find_nodes_in_area(p1, p2, {"eg_settlers:job_block_guard"})
+                for _, npos in ipairs(nodes) do
+                    local nmeta = minetest.get_meta(npos)
+                    if nmeta:get_int("occupied") == 1 then
+                        guard_count = guard_count + 1
+                    end
+                end
             end
             guard_shift = (guard_count % 2 == 0) and "day" or "night"
         end
 
+        local rname = meta:get_string("resident_name")
+        if profession == "guard" and rname ~= "" then
+            rname = rname:gsub(" the Day Guard", ""):gsub(" the Night Guard", ""):gsub(" the Guard", "")
+            if guard_shift then
+                local shift_label = guard_shift == "night" and "Night Guard" or "Day Guard"
+                rname = rname .. " the " .. shift_label
+            end
+        end
+
         local trades_str = meta:get_string("trades")
         local override_data = {
-            nametag = meta:get_string("resident_name"),
+            nametag = rname,
             texture = meta:get_string("texture"),
             health = meta:get_int("health"),
             trades = (trades_str ~= "") and minetest.deserialize(trades_str) or nil,

@@ -5,6 +5,15 @@
 
 local S = minetest.get_translator("eg_settlers")
 
+local function parse_pos(str)
+    if not str then return nil end
+    local x, y, z = str:match("^(%-?%d+%.?%d*),(%-?%d+%.?%d*),(%-?%d+%.?%d*)$")
+    if x and y and z then
+        return {x = tonumber(x), y = tonumber(y), z = tonumber(z)}
+    end
+    return minetest.string_to_pos(str)
+end
+
 local function get_formspec(sid, player_name, tab_index)
     tab_index = tab_index or 1
     local s = eg_settlers.db.get_settlement(sid)
@@ -28,7 +37,7 @@ local function get_formspec(sid, player_name, tab_index)
         for pos_str, res in pairs(s.residents) do
             local prof = res.profession or "Unknown"
             if prof == "guard" then
-                local rpos = minetest.string_to_pos(pos_str)
+                local rpos = parse_pos(pos_str)
                 if rpos then
                     local rmeta = minetest.get_meta(rpos)
                     local shift = rmeta:get_string("guard_shift")
@@ -39,7 +48,13 @@ local function get_formspec(sid, player_name, tab_index)
                     end
                 end
             end
-            local entry = string.format("%s (%s) @ %s", res.name, prof, pos_str)
+            local display_name = res.name
+            if prof == S("Night Guard") and display_name:find(" the Day Guard") then
+                display_name = display_name:gsub(" the Day Guard", " the Night Guard")
+            elseif prof == S("Day Guard") and display_name:find(" the Night Guard") then
+                display_name = display_name:gsub(" the Night Guard", " the Day Guard")
+            end
+            local entry = string.format("%s (%s) @ %s", display_name, prof, pos_str)
             if roster_list == "" then
                 roster_list = minetest.formspec_escape(entry)
             else
