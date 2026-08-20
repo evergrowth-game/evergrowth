@@ -14,7 +14,7 @@
 - **Incident Logging & Proportional Justice:** Persistent mortality logging and law enforcement systems requiring criminal restitution fines before merchants resume trading with offenders.
 - **Smart Intent Detection:** Misclick protection differentiating non-weapon tool/hand strikes from intentional heavy weapon attacks.
 - **Settlement Build Protection:** Enforces territory build protection across settlement bounds via integration with the `protector` mod.
-- **Defenses & Medical Care:** Sentinel Ward Stones for automated territory defense, night-patrolling Guards, and Medkits for settler health restoration.
+- **Defenses & Medical Care:** Sentinel Ward Stones for automated territory defense, alternating Day/Night shift Guards with dawn/dusk overlap and distress alarm wake responses, and Medkits for settler health restoration.
 
 ## Documentation
 
