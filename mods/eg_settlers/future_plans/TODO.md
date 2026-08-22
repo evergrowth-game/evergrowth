@@ -60,27 +60,7 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
   - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
-## Phase 4: Construct Defenders & Guard Expansion ([guard_expansion.md](guard_expansion.md))
+## Phase 4: Construct Defenders & Guard Expansion 
 - [x] **Humanoid Guard Shift Expansion:** Day/Night alternating shifts and alarm wakeups implemented in `eg_settlers`.
 - [x] **Construct Companions (`eg_constructs`):** Mobile expedition companions (Clay Golem & Automaton) spun off into dedicated standalone mod `eg_constructs` with 16-slot pack inventories, player following, and raider crowd control.
 
-## Phase 5: Automated Tech Defenses ([tech_defenses.md](tech_defenses.md))
-- [ ] **Automated Sentry Turret (`eg_settlers:sentry_turret`)**
-  - [ ] Base mounting node + rotating turret head child entity.
-  - [ ] 3D raycast target tracking, ammo depletion, and hitscan damage.
-  - [ ] Satisfies Tier 3 Village defense requirement without Ward Stone.
-- [ ] **Surveillance Spotlight (`eg_settlers:spotlight`)**
-  - [ ] Night searchlight entity with dynamic ground illumination.
-  - [ ] Hostile target tracking and 35-block Guard distress alarm trigger.
-
-## Phase 6: Advanced Logistics & Trade Hubs ([trade_hubs.md](trade_hubs.md))
-- [ ] **Modular Trade Hubs**
-  - [ ] Implement multi-block "Trade Post" structure centered around a "Trade Desk".
-  - [ ] Determine shipping capacity via physical "Cargo Crate" nodes built around the Trade Post.
-- [ ] **Dockmaster's Ledger**
-  - [ ] Implement a static interaction node for managing trade routes without wandering NPCs.
-- [ ] **Containerized Physical Loading**
-  - [ ] Allow players to pack goods into "Shipping Crate" nodes placed on a "Loading Bay" that are removed when the shipment departs.
-- [ ] **Visual Trade Vehicles**
-  - [ ] Spawn non-loaded-chunk-dependent visual Caravan or Ship entities navigating along player-placed "Trade Roads" or "Channel Buoys".
-  - [ ] Dynamically attach cargo container models using `set_attach()`.
