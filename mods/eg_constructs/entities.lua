@@ -215,8 +215,8 @@ local function perform_golem_ground_slam(self)
     -- Accelerated attack animation (30 fps)
     self.object:set_animation({x = 36, y = 48}, 30, 0, false)
 
-    -- Forward pitch tilt towards ground (~23 degrees)
-    self:set_pitch(0.40)
+    -- Forward pitch tilt towards ground (~23 degrees forward)
+    self:set_pitch(-0.40)
     self.pitch_reset_timer = 0.45
 
     -- Heavy impact sound effects
