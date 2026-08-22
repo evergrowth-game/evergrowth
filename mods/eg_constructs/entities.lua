@@ -14,7 +14,6 @@
 local S = minetest.get_translator("eg_constructs")
 
 eg_constructs = eg_constructs or {}
-eg_constructs.active_inventories = {}
 
 -- Helper to get or create detached inventory for construct
 function eg_constructs.get_detached_inv(inv_name, owner_name, initial_items)
@@ -135,6 +134,11 @@ local function handle_companion_rightclick(self, clicker, core_item_name, displa
             minetest.add_item(self.object:get_pos(), core_stack)
         end
 
+        -- Clear detached inventory contents on recall
+        if inv then
+            inv:set_list("main", {})
+        end
+
         minetest.sound_play("default_place_node_metal", {pos = self.object:get_pos(), gain = 1.0}, true)
         minetest.chat_send_player(pname, S("[eg_constructs] Construct packed into core."))
         self.object:remove()
@@ -156,21 +160,25 @@ local function handle_companion_punch(self, puncher, time_from_last_punch, tool_
         if self.order == "stand" then
             self.order = "follow"
             self.following = puncher
+            self.state = "walk"
             minetest.chat_send_player(pname, S("[eg_constructs] @1 is now following you.", construct_label))
         else
             self.order = "stand"
             self.following = nil
+            self.state = "stand"
+            self:set_velocity(0)
+            self:set_animation("stand")
             minetest.chat_send_player(pname, S("[eg_constructs] @1 is now holding position.", construct_label))
         end
-        return false -- Prevent dealing damage
+        return true -- Halts further damage processing in mobs_redo
     end
 
     -- Owner normal punch: immune to friendly fire
     if is_owner then
-        return false
+        return true -- Cancels friendly fire damage from owner
     end
 
-    return true
+    return false -- Allows hostile mobs and non-owners to deal damage
 end
 
 -- Common death handler: drop pack inventory contents
@@ -184,10 +192,106 @@ local function handle_companion_death(self, pos, core_name)
                 minetest.add_item(pos, stack)
             end
         end
+        inv:set_list("main", {})
     end
     -- Salvage chance
     if math.random(1, 2) == 1 then
         minetest.add_item(pos, core_name)
+    end
+end
+
+-- AOE Ground Slam for Clay Golem crowd control
+local SLAM_RADIUS = 4.5
+local SLAM_DAMAGE = 10
+
+local function perform_golem_ground_slam(self)
+    local pos = self.object:get_pos()
+    if not pos then return end
+
+    -- Trigger punch/slam animation (frames 36 to 48)
+    self:set_animation("punch")
+
+    -- Sound effect
+    minetest.sound_play("default_dig_cracky", {pos = pos, gain = 1.0, max_hear_distance = 20}, true)
+    minetest.sound_play("mobs_dungeonmaster", {pos = pos, gain = 0.8, pitch = 0.7, max_hear_distance = 20}, true)
+
+    -- Shockwave particle ring
+    minetest.add_particlespawner({
+        amount = 35,
+        time = 0.2,
+        minpos = {x = pos.x - 0.5, y = pos.y + 0.1, z = pos.z - 0.5},
+        maxpos = {x = pos.x + 0.5, y = pos.y + 0.3, z = pos.z + 0.5},
+        minvel = {x = -4.0, y = 0.5, z = -4.0},
+        maxvel = {x = 4.0, y = 1.5, z = 4.0},
+        minacc = {x = 0, y = -6, z = 0},
+        maxacc = {x = 0, y = -9, z = 0},
+        minexptime = 0.4,
+        maxexptime = 0.8,
+        minsize = 2,
+        maxsize = 4,
+        texture = "default_clay.png",
+        glow = 3,
+    })
+
+    -- Find nearby objects
+    local objects = minetest.get_objects_inside_radius(pos, SLAM_RADIUS)
+    for _, obj in ipairs(objects) do
+        if obj and obj ~= self.object then
+            local is_target = false
+            local obj_pos = obj:get_pos()
+
+            if obj:is_player() then
+                local pname = obj:get_player_name()
+                if self.owner and self.owner ~= "" and pname == self.owner then
+                    is_target = false
+                elseif minetest.settings:get_bool("enable_pvp") ~= false then
+                    is_target = true
+                end
+            else
+                local ent = obj:get_luaentity()
+                if ent and ent.name ~= (self.name or "eg_constructs:golem_clay") then
+                    -- Don't harm companions with the same owner
+                    if self.owner and self.owner ~= "" and ent.owner == self.owner then
+                        is_target = false
+                    -- Don't harm friendly NPC settlers unless they are attacking players
+                    elseif ent.type == "npc" and not ent.attack_players then
+                        is_target = false
+                    -- Target monsters, raiders, or hostile entities
+                    elseif ent.type == "monster" or (ent.attack_type and ent.damage and ent.damage > 0) then
+                        is_target = true
+                    end
+                end
+            end
+
+            if is_target and obj_pos then
+                -- Calculate outward knockback vector
+                local dir = vector.direction(pos, obj_pos)
+                if dir.x == 0 and dir.z == 0 then
+                    dir = {x = (math.random() - 0.5) * 2, y = 0.5, z = (math.random() - 0.5) * 2}
+                end
+
+                -- Deal AoE damage
+                obj:punch(self.object, 1.0, {
+                    full_punch_interval = 0.5,
+                    damage_groups = {fleshy = SLAM_DAMAGE},
+                }, dir)
+
+                -- Apply vertical and horizontal knockback impulse
+                local kb_vel = {
+                    x = dir.x * 4.5,
+                    y = 3.2,
+                    z = dir.z * 4.5
+                }
+                obj:add_velocity(kb_vel)
+
+                -- Force hostile mob aggro onto the golem (tank taunt)
+                local ent = obj:get_luaentity()
+                if ent and ent.state then
+                    ent.attack = self.object
+                    ent.state = "attack"
+                end
+            end
+        end
     end
 end
 
@@ -243,20 +347,24 @@ mobs:register_mob("eg_constructs:golem_clay", {
     },
 
     do_custom = function(self, dtime)
-        -- Keep detached inventory synced in memory
-        if not self.construct_id then
-            self.construct_id = math.random(100000, 999999)
-        end
-        local inv_name = "eg_construct_" .. tostring(self.construct_id)
-        eg_constructs.get_detached_inv(inv_name, self.owner, self.stored_inventory)
-
         -- Re-bind follow target if owner is online
         if self.order == "follow" and (not self.following or not self.following:get_pos()) and self.owner and self.owner ~= "" then
             self.following = minetest.get_player_by_name(self.owner)
         end
+
+        -- Periodic AOE Ground Slam in combat
+        self.slam_timer = (self.slam_timer or math.random(1, 4)) + dtime
+        if self.slam_timer >= 6.0 and self.state == "attack" and self.attack then
+            local pos = self.object:get_pos()
+            local target_pos = self.attack:get_pos()
+            if pos and target_pos and vector.distance(pos, target_pos) <= 5.0 then
+                perform_golem_ground_slam(self)
+                self.slam_timer = 0
+            end
+        end
     end,
 
-    on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
+    do_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
         return handle_companion_punch(self, puncher, time_from_last_punch, tool_capabilities, dir, S("Clay Golem"))
     end,
 
@@ -321,19 +429,20 @@ mobs:register_arrow("eg_constructs:laser_bolt", {
         local pname = player:get_player_name()
 
         -- Check if shooter construct belongs to this player (immune to own drone's fire)
+        local shooter_owner = nil
         if self.owner_id then
-            local shooter_ent = nil
             if type(self.owner_id) == "userdata" and self.owner_id.get_luaentity then
-                shooter_ent = self.owner_id:get_luaentity()
+                local shooter_ent = self.owner_id:get_luaentity()
+                shooter_owner = shooter_ent and shooter_ent.owner
             elseif type(self.owner_id) == "table" then
-                shooter_ent = self.owner_id
-            elseif type(self.owner_id) == "string" and self.owner_id == pname then
-                return
+                shooter_owner = self.owner_id.owner
+            elseif type(self.owner_id) == "string" then
+                shooter_owner = self.owner_id
             end
+        end
 
-            if shooter_ent and shooter_ent.owner and shooter_ent.owner == pname then
-                return
-            end
+        if shooter_owner and shooter_owner == pname then
+            return
         end
 
         -- Respect server PvP toggle for other players
@@ -349,6 +458,31 @@ mobs:register_arrow("eg_constructs:laser_bolt", {
 
     hit_mob = function(self, mob)
         if not mob then return end
+        local target_ent = mob:get_luaentity()
+        if target_ent then
+            local shooter_owner = nil
+            if self.owner_id then
+                if type(self.owner_id) == "userdata" and self.owner_id.get_luaentity then
+                    local shooter_ent = self.owner_id:get_luaentity()
+                    shooter_owner = shooter_ent and shooter_ent.owner
+                elseif type(self.owner_id) == "table" then
+                    shooter_owner = self.owner_id.owner
+                elseif type(self.owner_id) == "string" then
+                    shooter_owner = self.owner_id
+                end
+            end
+
+            -- Prevent friendly fire with companions belonging to same owner
+            if shooter_owner and shooter_owner ~= "" and target_ent.owner == shooter_owner then
+                return
+            end
+
+            -- Prevent hitting friendly NPC settlers / neutral town folk
+            if target_ent.type == "npc" and not target_ent.attack_players then
+                return
+            end
+        end
+
         mob:punch(self.object, 1.0, {
             full_punch_interval = 0.5,
             damage_groups = {fleshy = LASER_DAMAGE},
@@ -421,19 +555,13 @@ mobs:register_mob("eg_constructs:combat_drone", {
     },
 
     do_custom = function(self, dtime)
-        if not self.construct_id then
-            self.construct_id = math.random(100000, 999999)
-        end
-        local inv_name = "eg_construct_" .. tostring(self.construct_id)
-        eg_constructs.get_detached_inv(inv_name, self.owner, self.stored_inventory)
-
         -- Re-bind follow target if owner is online
         if self.order == "follow" and (not self.following or not self.following:get_pos()) and self.owner and self.owner ~= "" then
             self.following = minetest.get_player_by_name(self.owner)
         end
     end,
 
-    on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
+    do_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
         return handle_companion_punch(self, puncher, time_from_last_punch, tool_capabilities, dir, S("Combat Drone"))
     end,
 

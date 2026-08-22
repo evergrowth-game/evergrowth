@@ -39,7 +39,7 @@ local function deploy_construct(itemstack, placer, pointed_thing, entity_name, c
             if items then
                 ent.stored_inventory = items
                 local inv_name = "eg_construct_" .. tostring(ent.construct_id)
-                eg_constructs.get_detached_inv(inv_name, items)
+                eg_constructs.get_detached_inv(inv_name, pname, items)
             end
         end
     end
