@@ -202,38 +202,57 @@ end
 
 -- AOE Ground Slam for Clay Golem crowd control
 local SLAM_RADIUS = 4.5
-local SLAM_DAMAGE = 10
+local SLAM_DAMAGE = 12
 
 local function perform_golem_ground_slam(self)
     local pos = self.object:get_pos()
     if not pos then return end
 
-    -- Trigger punch/slam animation (frames 36 to 48)
-    self:set_animation("punch")
+    -- Pause locomotion for 0.8s so the full overhead slam animation completes without interruption
+    self.pause_timer = 0.8
+    self:set_velocity(0)
+    self:set_animation("punch", true)
 
-    -- Sound effect
-    minetest.sound_play("default_dig_cracky", {pos = pos, gain = 1.0, max_hear_distance = 20}, true)
-    minetest.sound_play("mobs_dungeonmaster", {pos = pos, gain = 0.8, pitch = 0.7, max_hear_distance = 20}, true)
+    -- Heavy impact sound effects
+    minetest.sound_play("default_dig_cracky", {pos = pos, gain = 1.4, max_hear_distance = 25}, true)
+    minetest.sound_play("mobs_dungeonmaster", {pos = pos, gain = 1.0, pitch = 0.65, max_hear_distance = 25}, true)
 
-    -- Shockwave particle ring
+    -- 1. Expanding Ground Dust Shockwave (smoke ring)
+    minetest.add_particlespawner({
+        amount = 50,
+        time = 0.25,
+        minpos = {x = pos.x - 0.5, y = pos.y + 0.15, z = pos.z - 0.5},
+        maxpos = {x = pos.x + 0.5, y = pos.y + 0.4, z = pos.z + 0.5},
+        minvel = {x = -4.5, y = 1.0, z = -4.5},
+        maxvel = {x = 4.5, y = 2.8, z = 4.5},
+        minacc = {x = 0, y = -0.5, z = 0},
+        maxacc = {x = 0, y = -1.5, z = 0},
+        minexptime = 0.6,
+        maxexptime = 1.2,
+        minsize = 3,
+        maxsize = 6,
+        texture = "tnt_smoke.png",
+        glow = 2,
+    })
+
+    -- 2. Earthen Clay Debris (rock bursts)
     minetest.add_particlespawner({
         amount = 35,
         time = 0.2,
-        minpos = {x = pos.x - 0.5, y = pos.y + 0.1, z = pos.z - 0.5},
-        maxpos = {x = pos.x + 0.5, y = pos.y + 0.3, z = pos.z + 0.5},
-        minvel = {x = -4.0, y = 0.5, z = -4.0},
-        maxvel = {x = 4.0, y = 1.5, z = 4.0},
-        minacc = {x = 0, y = -6, z = 0},
-        maxacc = {x = 0, y = -9, z = 0},
-        minexptime = 0.4,
-        maxexptime = 0.8,
+        minpos = {x = pos.x - 0.4, y = pos.y + 0.2, z = pos.z - 0.4},
+        maxpos = {x = pos.x + 0.4, y = pos.y + 0.5, z = pos.z + 0.4},
+        minvel = {x = -3.5, y = 2.5, z = -3.5},
+        maxvel = {x = 3.5, y = 4.5, z = 3.5},
+        minacc = {x = 0, y = -8.0, z = 0},
+        maxacc = {x = 0, y = -10.0, z = 0},
+        minexptime = 0.5,
+        maxexptime = 1.0,
         minsize = 2,
         maxsize = 4,
         texture = "default_clay.png",
-        glow = 3,
     })
 
-    -- Find nearby objects
+    -- Find and affect nearby targets
     local objects = minetest.get_objects_inside_radius(pos, SLAM_RADIUS)
     for _, obj in ipairs(objects) do
         if obj and obj ~= self.object then
@@ -276,11 +295,11 @@ local function perform_golem_ground_slam(self)
                     damage_groups = {fleshy = SLAM_DAMAGE},
                 }, dir)
 
-                -- Apply vertical and horizontal knockback impulse
+                -- Apply strong vertical launch and radial knockback
                 local kb_vel = {
-                    x = dir.x * 4.5,
-                    y = 3.2,
-                    z = dir.z * 4.5
+                    x = dir.x * 4.8,
+                    y = 4.2,
+                    z = dir.z * 4.8
                 }
                 obj:add_velocity(kb_vel)
 
@@ -346,22 +365,27 @@ mobs:register_mob("eg_constructs:golem_clay", {
         punch_end = 48,
     },
 
+    custom_attack = function(self, p)
+        self.attack_count = (self.attack_count or 0) + 1
+        self.slam_cooldown = self.slam_cooldown or 0
+
+        -- Ground slam triggers on engagement, every 3rd melee strike, or if 5s cooldown elapsed
+        if self.attack_count == 1 or self.attack_count % 3 == 0 or self.slam_cooldown >= 5.0 then
+            perform_golem_ground_slam(self)
+            self.slam_cooldown = 0
+            return false -- Handled via custom AoE slam
+        end
+        return true -- Standard single target punch
+    end,
+
     do_custom = function(self, dtime)
         -- Re-bind follow target if owner is online
         if self.order == "follow" and (not self.following or not self.following:get_pos()) and self.owner and self.owner ~= "" then
             self.following = minetest.get_player_by_name(self.owner)
         end
 
-        -- Periodic AOE Ground Slam in combat
-        self.slam_timer = (self.slam_timer or math.random(1, 4)) + dtime
-        if self.slam_timer >= 6.0 and self.state == "attack" and self.attack then
-            local pos = self.object:get_pos()
-            local target_pos = self.attack:get_pos()
-            if pos and target_pos and vector.distance(pos, target_pos) <= 5.0 then
-                perform_golem_ground_slam(self)
-                self.slam_timer = 0
-            end
-        end
+        -- Track combat cooldown timer
+        self.slam_cooldown = (self.slam_cooldown or 0) + dtime
     end,
 
     do_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
