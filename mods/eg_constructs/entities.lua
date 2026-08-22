@@ -303,13 +303,18 @@ mobs:register_mob("eg_constructs:golem_clay", {
 })
 
 -- Projectile for Combat Drone ranged attack
+local LASER_DAMAGE = 8
+
 mobs:register_arrow("eg_constructs:laser_bolt", {
     visual = "sprite",
     visual_size = {x = 0.5, y = 0.5},
     textures = {"default_mese_crystal_fragment.png"},
-    velocity = 16,
-    damage = 8,
-    glow = 12,
+    velocity = 18,
+    glow = 14,
+    tail = 1,
+    tail_texture = "default_mese_crystal_fragment.png",
+    tail_size = 3,
+    expire = 0.1,
 
     hit_player = function(self, player)
         if not player or not player:is_player() then return end
@@ -337,15 +342,24 @@ mobs:register_arrow("eg_constructs:laser_bolt", {
         end
 
         player:punch(self.object, 1.0, {
-            full_punch_interval = 1.0,
-            damage_groups = {fleshy = self.damage},
+            full_punch_interval = 0.5,
+            damage_groups = {fleshy = LASER_DAMAGE},
         }, nil)
     end,
 
     hit_mob = function(self, mob)
+        if not mob then return end
         mob:punch(self.object, 1.0, {
-            full_punch_interval = 1.0,
-            damage_groups = {fleshy = self.damage},
+            full_punch_interval = 0.5,
+            damage_groups = {fleshy = LASER_DAMAGE},
+        }, nil)
+    end,
+
+    hit_object = function(self, obj)
+        if not obj then return end
+        obj:punch(self.object, 1.0, {
+            full_punch_interval = 0.5,
+            damage_groups = {fleshy = LASER_DAMAGE},
         }, nil)
     end,
 
@@ -362,7 +376,8 @@ mobs:register_mob("eg_constructs:combat_drone", {
     attack_type = "dogshoot",
     arrow = "eg_constructs:laser_bolt",
     shoot_interval = 1.0,
-    shoot_offset = 1.0,
+    shoot_offset = 0.0,
+    reach = 2.5,
     attack_monsters = true,
     attack_npcs = false,
     attack_players = false,
