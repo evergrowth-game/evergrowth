@@ -61,12 +61,8 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
 ## Phase 4: Construct Defenders & Guard Expansion ([guard_expansion.md](guard_expansion.md))
-- [ ] **Clay Golem (`eg_settlers:golem_clay`)**
-  - [ ] Implement Golem Pedestal anchor node (`eg_settlers:golem_pedestal`) and Golem Core item.
-  - [ ] Implement 120 HP heavy blunt melee construct defender.
-- [ ] **Automaton / Robot (`eg_settlers:automaton`)**
-  - [ ] Implement Automaton Station anchor node (`eg_settlers:automaton_station`) and Automaton Core item.
-  - [ ] Implement 80 HP fast sentry construct defender with `techage` integration.
+- [x] **Humanoid Guard Shift Expansion:** Day/Night alternating shifts and alarm wakeups implemented in `eg_settlers`.
+- [x] **Construct Companions (`eg_constructs`):** Mobile expedition companions (Clay Golem & Automaton) spun off into dedicated standalone mod `eg_constructs` with 16-slot pack inventories, player following, and raider crowd control.
 
 ## Phase 5: Automated Tech Defenses ([tech_defenses.md](tech_defenses.md))
 - [ ] **Automated Sentry Turret (`eg_settlers:sentry_turret`)**

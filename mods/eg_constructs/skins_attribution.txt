@@ -1,0 +1,14 @@
+Skins Attribution & Licenses - eg_constructs
+=============================================
+
+1. Target Filename: eg_constructs_combat_drone.png
+   Source: Minetest SkinsDB (ID: 2293)
+   Name: Robot
+   Author: Noah
+   License: CC BY-SA 3.0
+   Origin URL: https://skinsdb.terraqueststudios.net/
+
+2. Target Filename: eg_constructs_golem_clay.png
+   Source: mobs_monster (mobs_land_guard4.png)
+   Author: TenPlus1 / mobs_monster contributors
+   License: CC BY-SA 3.0
