@@ -196,7 +196,7 @@ mobs:register_mob("eg_constructs:golem_clay", {
     description = S("Clay Golem"),
     type = "npc",
     passive = false,
-    damage = 6,
+    damage = 12,
     attack_type = "dogfight",
     attack_monsters = true,
     attack_npcs = false,
@@ -308,14 +308,34 @@ mobs:register_arrow("eg_constructs:laser_bolt", {
     visual_size = {x = 0.5, y = 0.5},
     textures = {"default_mese_crystal_fragment.png"},
     velocity = 16,
-    damage = 4,
+    damage = 8,
     glow = 12,
 
     hit_player = function(self, player)
+        if not player or not player:is_player() then return end
         local pname = player:get_player_name()
-        if self.owner_id and pname == self.owner_id then
-            return -- Immune to friendly fire
+
+        -- Check if shooter construct belongs to this player (immune to own drone's fire)
+        if self.owner_id then
+            local shooter_ent = nil
+            if type(self.owner_id) == "userdata" and self.owner_id.get_luaentity then
+                shooter_ent = self.owner_id:get_luaentity()
+            elseif type(self.owner_id) == "table" then
+                shooter_ent = self.owner_id
+            elseif type(self.owner_id) == "string" and self.owner_id == pname then
+                return
+            end
+
+            if shooter_ent and shooter_ent.owner and shooter_ent.owner == pname then
+                return
+            end
         end
+
+        -- Respect server PvP toggle for other players
+        if minetest.settings:get_bool("enable_pvp") == false then
+            return
+        end
+
         player:punch(self.object, 1.0, {
             full_punch_interval = 1.0,
             damage_groups = {fleshy = self.damage},
@@ -338,10 +358,10 @@ mobs:register_mob("eg_constructs:combat_drone", {
     description = S("Combat Drone"),
     type = "npc",
     passive = false,
-    damage = 5,
+    damage = 7,
     attack_type = "dogshoot",
     arrow = "eg_constructs:laser_bolt",
-    shoot_interval = 1.5,
+    shoot_interval = 1.0,
     shoot_offset = 1.0,
     attack_monsters = true,
     attack_npcs = false,
