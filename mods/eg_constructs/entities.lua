@@ -208,10 +208,16 @@ local function perform_golem_ground_slam(self)
     local pos = self.object:get_pos()
     if not pos then return end
 
-    -- Pause locomotion for 0.8s so the full overhead slam animation completes without interruption
-    self.pause_timer = 0.8
+    -- Pause locomotion for 0.6s so the slam animation completes without interruption
+    self.pause_timer = 0.6
     self:set_velocity(0)
-    self:set_animation("punch", true)
+
+    -- Accelerated attack animation (30 fps)
+    self.object:set_animation({x = 36, y = 48}, 30, 0, false)
+
+    -- Forward pitch tilt towards ground (~23 degrees)
+    self:set_pitch(0.40)
+    self.pitch_reset_timer = 0.45
 
     -- Heavy impact sound effects
     minetest.sound_play("default_dig_cracky", {pos = pos, gain = 1.4, max_hear_distance = 25}, true)
@@ -379,6 +385,15 @@ mobs:register_mob("eg_constructs:golem_clay", {
     end,
 
     do_custom = function(self, dtime)
+        -- Reset forward pitch tilt after slam strike finishes
+        if self.pitch_reset_timer then
+            self.pitch_reset_timer = self.pitch_reset_timer - dtime
+            if self.pitch_reset_timer <= 0 then
+                self:set_pitch(0)
+                self.pitch_reset_timer = nil
+            end
+        end
+
         -- Re-bind follow target if owner is online
         if self.order == "follow" and (not self.following or not self.following:get_pos()) and self.owner and self.owner ~= "" then
             self.following = minetest.get_player_by_name(self.owner)
