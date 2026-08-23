@@ -1,31 +1,311 @@
 --[[
-    Evergrowth Villages - NPC Behavior & Engagement
-    ===============================================
-    This module overrides the `on_step` function of the base `mobs_npc:trader` 
-    entity. It implements a player-distance check to selectively show or hide 
-    nametags, reducing screen clutter when the player is far away.
-    
-    If the entity possesses the `is_settler` flag (spawned naturally in a settlement),
-    it also injects dynamic engagement behaviors:
-    - Look at nearby players (yaw_to_pos)
-    - Day/Night schedules (return home to sleep)
-    - Atmospheric greetings
+    Evergrowth Villages - NPC Behavior, Schedules & Pathfinding
+    ============================================================
+    This module implements:
+    - Multi-phase daily schedules (Sleep, Commute, Work, Wander/Supply-Chain, Social/Tavern/Library, Patrol)
+    - Waypoint-based pathfinding via minetest.find_path (with safe local wander fallback)
+    - Dynamic door & gate automation (open in front, close behind)
+    - Accurate bed alignment, sleep freeze, and 90-degree pitch rotation
+    - Proximity nametag toggles and atmospheric greetings
+    - Relocation contracts and criminal justice enforcement
 ]]--
 
 local S = minetest.get_translator("eg_settlers")
+
+local SCHEDULES = {
+    default = {
+        {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
+        {start = 4500,  stop = 5500,  phase = "commute", target = "job_pos"},
+        {start = 5500,  stop = 11000, phase = "work",    target = "job_pos"},
+        {start = 11000, stop = 12500, phase = "wander",  target = nil},
+        {start = 12500, stop = 17000, phase = "work",    target = "job_pos"},
+        {start = 17000, stop = 18500, phase = "social",  target = nil},
+        {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
+    },
+    guard_day = {
+        {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
+        {start = 4500,  stop = 18500, phase = "patrol",  target = nil},
+        {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
+    },
+    guard_night = {
+        {start = 0,     stop = 6500,  phase = "patrol",  target = nil},
+        {start = 6500,  stop = 16500, phase = "sleep",   target = "home_pos"},
+        {start = 16500, stop = 24000, phase = "patrol",  target = nil},
+    },
+}
+
+local SUPPLY_CHAIN_MAP = {
+    miner = "smith",
+    lumberjack = "carpenter",
+    farmer = "brewer",
+    gunsmith = "smith",
+    technologist = "roboticist",
+    fisher = "brewer",
+}
+
+local LIBRARY_VISITORS = {
+    mage = true,
+    technologist = true,
+    roboticist = true,
+}
+
+function eg_settlers.is_valid_floor(node_name)
+    if not node_name or node_name == "air" or node_name == "ignore" then return false end
+    local def = minetest.registered_nodes[node_name]
+    if not def or not def.walkable then return false end
+    if def.drawtype == "glasslike" or def.drawtype == "glasslike_framed" or def.drawtype == "nodebox" or def.drawtype == "fencelike" then
+        if node_name:find("glass") or node_name:find("pane") or node_name:find("fence") or node_name:find("wall") or node_name:find("window") then
+            return false
+        end
+    end
+    if def.groups and (def.groups.fence or def.groups.wall or def.groups.pane or def.groups.window) then
+        return false
+    end
+    if node_name:find("fence") or node_name:find("window") or node_name:find("pane") or node_name:find("wall") or node_name:find("glass") then
+        return false
+    end
+    return true
+end
+
+function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
+    if not target_pos then return nil end
+    local rounded = {
+        x = math.floor(target_pos.x + 0.5),
+        y = math.floor(target_pos.y + 0.5),
+        z = math.floor(target_pos.z + 0.5)
+    }
+    
+    local offsets = {
+        {x=0, y=0, z=1}, {x=0, y=0, z=-1},
+        {x=1, y=0, z=0}, {x=-1, y=0, z=0},
+        {x=1, y=0, z=1}, {x=-1, y=0, z=1},
+        {x=1, y=0, z=-1}, {x=-1, y=0, z=-1},
+        {x=0, y=1, z=1}, {x=0, y=1, z=-1},
+        {x=1, y=1, z=0}, {x=-1, y=1, z=0},
+        {x=0, y=-1, z=1}, {x=0, y=-1, z=-1},
+        {x=1, y=-1, z=0}, {x=-1, y=-1, z=0},
+    }
+
+    local best_fallback = nil
+
+    for _, off in ipairs(offsets) do
+        local candidate = {x = rounded.x + off.x, y = rounded.y + off.y, z = rounded.z + off.z}
+        local node_body = minetest.get_node(candidate)
+        local node_head = minetest.get_node({x = candidate.x, y = candidate.y + 1, z = candidate.z})
+        local node_floor = minetest.get_node({x = candidate.x, y = candidate.y - 1, z = candidate.z})
+        
+        local def_body = minetest.registered_nodes[node_body.name]
+        local def_head = minetest.registered_nodes[node_head.name]
+
+        if def_body and not def_body.walkable and
+           def_head and not def_head.walkable and
+           eg_settlers.is_valid_floor(node_floor.name) then
+            
+            -- Anti-stacking check
+            local objs = minetest.get_objects_inside_radius(candidate, 0.7)
+            local occupied = false
+            for _, obj in ipairs(objs) do
+                if obj ~= exclude_obj and not obj:is_player() then
+                    occupied = true
+                    break
+                end
+            end
+
+            if not occupied then
+                return candidate
+            elseif not best_fallback then
+                best_fallback = candidate
+            end
+        end
+    end
+
+    return best_fallback or target_pos
+end
+
+function eg_settlers.get_walkable_start(pos)
+    if not pos then return nil end
+    local rounded = {
+        x = math.floor(pos.x + 0.5),
+        y = math.floor(pos.y + 0.5),
+        z = math.floor(pos.z + 0.5)
+    }
+    local n_body = minetest.get_node(rounded)
+    local d_body = minetest.registered_nodes[n_body.name]
+    if d_body and d_body.walkable then
+        rounded.y = rounded.y + 1
+    end
+    return rounded
+end
+
+function eg_settlers.safe_teleport(self, target_pos)
+    if not target_pos then return false end
+    local goal = eg_settlers.get_walkable_goal(target_pos, self.object)
+    if goal then
+        self.object:set_pos({x = goal.x, y = goal.y + 0.5, z = goal.z})
+        return true
+    end
+    return false
+end
+
+function eg_settlers.find_profession_job_block(self, target_profession)
+    local pos = self.object:get_pos()
+    if not pos then return nil end
+
+    local sid = eg_settlers.db and eg_settlers.db.find_nearest_settlement(pos, 200)
+    if sid then
+        local residents = eg_settlers.db.get_residents(sid)
+        if residents then
+            local candidates = {}
+            for pos_str, res in pairs(residents) do
+                if res.profession == target_profession then
+                    local x, y, z = pos_str:match("^(%-?%d+%.?%d*),(%-?%d+%.?%d*),(%-?%d+%.?%d*)$")
+                    local bpos = (x and y and z) and {x = tonumber(x), y = tonumber(y), z = tonumber(z)} or minetest.string_to_pos(pos_str)
+                    if bpos then
+                        table.insert(candidates, bpos)
+                    end
+                end
+            end
+            if #candidates > 0 then
+                return candidates[math.random(#candidates)]
+            end
+        end
+    end
+    return nil
+end
+
+function eg_settlers.get_tavern_target(self)
+    if math.random(100) > 50 then return nil end
+    local base = eg_settlers.find_profession_job_block(self, "brewer")
+    if base then
+        return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+    end
+    return nil
+end
+
+function eg_settlers.get_supply_chain_target(self)
+    if math.random(100) > 50 then return nil end
+    local target_prof = SUPPLY_CHAIN_MAP[self.evergrowth_profession]
+    if not target_prof then return nil end
+
+    local base = eg_settlers.find_profession_job_block(self, target_prof)
+    if base then
+        return {x = base.x + math.random(-1, 1), y = base.y, z = base.z + math.random(-1, 1)}
+    end
+    return nil
+end
+
+function eg_settlers.get_social_target(self)
+    local prof = self.evergrowth_profession
+    local roll = math.random(100)
+
+    if LIBRARY_VISITORS[prof] then
+        if roll <= 40 then
+            local base = eg_settlers.find_profession_job_block(self, "librarian")
+            if base then
+                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+            end
+        elseif roll <= 75 then
+            local base = eg_settlers.find_profession_job_block(self, "brewer")
+            if base then
+                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+            end
+        end
+        return nil
+    end
+
+    return eg_settlers.get_tavern_target(self)
+end
+
+function eg_settlers.navigate_to(self, target_pos)
+    if not target_pos then return false end
+    local pos = self.object:get_pos()
+    if not pos then return false end
+
+    local goal_pos = eg_settlers.get_walkable_goal(target_pos, self.object)
+    if not goal_pos then goal_pos = target_pos end
+
+    self._nav_target = {x = goal_pos.x, y = goal_pos.y, z = goal_pos.z}
+    self._nav_stuck_timer = 0
+    self._nav_pos_check_timer = 0
+    self._nav_door_timer = 0
+    self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+
+    -- 1. Already at destination?
+    if vector.distance(pos, goal_pos) < 1.5 then
+        self._nav_waypoints = nil
+        self._nav_state = "arrived"
+        self.order = "stand"
+        self:set_velocity(0)
+        self:set_animation("stand")
+        return true
+    end
+
+    -- 2. Pre-pathing Door/Gate Check (open closed doors near start and destination)
+    if rawget(_G, "doors") and doors.get then
+        local door_nodes_start = minetest.find_nodes_in_area(
+            vector.subtract(pos, {x=10, y=2, z=10}),
+            vector.add(pos, {x=10, y=3, z=10}),
+            {"group:door", "group:gate"}
+        )
+        local door_nodes_goal = minetest.find_nodes_in_area(
+            vector.subtract(goal_pos, {x=10, y=2, z=10}),
+            vector.add(goal_pos, {x=10, y=2, z=10}),
+            {"group:door", "group:gate"}
+        )
+        local all_doors = {}
+        for _, dp in ipairs(door_nodes_start) do table.insert(all_doors, dp) end
+        for _, dp in ipairs(door_nodes_goal) do table.insert(all_doors, dp) end
+
+        for _, dpos in ipairs(all_doors) do
+            local door = doors.get(dpos)
+            if door and not door:state() then
+                door:open()
+                self._nav_opened_doors = self._nav_opened_doors or {}
+                local exists = false
+                for _, existing_dpos in ipairs(self._nav_opened_doors) do
+                    if vector.equals(existing_dpos, dpos) then
+                        exists = true
+                        break
+                    end
+                end
+                if not exists then
+                    table.insert(self._nav_opened_doors, dpos)
+                end
+            end
+        end
+    end
+
+    -- 3. Execute C++ A* Pathfinding (emerge chunks along path first)
+    local start_pos = eg_settlers.get_walkable_start(pos)
+    minetest.load_area(start_pos, goal_pos)
+    local path = minetest.find_path(start_pos, goal_pos, 80, 1, 3, "A*_noprefetch")
+
+    if path and #path > 0 then
+        self._nav_waypoints = path
+        self._nav_state = "walking"
+        self.order = "walk"
+        self:yaw_to_pos(path[1])
+        self:set_velocity(self.walk_velocity or 2)
+        self:set_animation("walk")
+        return true
+    else
+        -- Fallback: wander safely on current landmass; do not march blindly into water/fences
+        self._nav_waypoints = nil
+        self._nav_state = nil
+        self.order = "wander"
+        return false
+    end
+end
 
 local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
 for _, entity_name in ipairs(target_entities) do
     local base_entity = minetest.registered_entities[entity_name]
     if base_entity then
-        -- Triggers mobs_redo pathfinding to avoid water as a hazard (>0) while taking negligible damage if they fall in
         base_entity.water_damage = 0.001
-        -- Stepheight 1.1 allows walking up natural 1.0 terrain ledges, dirt banks, and steps (tall fences at 1.375 height block fence climbing)
         base_entity.stepheight = 1.1
         if base_entity.initial_properties then
             base_entity.initial_properties.stepheight = 1.1
         end
-        -- Jump height 4 (vertical velocity 4 m/s, ~0.8m jump) allows jumping out of water and single-block ledges, while mobs_redo blocks fence jumps
         base_entity.jump_height = 4
         base_entity.jump = true
         
@@ -168,7 +448,6 @@ for _, entity_name in ipairs(target_entities) do
                     minetest.load_area(self.home_pos, self.home_pos)
                     local hnode = minetest.get_node(self.home_pos)
                     if hnode.name == "eg_settlers:housing_deed" then
-                        -- Housing deed: clear deed-specific metadata
                         local dmeta = minetest.get_meta(self.home_pos)
                         dmeta:set_int("occupied", 0)
                         dmeta:set_string("resident_name", "")
@@ -178,7 +457,6 @@ for _, entity_name in ipairs(target_entities) do
                             eg_settlers.db.unregister_resident(deed_sid, self.home_pos)
                         end
                     else
-                        -- Bed: clear bed-specific metadata
                         eg_settlers.clear_bed_assignment(self.home_pos)
                     end
                 end
@@ -210,621 +488,764 @@ for _, entity_name in ipairs(target_entities) do
         
         local old_on_step = base_entity.on_step
         base_entity.on_step = function(self, dtime)
-        -- Call original logic
-        if old_on_step then old_on_step(self, dtime) end
-
-        --[[ FUTURE: Fast Path Following (disabled - pathfinding cannot navigate doors)
-        -- Dynamically enable pathfinding for existing entities
-        if self.is_villager and (not self.pathfinding or self.pathfinding == 0) then
-            self.pathfinding = 1
-        end
-
-        -- Fast Path Following for Settlers returning to job blocks (Daytime)
-        if self.is_villager and self.order == "go_home" then
-            local pos = self.object:get_pos()
-            if pos then
-                if self._cached_is_night == false and self._cached_day_target then
-                    local day_target = self._cached_day_target
-                    local move_target = nil
-                    if self.path and self.path.way and #self.path.way > 0 then
-                        local p1 = self.path.way[1]
-                        if p1 and math.abs(p1.x - pos.x) + math.abs(p1.z - pos.z) < 0.6 then
-                            table.remove(self.path.way, 1)
-                            p1 = self.path.way[1]
-                        end
-                        if p1 then
-                            move_target = {x = p1.x, y = p1.y, z = p1.z}
-                        end
-                    else
-                        local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
-                        local target_head = {x = day_target.x, y = day_target.y + 1, z = day_target.z}
-                        if minetest.line_of_sight(head_pos, target_head) then
-                            move_target = day_target
+            -- If sleeping, lock position and rotation and bypass mobs_redo idle routines
+            if self._sleeping then
+                self.object:set_velocity({x=0, y=0, z=0})
+                self.object:set_acceleration({x=0, y=0, z=0})
+                if self._sleep_pos then
+                    self.object:set_pos(self._sleep_pos)
+                end
+                if self._sleep_yaw then
+                    self.object:set_rotation({x = math.pi / 2, y = self._sleep_yaw, z = 0})
+                end
+                self.order = "stand"
+                self:set_animation("stand")
+                
+                -- Check for schedule wake-up
+                self._schedule_timer = (self._schedule_timer or 0) + dtime
+                if self._schedule_timer >= 1.0 then
+                    self._schedule_timer = 0
+                    local current_time = (minetest.get_timeofday() * 24000 + (self._schedule_jitter or 0)) % 24000
+                    local schedule_key = "default"
+                    if self.evergrowth_profession == "guard" then
+                        schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+                    end
+                    local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+                    for _, entry in ipairs(schedule) do
+                        if current_time >= entry.start and current_time < entry.stop then
+                            if entry.phase ~= "sleep" then
+                                self._sleeping = nil
+                                self._sleep_pos = nil
+                                self._sleep_yaw = nil
+                                local cur_y = self.object:get_yaw() or 0
+                                self.object:set_rotation({x = 0, y = cur_y, z = 0})
+                                local cur_p = self.object:get_pos()
+                                if cur_p then
+                                    self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
+                                end
+                                self._current_phase = entry.phase
+                                local target_pos = entry.target and self[entry.target]
+                                if target_pos then
+                                    eg_settlers.navigate_to(self, target_pos)
+                                end
+                            end
+                            break
                         end
                     end
-                    
-                    if move_target then
-                        self:yaw_to_pos(move_target)
-                        self:set_velocity(self.walk_velocity)
-                        if move_target.y > pos.y + 0.5 then
-                            local v = self.object:get_velocity()
-                            if v.y <= 0.1 then
-                                self.object:set_velocity({x = v.x, y = 5, z = v.z})
+                end
+                return
+            end
+
+            -- Call original logic
+            if old_on_step then old_on_step(self, dtime) end
+
+            -- Scheduled Navigation / Waypoint Following
+            if self.is_villager then
+                local pos = self.object:get_pos()
+                if pos then
+                    -- Interrupt check: Abort pathfinding if NPC enters combat or flee states
+                    if self.state == "attack" or self.state == "runaway" or self.attack then
+                        self._nav_waypoints = nil
+                        self._nav_state = nil
+                        self._nav_target = nil
+                    end
+
+                    if self._nav_waypoints and #self._nav_waypoints > 0 then
+                        local wp = self._nav_waypoints[1]
+                        local dist_to_wp = vector.distance(pos, wp)
+
+                        -- Throttled Door Opener & Closer (runs every 0.5s)
+                        self._nav_door_timer = (self._nav_door_timer or 0) + dtime
+                        if self._nav_door_timer >= 0.5 then
+                            self._nav_door_timer = 0
+
+                            if rawget(_G, "doors") and doors.get then
+                                local door_nodes = minetest.find_nodes_in_area(
+                                    vector.subtract(pos, {x=2.5, y=1.0, z=2.5}),
+                                    vector.add(pos, {x=2.5, y=2.0, z=2.5}),
+                                    {"group:door", "group:gate"}
+                                )
+                                for _, dpos in ipairs(door_nodes) do
+                                    local door = doors.get(dpos)
+                                    if door and not door:state() then
+                                        door:open()
+                                        self._nav_opened_doors = self._nav_opened_doors or {}
+                                        local exists = false
+                                        for _, existing_dpos in ipairs(self._nav_opened_doors) do
+                                            if vector.equals(existing_dpos, dpos) then
+                                                exists = true
+                                                break
+                                            end
+                                        end
+                                        if not exists then
+                                            table.insert(self._nav_opened_doors, dpos)
+                                        end
+                                    end
+                                end
+
+                                -- Close doors left behind (distance >= 2.0 blocks)
+                                if self._nav_opened_doors then
+                                    for i = #self._nav_opened_doors, 1, -1 do
+                                        local dpos = self._nav_opened_doors[i]
+                                        if vector.distance(pos, dpos) >= 2.0 then
+                                            local door = doors.get(dpos)
+                                            if door and door:state() then
+                                                door:close()
+                                            end
+                                            table.remove(self._nav_opened_doors, i)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+
+                        -- Waypoint progression
+                        if dist_to_wp < 0.8 then
+                            table.remove(self._nav_waypoints, 1)
+                            self._nav_stuck_timer = 0
+                            self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+
+                            if #self._nav_waypoints == 0 then
+                                self._nav_waypoints = nil
+                                self._nav_state = "arrived"
+                                self.order = "stand"
+                                self:set_velocity(0)
+                                self:set_animation("stand")
+                            else
+                                local next_wp = self._nav_waypoints[1]
+                                self:yaw_to_pos(next_wp)
+                                self:set_velocity(self.walk_velocity or 2)
+                                self:set_animation("walk")
+                                if next_wp.y > pos.y + 0.5 then
+                                    local v = self.object:get_velocity()
+                                    if v and v.y <= 0.1 then
+                                        self.object:set_velocity({x = v.x, y = 4.5, z = v.z})
+                                    end
+                                end
+                            end
+                        else
+                            self:yaw_to_pos(wp)
+                            self:set_velocity(self.walk_velocity or 2)
+                            self:set_animation("walk")
+                            if wp.y > pos.y + 0.5 then
+                                local v = self.object:get_velocity()
+                                if v and v.y <= 0.1 then
+                                    self.object:set_velocity({x = v.x, y = 4.5, z = v.z})
+                                end
+                            end
+                        end
+
+                        -- Liquid Avoidance Check Ahead
+                        local cur_yaw = self.object:get_yaw() or 0
+                        local dir_x = -math.sin(cur_yaw)
+                        local dir_z = math.cos(cur_yaw)
+                        local node_ahead = minetest.get_node({x = math.floor(pos.x + dir_x * 0.9 + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + dir_z * 0.9 + 0.5)})
+                        local def_ahead = minetest.registered_nodes[node_ahead.name]
+                        if def_ahead and (def_ahead.liquidtype ~= "none" or (def_ahead.groups and def_ahead.groups.water)) then
+                            self:set_velocity(0)
+                        end
+
+                        -- Robust Stuck Detection (evaluates position displacement every 1.0s window)
+                        self._nav_pos_check_timer = (self._nav_pos_check_timer or 0) + dtime
+                        if self._nav_pos_check_timer >= 1.0 then
+                            self._nav_pos_check_timer = 0
+                            local last = self._nav_last_pos or pos
+                            if vector.distance(pos, last) < 0.3 then
+                                self._nav_stuck_timer = (self._nav_stuck_timer or 0) + 1.0
+                                if self._nav_stuck_timer > 10.0 then
+                                    -- Fallback safe teleport if stuck for 10 seconds
+                                    if self._nav_target then
+                                        eg_settlers.safe_teleport(self, self._nav_target)
+                                    end
+                                    self._nav_waypoints = nil
+                                    self._nav_state = "arrived"
+                                    self._nav_stuck_timer = 0
+                                    self.order = "stand"
+                                    self:set_velocity(0)
+                                    self:set_animation("stand")
+                                end
+                            else
+                                self._nav_stuck_timer = 0
+                            end
+                            self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+                        end
+                    end
+
+                    -- Custom Nametag & Engagement Logic (evaluated once per second)
+                    if self.evergrowth_nametag_mode then
+                        self._behavior_timer = (self._behavior_timer or 0) + dtime
+                        if self._behavior_timer > 1.0 then
+                            self._behavior_timer = 0
+                            
+                            if not self.game_name or self.game_name == "" then
+                                local props = self.object:get_properties()
+                                if props.nametag and props.nametag ~= "" then
+                                    self.game_name = props.nametag
+                                end
+                            end
+
+                            local limit = 20
+                            local interact_limit = 5
+                            local visible = false
+                            local interacting_player = nil
+                            
+                            local players = minetest.get_connected_players()
+                            for _, player in ipairs(players) do
+                                local p_pos = player:get_pos()
+                                local dist = vector.distance(pos, p_pos)
+                                
+                                if dist <= limit then
+                                    visible = true
+                                    if dist <= interact_limit then
+                                        interacting_player = player
+                                        break
+                                    end
+                                end
+                            end
+                            
+                            -- Toggle nametag
+                            local current_nametag = self.object:get_properties().nametag
+                            if visible and current_nametag == "" then
+                                self.object:set_properties({nametag = self.game_name})
+                            elseif not visible and current_nametag ~= "" then
+                                self.object:set_properties({nametag = ""})
+                            end
+                            
+                            -- Defensive anchor check
+                            if self.job_pos then
+                                local jnode = minetest.get_node(self.job_pos)
+                                if jnode.name ~= "ignore" and minetest.get_item_group(jnode.name, "job_block") == 0 and jnode.name ~= "eg_settlers:housing_deed" then
+                                    self.job_pos = nil
+                                end
+                            end
+
+                            if self.home_pos then
+                                local hnode = minetest.get_node(self.home_pos)
+                                local hmeta = minetest.get_meta(self.home_pos)
+                                local is_bed = hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0
+                                local is_deed = hnode.name == "eg_settlers:housing_deed"
+                                local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
+                                
+                                if (hnode.name ~= "ignore" and not is_bed and not is_deed) or is_reserved then
+                                    if is_bed and is_reserved then
+                                        eg_settlers.clear_bed_assignment(self.home_pos)
+                                    end
+                                    self.home_pos = nil
+                                end
+                            end
+                            
+                            -- Auto-search for unassigned bed if homeless
+                            if not self.home_pos then
+                                self._bed_search_timer = (self._bed_search_timer or 0) + 1.0
+                                if self._bed_search_timer >= 5.0 then
+                                    self._bed_search_timer = 0
+                                    local search_pos = self.job_pos or pos
+                                    local unassigned_bed = eg_settlers.find_unassigned_bed(search_pos, 50)
+                                    if unassigned_bed then
+                                        self.home_pos = unassigned_bed
+                                        local settler_name = self.nametag or self.game_name or (self.evergrowth_profession and self.evergrowth_profession:gsub("^%l", string.upper)) or "Settler"
+                                        eg_settlers.assign_bed(unassigned_bed, settler_name)
+                                        
+                                        if self.job_pos then
+                                            local jmeta = minetest.get_meta(self.job_pos)
+                                            if jmeta then
+                                                jmeta:set_string("home_pos", minetest.pos_to_string(unassigned_bed))
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                            
+                            -- Schedule evaluation
+                            self._schedule_jitter = self._schedule_jitter or math.random(-200, 200)
+                            local current_time = (minetest.get_timeofday() * 24000 + self._schedule_jitter) % 24000
+                            local schedule_key = "default"
+                            if self.evergrowth_profession == "guard" then
+                                schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+                            end
+                            local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+                            
+                            local new_entry = nil
+                            for _, entry in ipairs(schedule) do
+                                if current_time >= entry.start and current_time < entry.stop then
+                                    new_entry = entry
+                                    break
+                                end
+                            end
+
+                            local is_fighting = (self.evergrowth_profession == "guard" and self.attack and self.attack:get_pos() ~= nil)
+
+                            if new_entry and not is_fighting then
+                                -- Schedule phase transition
+                                if new_entry.phase ~= self._current_phase then
+                                    if self._sleeping and new_entry.phase ~= "sleep" then
+                                        self._sleeping = nil
+                                        self._sleep_pos = nil
+                                        self._sleep_yaw = nil
+                                        local cur_y = self.object:get_yaw() or 0
+                                        self.object:set_rotation({x = 0, y = cur_y, z = 0})
+                                        local cur_p = self.object:get_pos()
+                                        if cur_p then
+                                            self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
+                                        end
+                                    end
+
+                                    self._current_phase = new_entry.phase
+                                    
+                                    if new_entry.phase == "wander" then
+                                        local visit_pos = eg_settlers.get_supply_chain_target(self)
+                                        if visit_pos then
+                                            eg_settlers.navigate_to(self, visit_pos)
+                                        else
+                                            self.order = "wander"
+                                        end
+                                    elseif new_entry.phase == "social" then
+                                        local visit_pos = eg_settlers.get_social_target(self)
+                                        if visit_pos then
+                                            eg_settlers.navigate_to(self, visit_pos)
+                                        else
+                                            self.order = "wander"
+                                        end
+                                    elseif new_entry.phase == "patrol" then
+                                        self.order = "wander"
+                                    elseif new_entry.target then
+                                        local target_pos = self[new_entry.target]
+                                        if target_pos then
+                                            eg_settlers.navigate_to(self, target_pos)
+                                        else
+                                            self.order = (new_entry.phase == "sleep") and "stand" or "wander"
+                                        end
+                                    end
+                                end
+
+                                -- Continuous Tether / Workstation check (when not actively navigating along waypoints)
+                                if not self._nav_waypoints or #self._nav_waypoints == 0 then
+                                    if self._current_phase == "sleep" then
+                                        local bed_pos = self.home_pos or self.job_pos
+                                        if bed_pos then
+                                            local bed_node = minetest.get_node(bed_pos)
+                                            local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
+                                            if is_bed then
+                                                local is_top = bed_node.name:find("_top") ~= nil
+                                                local param2 = (bed_node.param2 or 0) % 4
+                                                local yaw = 0
+                                                if param2 == 1 then
+                                                    yaw = math.pi / 2
+                                                elseif param2 == 3 then
+                                                    yaw = -math.pi / 2
+                                                elseif param2 == 0 then
+                                                    yaw = math.pi
+                                                else
+                                                    yaw = 0
+                                                end
+                                                local dir = minetest.facedir_to_dir(param2)
+                                                local offset_mult = is_top and -0.4 or 0.4
+                                                local sleep_pos = {
+                                                    x = bed_pos.x + dir.x * offset_mult,
+                                                    y = bed_pos.y - 0.15,
+                                                    z = bed_pos.z + dir.z * offset_mult
+                                                }
+                                                if vector.distance(pos, sleep_pos) > 2.0 then
+                                                    eg_settlers.navigate_to(self, bed_pos)
+                                                else
+                                                    self._sleeping = true
+                                                    self._sleep_pos = sleep_pos
+                                                    self._sleep_yaw = yaw
+                                                    self.object:set_pos(sleep_pos)
+                                                    self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                                                    self.order = "stand"
+                                                    if self.stop_attack then self:stop_attack() end
+                                                    self:set_animation("stand")
+                                                    self:set_velocity(0)
+                                                end
+                                            else
+                                                local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
+                                                if goal and vector.distance(pos, goal) > 2.0 then
+                                                    eg_settlers.navigate_to(self, bed_pos)
+                                                else
+                                                    self.order = "stand"
+                                                    if self.stop_attack then self:stop_attack() end
+                                                    self:set_animation("stand")
+                                                    self:set_velocity(0)
+                                                end
+                                            end
+                                        end
+                                    elseif self._current_phase == "work" or self._current_phase == "commute" then
+                                        local work_target = self.job_pos or self.home_pos
+                                        if work_target then
+                                            local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
+                                            if vector.distance(pos, work_target) > tether_radius then
+                                                eg_settlers.navigate_to(self, work_target)
+                                            end
+                                        end
+                                    elseif self._current_phase == "patrol" then
+                                        local guard_target = self.job_pos or self.home_pos
+                                        if guard_target and vector.distance(pos, guard_target) > 45 then
+                                            eg_settlers.navigate_to(self, guard_target)
+                                        end
+                                    end
+                                end
+
+                                -- Ice Avoidance Check (Prevent wandering onto frozen rivers)
+                                local yaw = self.object:get_yaw() or 0
+                                local dir_x = -math.sin(yaw)
+                                local dir_z = math.cos(yaw)
+                                local under_node = minetest.get_node({x = math.floor(pos.x + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + 0.5)})
+                                local ahead_under = minetest.get_node({x = math.floor(pos.x + dir_x * 1.2 + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + dir_z * 1.2 + 0.5)})
+
+                                local is_ice_node = function(nodename)
+                                    if not nodename or nodename == "air" or nodename == "ignore" then return false end
+                                    local def = minetest.registered_nodes[nodename]
+                                    if def and def.groups and (def.groups.ice or def.groups.melts) then
+                                        return true
+                                    end
+                                    return nodename == "regional_weather:ice" or nodename == "ethereal:thin_ice" or nodename == "default:ice" or nodename:find("ice") ~= nil
+                                end
+
+                                if is_ice_node(under_node.name) or is_ice_node(ahead_under.name) then
+                                    local retreat_target = self.job_pos or self.home_pos
+                                    if retreat_target then
+                                        self:yaw_to_pos(retreat_target)
+                                    else
+                                        self:set_yaw(yaw + math.pi, 8)
+                                    end
+                                    self:set_velocity(self.walk_velocity or 2)
+                                    self:set_animation("walk")
+                                end
+                            end
+
+                            -- Player Interaction (Look & Greet)
+                            if interacting_player and self._current_phase ~= "sleep" then
+                                if self.state == "stand" or self.state == "wander" then
+                                    self:yaw_to_pos(interacting_player:get_pos())
+                                end
+                                
+                                self._greet_timer = (self._greet_timer or 0) + 1.0
+                                if self._greet_timer > 120 then
+                                    self._greet_timer = 0
+                                    local greetings = {"Hello there.", "Good day.", "Greetings."}
+                                    local msg = greetings[math.random(#greetings)]
+                                    local name = interacting_player:get_player_name()
+                                    minetest.chat_send_player(name, "<" .. self.game_name .. "> " .. msg)
+                                end
                             end
                         end
                     end
                 end
             end
         end
-        ]]
 
-        -- Custom Nametag & Engagement Logic (Only if flag is set)
-        if self.evergrowth_nametag_mode then
-            self._behavior_timer = (self._behavior_timer or 0) + dtime
-            if self._behavior_timer > 1.0 then
-                self._behavior_timer = 0
-                
-                -- Ensure we have the name stored (from spawn time)
+        local old_on_activate = base_entity.on_activate
+        base_entity.on_activate = function(self, staticdata, dtime)
+            if old_on_activate then old_on_activate(self, staticdata, dtime) end
+
+            if self.is_villager then
+                self.jump_height = 4
+                self.jump = true
+                self.object:set_properties({stepheight = 1.1})
+                self.evergrowth_nametag_mode = true
                 if not self.game_name or self.game_name == "" then
-                    -- Try to recover from properties if visible
-                    local props = self.object:get_properties()
-                    if props.nametag and props.nametag ~= "" then
-                        self.game_name = props.nametag
+                    if self.nametag and self.nametag ~= "" then
+                        self.game_name = self.nametag
+                    end
+                end
+                if self.game_name then
+                    self.nametag = self.game_name
+                end
+
+                -- Fast Catch-Up on MapBlock / Chunk Activation
+                if dtime and dtime > 0 then
+                    self._schedule_jitter = self._schedule_jitter or math.random(-200, 200)
+                    local current_time = (minetest.get_timeofday() * 24000 + self._schedule_jitter) % 24000
+                    local schedule_key = "default"
+                    if self.evergrowth_profession == "guard" then
+                        schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+                    end
+                    local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+                    
+                    for _, entry in ipairs(schedule) do
+                        if current_time >= entry.start and current_time < entry.stop then
+                            self._current_phase = entry.phase
+                            local target_pos = entry.target and self[entry.target]
+                            if target_pos then
+                                if entry.phase == "sleep" then
+                                    local bed_node = minetest.get_node(target_pos)
+                                    local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
+                                    if is_bed then
+                                        local is_top = bed_node.name:find("_top") ~= nil
+                                        local param2 = (bed_node.param2 or 0) % 4
+                                        local yaw = 0
+                                        if param2 == 1 then
+                                            yaw = math.pi / 2
+                                        elseif param2 == 3 then
+                                            yaw = -math.pi / 2
+                                        elseif param2 == 0 then
+                                            yaw = math.pi
+                                        else
+                                            yaw = 0
+                                        end
+                                        local dir = minetest.facedir_to_dir(param2)
+                                        local offset_mult = is_top and -0.4 or 0.4
+                                        local sleep_pos = {
+                                            x = target_pos.x + dir.x * offset_mult,
+                                            y = target_pos.y - 0.15,
+                                            z = target_pos.z + dir.z * offset_mult
+                                        }
+                                        self._sleeping = true
+                                        self._sleep_pos = sleep_pos
+                                        self._sleep_yaw = yaw
+                                        self.object:set_pos(sleep_pos)
+                                        self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                                        self.order = "stand"
+                                    else
+                                        eg_settlers.safe_teleport(self, target_pos)
+                                    end
+                                else
+                                    self.object:set_rotation({x = 0, y = self.object:get_yaw() or 0, z = 0})
+                                    eg_settlers.safe_teleport(self, target_pos)
+                                end
+                            end
+                            break
+                        end
+                    end
+                    self._nav_waypoints = nil
+                    self._nav_state = "arrived"
+                end
+            end
+
+            if self.base_texture then
+                self.object:set_properties({textures = self.base_texture, stepheight = 1.1})
+            else
+                self.object:set_properties({stepheight = 1.1})
+            end
+
+            if self.evergrowth_profession == "guard" then
+                self.hp_max = 50
+                self.object:set_properties({hp_max = 50})
+
+                if not self.health or self.health <= 0 or self.health == 20 or self.health > 50 then
+                    self.health = 50
+                end
+                self.object:set_hp(self.health)
+                self.old_health = self.health
+
+                local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
+                local s = jmeta and jmeta:get_string("guard_shift")
+                if s and s ~= "" then
+                    self.guard_shift = s
+                else
+                    local pos = self.object:get_pos() or self.job_pos or self.home_pos
+                    local my_index = 1
+                    if pos then
+                        local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                        if sid then
+                            local residents = eg_settlers.db.get_residents(sid)
+                            local guard_keys = {}
+                            for p_str, res in pairs(residents) do
+                                if res.profession == "guard" then
+                                    table.insert(guard_keys, p_str)
+                                end
+                            end
+                            table.sort(guard_keys)
+                            local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
+                            local my_name = self.game_name or self.nametag or ""
+                            for idx, k in ipairs(guard_keys) do
+                                local r_info = residents[k]
+                                if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
+                                    my_index = idx
+                                    break
+                                end
+                            end
+                        end
+                    end
+                    self.guard_shift = (my_index % 2 == 1) and "day" or "night"
+                    if jmeta then
+                        jmeta:set_string("guard_shift", self.guard_shift)
+                        local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
+                        local rname = self.nametag or self.game_name or "Guard"
+                        jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
                     end
                 end
 
-                if self.game_name then
-                    local pos = self.object:get_pos()
-                    if not pos then return end 
+                if self.game_name and self.game_name ~= "" and self.guard_shift then
+                    if self.guard_shift == "night" and self.game_name:find("Day Guard") then
+                        self.game_name = self.game_name:gsub("Day Guard", "Night Guard")
+                        self.nametag = self.game_name
+                        self.object:set_properties({nametag = self.nametag})
+                    elseif self.guard_shift == "day" and self.game_name:find("Night Guard") then
+                        self.game_name = self.game_name:gsub("Night Guard", "Day Guard")
+                        self.nametag = self.game_name
+                        self.object:set_properties({nametag = self.nametag})
+                    end
+                end
+            end
+        end
 
-                    local limit = 20          -- Nametag Visibility distance
-                    local interact_limit = 5  -- Distance to interact (look/greet)
-                    local visible = false
-                    local interacting_player = nil
-                    
-                    -- Check connected players
-                    local players = minetest.get_connected_players()
-                    for _, player in ipairs(players) do
-                        local p_pos = player:get_pos()
-                        local dist = vector.distance(pos, p_pos)
-                        
-                        if dist <= limit then
-                            visible = true
-                            if dist <= interact_limit then
-                                interacting_player = player
-                                break
-                            end
-                        end
-                    end
-                    
-                    -- 1. Toggle nametag
-                    local current_nametag = self.object:get_properties().nametag
-                    if visible and current_nametag == "" then
-                         self.object:set_properties({nametag = self.game_name})
-                    elseif not visible and current_nametag ~= "" then
-                         self.object:set_properties({nametag = ""})
-                    end
-                    
-                    -- 2. Schedule & Engagement Logic (Settlers Only)
+        local old_on_rightclick = base_entity.on_rightclick
+        base_entity.on_rightclick = function(self, clicker)
+            if clicker and clicker:is_player() then
+                local name = clicker:get_player_name()
+                
+                if clicker:get_player_control().sneak then
                     if self.is_villager then
-                        local current_time = minetest.get_timeofday() * 24000
-                        local is_off_duty = false
-                        if self.evergrowth_profession == "guard" then
-                            if self.guard_shift == "night" then
-                                -- Night Guard: off-duty / sleeping during day (6500 to 16500)
-                                is_off_duty = (current_time >= 6500 and current_time < 16500)
+                        local allowed = false
+                        if self.home_pos then
+                            local db_sid = eg_settlers.db.get_settlement_by_deed(self.home_pos)
+                            if db_sid then
+                                allowed = eg_settlers.db.is_authorized(db_sid, name)
                             else
-                                -- Day Guard (default): off-duty / sleeping during night (18500 to 4500)
-                                is_off_duty = (current_time >= 18500 or current_time < 4500)
+                                if minetest.get_node_or_nil(self.home_pos) then
+                                    local deed_meta = minetest.get_meta(self.home_pos)
+                                    local owner = deed_meta:get_string("owner")
+                                    allowed = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
+                                else
+                                    minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Cannot relocate villager: home area is unloaded.")))
+                                    return
+                                end
                             end
                         else
-                            -- Non-guard villagers: off-duty / sleeping during night (18500 to 4500)
-                            is_off_duty = (current_time >= 18500 or current_time < 4500)
+                            allowed = minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer()
                         end
-                        
-                        -- Defensive check: verify Job Block / Deed still exists
-                        if self.job_pos then
-                            local jnode = minetest.get_node(self.job_pos)
-                            if jnode.name ~= "ignore" and minetest.get_item_group(jnode.name, "job_block") == 0 and jnode.name ~= "eg_settlers:housing_deed" then
-                                self.job_pos = nil
-                            end
+
+                        if not allowed then
+                            minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Only the town owner or associates can relocate this villager.")))
+                            return
+                        end
+
+                        local contract = ItemStack("eg_settlers:contract_villager_relocation")
+                        local meta = contract:get_meta()
+                        local rname = self.nametag or self.game_name or "Settler"
+                        local prof = self.evergrowth_profession or "merchant"
+                        local hp = self.health or (prof == "guard" and 50 or 20)
+                        if prof == "guard" and (hp <= 0 or hp == 20 or hp > 50) then
+                            hp = 50
+                        end
+
+                        meta:set_string("resident_name", rname)
+                        meta:set_string("profession", prof)
+                        meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
+                        meta:set_int("health", hp)
+                        if self.guard_shift then
+                            meta:set_string("guard_shift", self.guard_shift)
+                        end
+                        if self.trades then
+                            meta:set_string("trades", minetest.serialize(self.trades))
+                        end
+
+                        local desc = contract:get_definition().description
+                        local formatted_prof = prof:gsub("^%l", string.upper)
+                        if prof == "guard" and self.guard_shift then
+                            local shift_label = self.guard_shift == "night" and S("Night Guard") or S("Day Guard")
+                            meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. shift_label .. "\n" .. S("Health: ") .. tostring(hp))
+                        else
+                            meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
                         end
 
                         if self.home_pos then
+                            minetest.load_area(self.home_pos, self.home_pos)
                             local hnode = minetest.get_node(self.home_pos)
-                            local hmeta = minetest.get_meta(self.home_pos)
-                            local is_bed = hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0
-                            local is_deed = hnode.name == "eg_settlers:housing_deed"
-                            local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
-                            
-                            if (hnode.name ~= "ignore" and not is_bed and not is_deed) or is_reserved then
-                                if is_bed and is_reserved then
-                                    eg_settlers.clear_bed_assignment(self.home_pos)
-                                end
-                                self.home_pos = nil
-                            end
-                        end
-                        
-                        -- Auto-search for unassigned bed if homeless
-                        if not self.home_pos then
-                            self._bed_search_timer = (self._bed_search_timer or 0) + 1.0
-                            if self._bed_search_timer >= 5.0 then
-                                self._bed_search_timer = 0
-                                local search_pos = self.job_pos or pos
-                                local unassigned_bed = eg_settlers.find_unassigned_bed(search_pos, 50)
-                                if unassigned_bed then
-                                    self.home_pos = unassigned_bed
-                                    local settler_name = self.nametag or self.game_name or (self.evergrowth_profession and self.evergrowth_profession:gsub("^%l", string.upper)) or "Settler"
-                                    eg_settlers.assign_bed(unassigned_bed, settler_name)
-                                    
-                                    if self.job_pos then
-                                        local jmeta = minetest.get_meta(self.job_pos)
-                                        if jmeta then
-                                            jmeta:set_string("home_pos", minetest.pos_to_string(unassigned_bed))
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                        
-                        -- Deferred Wake / Combat check for off-duty guards responding to alarms or attacked
-                        local is_fighting = (self.evergrowth_profession == "guard" and self.attack and self.attack:get_pos() ~= nil)
-
-                        -- Schedule: Off-duty return home bed shelter, On-duty active at job workstation
-                        if is_off_duty and not is_fighting then
-                            self._was_off_duty = true
-                            local night_target = self.home_pos or self.job_pos
-                            if night_target then
-                                local dist_home = vector.distance(pos, night_target)
-                                if dist_home > 3 then
-                                    -- Teleport safely by finding an elevated non-solid coordinate above/adjacent to bed
-                                    local dest = {x = night_target.x, y = night_target.y + 0.5, z = night_target.z}
-                                    local offsets = {
-                                        {x=0, y=0.5, z=0},
-                                        {x=0, y=1.0, z=0},
-                                        {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
-                                        {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
-                                    }
-                                    
-                                    for _, off in ipairs(offsets) do
-                                        local test_pos = {x = night_target.x + off.x, y = night_target.y + off.y, z = night_target.z + off.z}
-                                        local head_pos = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
-                                        
-                                        local node1 = minetest.get_node(test_pos)
-                                        local node2 = minetest.get_node(head_pos)
-                                        
-                                        local def1 = minetest.registered_nodes[node1.name]
-                                        local def2 = minetest.registered_nodes[node2.name]
-                                        
-                                        if def1 and not def1.walkable and def2 and not def2.walkable then
-                                            dest = test_pos
-                                            break
-                                        end
-                                    end
-                                    
-                                    self.object:set_pos(dest)
-                                    self.order = "stand"
-                                    if self.stop_attack then self:stop_attack() end
-                                    self:set_animation("stand")
-                                    self:set_velocity(0)
-                                else
-                                    -- Arrived at bed shelter
-                                    if self.order ~= "stand" then
-                                        self.order = "stand"
-                                        if self.stop_attack then self:stop_attack() end
-                                        self:set_animation("stand")
-                                        self:set_velocity(0)
-                                    end
+                            if hnode.name == "eg_settlers:housing_deed" then
+                                local dmeta = minetest.get_meta(self.home_pos)
+                                dmeta:set_int("occupied", 0)
+                                dmeta:set_string("resident_name", "")
+                                dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
+                                local sid = dmeta:get_string("settlement_id")
+                                if sid and sid ~= "" then
+                                    eg_settlers.db.unregister_resident(sid, self.home_pos)
                                 end
                             else
-                                self.order = "stand"
+                                eg_settlers.clear_bed_assignment(self.home_pos)
                             end
-                        else
-                            -- On-duty (or off-duty guard actively in combat)
-                            
-                            -- Shift start teleport: on off-duty -> on-duty transition, teleport to job block
-                            if self._was_off_duty and not is_off_duty then
-                                if self.order == "stand" or self.order == "go_home" then
-                                    self.order = "wander"
-                                end
-                                local day_target = self.job_pos or self.home_pos
-                                if day_target then
-                                    local dest = {x = day_target.x, y = day_target.y + 0.5, z = day_target.z}
-                                    local offsets = {
-                                        {x=0, y=0.5, z=0}, {x=0, y=1.0, z=0},
-                                        {x=0, y=0.5, z=1}, {x=0, y=0.5, z=-1},
-                                        {x=1, y=0.5, z=0}, {x=-1, y=0.5, z=0},
-                                        {x=0, y=-0.5, z=1}, {x=0, y=-0.5, z=-1},
-                                        {x=1, y=-0.5, z=0}, {x=-1, y=-0.5, z=0},
-                                    }
-                                    for _, off in ipairs(offsets) do
-                                        local test_pos = {x = day_target.x + off.x, y = day_target.y + off.y, z = day_target.z + off.z}
-                                        local test_head = {x = test_pos.x, y = test_pos.y + 1, z = test_pos.z}
-                                        local node1 = minetest.get_node(test_pos)
-                                        local node2 = minetest.get_node(test_head)
-                                        local def1 = minetest.registered_nodes[node1.name]
-                                        local def2 = minetest.registered_nodes[node2.name]
-                                        if def1 and not def1.walkable and def2 and not def2.walkable then
-                                            dest = test_pos
-                                            break
-                                        end
-                                    end
-                                    
-                                    -- Verify destination is safe by explicitly rounding
-                                    local check_y = math.floor(dest.y + 0.5)
-                                    local d_pos1 = {x = dest.x, y = check_y, z = dest.z}
-                                    local d_pos2 = {x = dest.x, y = check_y + 1, z = dest.z}
-                                    local d_n1 = minetest.get_node(d_pos1)
-                                    local d_n2 = minetest.get_node(d_pos2)
-                                    local d_def1 = minetest.registered_nodes[d_n1.name]
-                                    local d_def2 = minetest.registered_nodes[d_n2.name]
-                                    
-                                    if d_def1 and not d_def1.walkable and d_def2 and not d_def2.walkable then
-                                        self.object:set_pos(dest)
-                                    end
-                                end
-                            end
-                            self._was_off_duty = is_off_duty
-                            
-                            -- Anti-Wander check (Workstation Tether)
-                            local day_target = self.job_pos or self.home_pos
-                            if day_target then
-                                local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
-                                if vector.distance(pos, day_target) > tether_radius then
-                                    self.order = "go_home"
-                                    self.state = "walk"
-                                    self:yaw_to_pos(day_target)
-                                    self:set_velocity(self.walk_velocity)
-                                    self:set_animation("walk")
-                                end
-                            end
-
-                            -- Ice Avoidance Check (Prevent wandering onto frozen rivers)
-                            local yaw = self.object:get_yaw() or 0
-                            local dir_x = -math.sin(yaw)
-                            local dir_z = math.cos(yaw)
-                            local under_node = minetest.get_node({x = math.floor(pos.x + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + 0.5)})
-                            local ahead_under = minetest.get_node({x = math.floor(pos.x + dir_x * 1.2 + 0.5), y = math.floor(pos.y - 1.25), z = math.floor(pos.z + dir_z * 1.2 + 0.5)})
-
-                            local is_ice_node = function(nodename)
-                                if not nodename or nodename == "air" or nodename == "ignore" then return false end
-                                local def = minetest.registered_nodes[nodename]
-                                if def and def.groups and (def.groups.ice or def.groups.melts) then
-                                    return true
-                                end
-                                return nodename == "regional_weather:ice" or nodename == "ethereal:thin_ice" or nodename == "default:ice" or nodename:find("ice") ~= nil
-                            end
-
-                            if is_ice_node(under_node.name) or is_ice_node(ahead_under.name) then
-                                local retreat_target = self.job_pos or self.home_pos
-                                if retreat_target then
-                                    self:yaw_to_pos(retreat_target)
-                                else
-                                    self:set_yaw(yaw + math.pi, 8)
-                                end
-                                self:set_velocity(self.walk_velocity or 2)
-                                self:set_animation("walk")
-                            end
-                            
-                            --[[ FUTURE: smart_mobs pathfinding (disabled - cannot navigate doors)
-                            if day_target then
-                                local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
-                                local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
-                                local target_head = {x = day_target.x, y = day_target.y + 1, z = day_target.z}
-                                if vector.distance(pos, day_target) > tether_radius or not minetest.line_of_sight(head_pos, target_head) then
-                                    self.order = "go_home"
-                                    self.state = "walk"
-                                    if self.pathfinding and self.smart_mobs then
-                                        self:smart_mobs(pos, day_target, vector.distance(pos, day_target), dtime)
-                                        
-                                        if (not self.path or not self.path.way or #self.path.way == 0) and not minetest.line_of_sight(head_pos, target_head) then
-                                            self._day_stuck_timer = (self._day_stuck_timer or 0) + 1
-                                            if self._day_stuck_timer > 5 then
-                                                -- stuck teleport logic
-                                            end
-                                        else
-                                            self._day_stuck_timer = 0
-                                        end
-                                    end
-                                    self:set_animation("walk")
-                                end
-                            end
-                            ]]                            
                         end
-
-                        
-                        -- Player Interaction (Look & Greet)
-                        if interacting_player and not is_night then
-                            -- Look at player
-                            if self.state == "stand" or self.state == "wander" then
-                                self:yaw_to_pos(interacting_player:get_pos())
-                            end
-                            
-                            -- Simple Greeting "Bark" (Cooldown: 2 minutes)
-                            self._greet_timer = (self._greet_timer or 0) + 1.0
-                            if self._greet_timer > 120 then
-                                self._greet_timer = 0
-                                local greetings = {"Hello there.", "Good day.", "Greetings."}
-                                local msg = greetings[math.random(#greetings)]
+                        if self.job_pos then
+                            minetest.load_area(self.job_pos, self.job_pos)
+                            local job_meta = minetest.get_meta(self.job_pos)
+                            if job_meta and job_meta:get_int("occupied") == 1 then
+                                job_meta:set_int("occupied", 0)
+                                job_meta:set_string("resident_name", "")
                                 
-                                -- Determine visually clean way to say hello (send exclusively to nearby player to avoid server spam)
-                                local name = interacting_player:get_player_name()
-                                minetest.chat_send_player(name, "<" .. self.game_name .. "> " .. msg)
+                                local jnode = minetest.get_node(self.job_pos)
+                                local def = minetest.registered_nodes[jnode.name]
+                                if def and def.description then
+                                    local desc = def.description:match("([^\n]+)")
+                                    job_meta:set_string("infotext", desc .. " (" .. S("Vacant") .. ")")
+                                end
+                                
+                                local sid = job_meta:get_string("settlement_id")
+                                if sid and sid ~= "" then
+                                    eg_settlers.db.unregister_resident(sid, self.job_pos)
+                                end
                             end
                         end
-                    end
-                end
-            end
-        end
-    end
 
-    -- Override on_activate to fix guard HP persistence.
-    -- The mobs framework treats hp_max as an object property (via set_properties)
-    -- but doesn't write it back to self.*, so it vanishes from staticdata on the
-    -- next save. We re-apply it here after every activation.
-    local old_on_activate = base_entity.on_activate
-    base_entity.on_activate = function(self, staticdata, dtime)
-        if old_on_activate then old_on_activate(self, staticdata, dtime) end
-
-        if self.is_villager then
-            self.jump_height = 4
-            self.jump = true
-            self.object:set_properties({stepheight = 1.1})
-            self.evergrowth_nametag_mode = true
-            if not self.game_name or self.game_name == "" then
-                if self.nametag and self.nametag ~= "" then
-                    self.game_name = self.nametag
-                end
-            end
-            if self.game_name then
-                self.nametag = self.game_name
-            end
-        end
-
-        if self.base_texture then
-            self.object:set_properties({textures = self.base_texture, stepheight = 1.1})
-        else
-            self.object:set_properties({stepheight = 1.1})
-        end
-
-        if self.evergrowth_profession == "guard" then
-            self.hp_max = 50
-            self.object:set_properties({hp_max = 50})
-
-            -- Restore/scale guard health up to 50 max
-            if not self.health or self.health <= 0 or self.health == 20 or self.health > 50 then
-                self.health = 50
-            end
-            self.object:set_hp(self.health)
-            self.old_health = self.health
-
-            -- Guard shift auto-initialization & synchronization for all guards
-            local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
-            local s = jmeta and jmeta:get_string("guard_shift")
-            if s and s ~= "" then
-                self.guard_shift = s
-            else
-                local pos = self.object:get_pos() or self.job_pos or self.home_pos
-                local my_index = 1
-                if pos then
-                    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-                    if sid then
-                        local residents = eg_settlers.db.get_residents(sid)
-                        local guard_keys = {}
-                        for p_str, res in pairs(residents) do
-                            if res.profession == "guard" then
-                                table.insert(guard_keys, p_str)
-                            end
-                        end
-                        table.sort(guard_keys)
-                        local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
-                        local my_name = self.game_name or self.nametag or ""
-                        for idx, k in ipairs(guard_keys) do
-                            local r_info = residents[k]
-                            if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
-                                my_index = idx
-                                break
-                            end
-                        end
-                    end
-                end
-                self.guard_shift = (my_index % 2 == 1) and "day" or "night"
-                if jmeta then
-                    jmeta:set_string("guard_shift", self.guard_shift)
-                    local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
-                    local rname = self.nametag or self.game_name or "Guard"
-                    jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
-                end
-            end
-
-            -- Synchronize nametag label with resolved shift
-            if self.game_name and self.game_name ~= "" and self.guard_shift then
-                if self.guard_shift == "night" and self.game_name:find("Day Guard") then
-                    self.game_name = self.game_name:gsub("Day Guard", "Night Guard")
-                    self.nametag = self.game_name
-                    self.object:set_properties({nametag = self.nametag})
-                elseif self.guard_shift == "day" and self.game_name:find("Night Guard") then
-                    self.game_name = self.game_name:gsub("Night Guard", "Day Guard")
-                    self.nametag = self.game_name
-                    self.object:set_properties({nametag = self.nametag})
-                end
-            end
-        end
-    end
-
-    local old_on_rightclick = base_entity.on_rightclick
-    base_entity.on_rightclick = function(self, clicker)
-        if clicker and clicker:is_player() then
-            local name = clicker:get_player_name()
-            
-            if clicker:get_player_control().sneak then
-                if self.is_villager then
-                    local allowed = false
-                    if self.home_pos then
-                        local db_sid = eg_settlers.db.get_settlement_by_deed(self.home_pos)
-                        if db_sid then
-                            allowed = eg_settlers.db.is_authorized(db_sid, name)
+                        local inv = clicker:get_inventory()
+                        if inv:room_for_item("main", contract) then
+                            inv:add_item("main", contract)
                         else
-                            -- Fallback to metadata verification only if the block is loaded
-                            if minetest.get_node_or_nil(self.home_pos) then
-                                local deed_meta = minetest.get_meta(self.home_pos)
-                                local owner = deed_meta:get_string("owner")
-                                allowed = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
-                            else
-                                minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Cannot relocate villager: home area is unloaded.")))
-                                return
-                            end
+                            minetest.add_item(clicker:get_pos(), contract)
                         end
-                    else
-                        allowed = minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer()
-                    end
 
-                    if not allowed then
-                        minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Only the town owner or associates can relocate this villager.")))
-                        return
-                    end
-
-                    -- Relocation: create a contract item with this NPC's data
-                    local contract = ItemStack("eg_settlers:contract_villager_relocation")
-                    local meta = contract:get_meta()
-                    local rname = self.nametag or self.game_name or "Settler"
-                    local prof = self.evergrowth_profession or "merchant"
-                    local hp = self.health or (prof == "guard" and 50 or 20)
-                    if prof == "guard" and (hp <= 0 or hp == 20 or hp > 50) then
-                        hp = 50
-                    end
-
-                    meta:set_string("resident_name", rname)
-                    meta:set_string("profession", prof)
-                    meta:set_string("texture", (self.base_texture and self.base_texture[1]) or "mobs_trader.png")
-                    meta:set_int("health", hp)
-                    if self.guard_shift then
-                        meta:set_string("guard_shift", self.guard_shift)
-                    end
-                    if self.trades then
-                        meta:set_string("trades", minetest.serialize(self.trades))
-                    end
-
-                    local desc = contract:get_definition().description
-                    local formatted_prof = prof:gsub("^%l", string.upper)
-                    if prof == "guard" and self.guard_shift then
-                        local shift_label = self.guard_shift == "night" and S("Night Guard") or S("Day Guard")
-                        meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. shift_label .. "\n" .. S("Health: ") .. tostring(hp))
-                    else
-                        meta:set_string("description", desc .. "\n" .. S("Name: ") .. rname .. "\n" .. S("Profession: ") .. formatted_prof .. "\n" .. S("Health: ") .. tostring(hp))
-                    end
-
-                    -- Mark old Job Block as vacant and Bed/Deed as unassigned
-                    if self.home_pos then
-                        minetest.load_area(self.home_pos, self.home_pos)
-                        local hnode = minetest.get_node(self.home_pos)
-                        if hnode.name == "eg_settlers:housing_deed" then
-                            -- Housing deed: clear deed-specific metadata
-                            local dmeta = minetest.get_meta(self.home_pos)
-                            dmeta:set_int("occupied", 0)
-                            dmeta:set_string("resident_name", "")
-                            dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-                            local sid = dmeta:get_string("settlement_id")
-                            if sid and sid ~= "" then
-                                eg_settlers.db.unregister_resident(sid, self.home_pos)
-                            end
-                        else
-                            -- Bed: clear bed-specific metadata
-                            eg_settlers.clear_bed_assignment(self.home_pos)
-                        end
-                    end
-                    if self.job_pos then
-                        minetest.load_area(self.job_pos, self.job_pos)
-                        local job_meta = minetest.get_meta(self.job_pos)
-                        if job_meta and job_meta:get_int("occupied") == 1 then
-                            job_meta:set_int("occupied", 0)
-                            job_meta:set_string("resident_name", "")
-                            
-                            local jnode = minetest.get_node(self.job_pos)
-                            local def = minetest.registered_nodes[jnode.name]
-                            if def and def.description then
-                                local desc = def.description:match("([^\n]+)")
-                                job_meta:set_string("infotext", desc .. " (" .. S("Vacant") .. ")")
-                            end
-                            
-                            local sid = job_meta:get_string("settlement_id")
-                            if sid and sid ~= "" then
-                                eg_settlers.db.unregister_resident(sid, self.job_pos)
-                            end
-                        end
-                    end
-
-                    -- Give contract to player
-                    local inv = clicker:get_inventory()
-                    if inv:room_for_item("main", contract) then
-                        inv:add_item("main", contract)
-                    else
-                        minetest.add_item(clicker:get_pos(), contract)
-                    end
-
-                    self.object:remove()
-                    minetest.chat_send_player(name, S("[eg_settlers] Settler relocated to contract."))
-                    return
-                else
-                    -- Admin delete for non-settler NPCs
-                    if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
                         self.object:remove()
-                        minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")
+                        minetest.chat_send_player(name, S("[eg_settlers] Settler relocated to contract."))
                         return
-                    end
-                end
-            else
-                -- Not sneaking (normal interaction)
-                if self.is_villager then
-                    local sid = nil
-                    if self.home_pos then
-                        local deed_meta = minetest.get_meta(self.home_pos)
-                        local s = deed_meta:get_string("settlement_id")
-                        if s and s ~= "" then sid = s end
-                    end
-                    if not sid and self.job_pos then
-                        local job_meta = minetest.get_meta(self.job_pos)
-                        local s = job_meta:get_string("settlement_id")
-                        if s and s ~= "" then sid = s end
-                    end
-                    if not sid then
-                        local pos = self.object:get_pos()
-                        if pos then
-                            sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                    else
+                        if minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer() then
+                            self.object:remove()
+                            minetest.chat_send_player(name, "[eg_settlers] Trader removed safely.")
+                            return
                         end
                     end
-                    
-                    if sid and eg_settlers.db.is_criminal(sid, name) then
-                        local days_rem, mins_rem = eg_settlers.db.get_decay_time_estimate(sid, name)
-                        local msg = S("Criminals are not welcome in this settlement! Pay your fines at the Town Ledger before trading.")
-                        if days_rem > 0 then
-                            msg = msg .. " " .. string.format(S("(Assault decay in ~%d in-game days / ~%dm)"), days_rem, mins_rem)
-                        elseif mins_rem > 0 then
-                            msg = msg .. " " .. string.format(S("(Assault decay in ~%dm)"), mins_rem)
+                else
+                    if self.is_villager then
+                        local sid = nil
+                        if self.home_pos then
+                            local deed_meta = minetest.get_meta(self.home_pos)
+                            local s = deed_meta:get_string("settlement_id")
+                            if s and s ~= "" then sid = s end
                         end
-                        minetest.chat_send_player(name, minetest.colorize("#FF0000", msg))
-                        return
-                    end
+                        if not sid and self.job_pos then
+                            local job_meta = minetest.get_meta(self.job_pos)
+                            local s = job_meta:get_string("settlement_id")
+                            if s and s ~= "" then sid = s end
+                        end
+                        if not sid then
+                            local pos = self.object:get_pos()
+                            if pos then
+                                sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+                            end
+                        end
+                        
+                        if sid and eg_settlers.db.is_criminal(sid, name) then
+                            local days_rem, mins_rem = eg_settlers.db.get_decay_time_estimate(sid, name)
+                            local msg = S("Criminals are not welcome in this settlement! Pay your fines at the Town Ledger before trading.")
+                            if days_rem > 0 then
+                                msg = msg .. " " .. string.format(S("(Assault decay in ~%d in-game days / ~%dm)"), days_rem, mins_rem)
+                            elseif mins_rem > 0 then
+                                msg = msg .. " " .. string.format(S("(Assault decay in ~%dm)"), mins_rem)
+                            end
+                            minetest.chat_send_player(name, minetest.colorize("#FF0000", msg))
+                            return
+                        end
 
-                    local can_trade = false
-                    if sid then
-                        local settlement = eg_settlers.db.get_settlement(sid)
-                        if settlement and settlement.satiated == 1 then
-                            can_trade = true
+                        local can_trade = false
+                        if sid then
+                            local settlement = eg_settlers.db.get_settlement(sid)
+                            if settlement and settlement.satiated == 1 then
+                                can_trade = true
+                            end
                         end
-                    end
-                    
-                    if not can_trade then
-                        local msg = S("The town is starving. I have nothing to trade.")
-                        minetest.chat_send_player(name, minetest.colorize("#FF8888", msg))
-                        return
+                        
+                        if not can_trade then
+                            local msg = S("The town is starving. I have nothing to trade.")
+                            minetest.chat_send_player(name, minetest.colorize("#FF8888", msg))
+                            return
+                        end
                     end
                 end
             end
+            if old_on_rightclick then
+                return old_on_rightclick(self, clicker)
+            end
         end
-        if old_on_rightclick then
-            return old_on_rightclick(self, clicker)
-        end
-    end
     end
 end
