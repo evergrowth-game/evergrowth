@@ -65,18 +65,21 @@ This TODO list tracks the status of all planned features from the [Master Develo
 - [x] **Construct Companions (`eg_constructs`):** Mobile expedition companions (Clay Golem & Combat Drone) spun off into dedicated standalone mod `eg_constructs` with 16-slot pack inventories, player following, and raider crowd control.
 
 ## Phase 5: NPC Daily Schedules & Pathfinding ([npc_schedules_design.md](npc_schedules_design.md))
-- [ ] **Pathfinding Engine Wrapper (`navigate_to`)**
-  - [ ] Implement `eg_settlers.navigate_to(self, target_pos)` wrapping `core.find_path(..., "A*_noprefetch")`.
-  - [ ] Implement pre-pathing and waypoint door detection and auto-open/close logic via `doors.get(pos)`.
-  - [ ] Add 10-second stuck timer with safe teleport fallback (`eg_settlers.safe_teleport`).
-- [ ] **Daily Schedule State Machine**
-  - [ ] Morning commute (06:00–07:00: Bed $\rightarrow$ Job Block).
-  - [ ] Work shift active state at Job Block (07:00–12:00, 13:00–18:00).
-  - [ ] Midday social/lunch break (12:00–13:00) visiting public infrastructure nodes (Granary, Town Center, Tavern).
-  - [ ] Evening commute (18:00–19:00: Job Block $\rightarrow$ Bed).
-  - [ ] Nighttime indoor shelter/sleep state (19:00–06:00) at assigned Bed node.
-- [ ] **Bed Alignment (Future Polish)**
-  - [ ] Adjust sleeping entity position offset and yaw rotation to match bed node facedir during sleep phase.
+- [x] **Pathfinding Engine Wrapper (`navigate_to`)**
+  - [x] Implement `eg_settlers.navigate_to(self, target_pos)` wrapping `core.find_path(..., "A*_noprefetch")`.
+  - [x] Implement pre-pathing and waypoint door/gate detection and auto-open/close logic via `doors.get(pos)`.
+  - [x] Add 10-second stuck timer with safe teleport fallback (`eg_settlers.safe_teleport`).
+  - [x] Add valid floor destination validation (`eg_settlers.is_valid_floor` & `get_walkable_goal`) and anti-stacking.
+  - [x] Add liquid hazard avoidance and safe local wander fallback when paths are blocked.
+- [x] **Daily Schedule State Machine**
+  - [x] Morning commute (04:30–05:30: Bed $\rightarrow$ Job Block).
+  - [x] Work shift active state at Job Block (05:30–11:00, 12:30–17:00).
+  - [x] Midday supply-chain gatherer/crafter visits (11:00–12:30).
+  - [x] Evening social visits to Brewer tavern / Librarian study (17:00–18:30).
+  - [x] Nighttime sleep state (18:30–04:30) at assigned Bed node (with Day/Night Guard shifts).
+- [x] **Bed Sleeping Posture & Physics Freeze**
+  - [x] Adjust sleeping entity position offset to mattress elevation `bed_pos.y - 0.15` and longitudinal alignment along bed `facedir`.
+  - [x] Set 90° pitch rotation (`{x = math.pi/2, y = yaw, z = 0}`) and freeze physics/wander loops during sleep.
 
 ## Phase 6: Settler Death Management & Remains ([settler_death_mechanic.md](settler_death_mechanic.md))
 - [ ] **Incident Logging & Graveyard UI**
