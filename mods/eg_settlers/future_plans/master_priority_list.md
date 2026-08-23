@@ -55,12 +55,31 @@ This document consolidates all planned features, multiplayer fixes, and infrastr
     * Override `minetest.is_protected(pos, name)` to make the Town Ledger a massive protection block, blocking unauthorized building/digging within the town's radius.
     * Ensure deeds/job blocks can only be placed if the player has permission (hooking into `areas` or `protector` mods).
 
-## Phase 4: Construct Defenders & Guard Expansion ([guard_expansion.md](guard_expansion.md))
+## Phase 4: Construct Defenders & Guard Expansion
 *Non-sleeping construct defenders that do not require beds or food.*
 
-12. **Clay Golem (`eg_settlers:golem_clay`):**
-    * Heavy blunt defender (HP 120, Damage 6) bound to a Golem Pedestal.
-    * Activated with a Golem Core item; 30-block patrol tether.
-13. **Automaton / Robot (`eg_settlers:automaton`):**
-    * Techage-compatible sentry defender (HP 80, Speed 2.5, Damage 5) bound to an Automaton Station.
-    * Activated with an Automaton Core item; 35-block patrol tether.
+12. **Clay Golem (`eg_constructs:golem_clay`):**
+    * Heavy blunt defender (HP 120, Damage 6) with detached pack inventory and AoE ground slam.
+13. **Combat Drone (`eg_constructs:combat_drone`):**
+    * Ranged laser skirmisher companion with detached pack inventory and follow/stand toggling.
+
+## Phase 5: NPC Daily Schedules & Pathfinding ([npc_schedules_design.md](npc_schedules_design.md))
+*Dynamic daily schedules, C++ A* pathfinding, and obstacle-aware navigation between beds and job blocks.*
+
+14. **Lightweight Pathfinding Wrapper (`navigate_to`):**
+    * Engine C++ A* pathfinder (`core.find_path`) with `A*_noprefetch` algorithm.
+    * Door state inspection and auto-open/close handling via `doors.get(pos)`.
+    * Stuck-timer (10s) with safe teleport fallback (`safe_teleport`).
+15. **Daily Schedule State Machine:**
+    * Schedule phases: Morning Commute (06:00–07:00), Morning Work (07:00–12:00), Midday Social/Lunch Break (12:00–13:00), Afternoon Work (13:00–18:00), Evening Commute (18:00–19:00), Night Shelter (19:00–06:00).
+16. **Inter-Settler Social Visits:**
+    * Scheduled visits to public nodes (Granary, Town Center, Tavern) during the midday break.
+
+## Phase 6: Settler Death Management & Remains ([settler_death_mechanic.md](settler_death_mechanic.md))
+*Death tracking, graveyard records, and the unburied remains burial/cremation mechanic.*
+
+17. **Incident Logging & Graveyard UI:**
+    * Track killer (Player, Mob, Environment), timestamp, and location into a 25-entry rolling log in `settlement_db.lua` and Town Ledger Graveyard tab.
+18. **Unburied Remains & Burial Nodes:**
+    * Temporary remains node dropped on death with a 5-minute timer before Shade spawn.
+    * Multiple disposal traditions: Simple earth burial (dirt right-click), Headstones (`eg_settlers:headstone`), Multi-block Crypt Vaults (`eg_settlers:crypt`), and Campfire Pyre cremation.
