@@ -2,7 +2,7 @@ Skins Attribution & Licenses - eg_constructs
 =============================================
 
 1. Target Filename: eg_constructs_combat_drone.png
-   Source: Evergrowth Project (Custom Magitech / Industrial Automaton)
+   Source: Evergrowth Project (Custom Combat Drone)
    License: CC0 / MIT (Evergrowth original asset)
 
 2. Target Filename: eg_constructs_golem_clay.png
