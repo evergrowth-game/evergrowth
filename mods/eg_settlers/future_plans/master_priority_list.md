@@ -64,28 +64,3 @@ This document consolidates all planned features, multiplayer fixes, and infrastr
 13. **Automaton / Robot (`eg_settlers:automaton`):**
     * Techage-compatible sentry defender (HP 80, Speed 2.5, Damage 5) bound to an Automaton Station.
     * Activated with an Automaton Core item; 35-block patrol tether.
-
-## Phase 5: Automated Tech Defenses ([tech_defenses.md](tech_defenses.md))
-*Non-magical defensive infrastructure satisfying Tier 3 Village progression.*
-
-14. **Automated Sentry Turret (`eg_settlers:sentry_turret`):**
-    * Dual-component architecture: base node + rotating turret head child entity.
-    * 3D raycast target acquisition, ammo consumption, muzzle flashes, and tracer particles.
-15. **Surveillance Spotlight (`eg_settlers:spotlight`):**
-    * Automated night searchlight with dynamic ground illumination.
-    * Hostile detection triggers a 35-block Guard distress alarm.
-
-## Phase 6: Advanced Logistics & Trade Hubs ([trade_hubs.md](trade_hubs.md))
-*Complex, modular systems for inter-town trading.*
-
-16. **Modular Trade Hubs:** 
-    * Implement a multi-block "Trade Post" structure centered around a "Trade Desk". 
-    * Shipping capacity is determined by building physical "Cargo Crate" nodes around it.
-17. **Dockmaster's Ledger:** 
-    * A static interaction node for managing trade routes (bulk player logistics or passive export for gold lumps) without relying on wandering NPCs.
-18. **Containerized Physical Loading:** 
-    * Allow players to pack goods into "Shipping Crate" nodes and place them on a "Loading Bay". 
-    * When a shipment departs, the physical crate nodes are removed from the world.
-19. **Visual Trade Vehicles:** 
-    * Spawn non-loaded-chunk-dependent visual Caravan or Ship entities that navigate along player-placed "Trade Roads" or "Channel Buoys".
-    * Dynamically attach individual cargo container models to the base vehicle using `set_attach()` to visually represent the load capacity.
