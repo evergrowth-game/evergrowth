@@ -60,7 +60,31 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Override `minetest.is_protected(pos, name)` to make the Town Ledger act as a protection block within the town radius.
   - [x] Hook housing deeds / job blocks checks into `areas` or `protector` mods to ensure valid placement permissions.
 
-## Phase 4: Construct Defenders & Guard Expansion 
+## Phase 4: Construct Defenders & Guard Expansion
 - [x] **Humanoid Guard Shift Expansion:** Day/Night alternating shifts and alarm wakeups implemented in `eg_settlers`.
-- [x] **Construct Companions (`eg_constructs`):** Mobile expedition companions (Clay Golem & Automaton) spun off into dedicated standalone mod `eg_constructs` with 16-slot pack inventories, player following, and raider crowd control.
+- [x] **Construct Companions (`eg_constructs`):** Mobile expedition companions (Clay Golem & Combat Drone) spun off into dedicated standalone mod `eg_constructs` with 16-slot pack inventories, player following, and raider crowd control.
+
+## Phase 5: NPC Daily Schedules & Pathfinding ([npc_schedules_design.md](npc_schedules_design.md))
+- [ ] **Pathfinding Engine Wrapper (`navigate_to`)**
+  - [ ] Implement `eg_settlers.navigate_to(self, target_pos)` wrapping `core.find_path(..., "A*_noprefetch")`.
+  - [ ] Implement pre-pathing and waypoint door detection and auto-open/close logic via `doors.get(pos)`.
+  - [ ] Add 10-second stuck timer with safe teleport fallback (`eg_settlers.safe_teleport`).
+- [ ] **Daily Schedule State Machine**
+  - [ ] Morning commute (06:00–07:00: Bed $\rightarrow$ Job Block).
+  - [ ] Work shift active state at Job Block (07:00–12:00, 13:00–18:00).
+  - [ ] Midday social/lunch break (12:00–13:00) visiting public infrastructure nodes (Granary, Town Center, Tavern).
+  - [ ] Evening commute (18:00–19:00: Job Block $\rightarrow$ Bed).
+  - [ ] Nighttime indoor shelter/sleep state (19:00–06:00) at assigned Bed node.
+
+## Phase 6: Settler Death Management & Remains ([settler_death_mechanic.md](settler_death_mechanic.md))
+- [ ] **Incident Logging & Graveyard UI**
+  - [ ] Persistent 25-entry rolling log in `settlement_db.lua` recording killer (Player, Mob, Environment), timestamp, and location.
+  - [ ] Town Ledger Graveyard tab interface to inspect casualties and remains coordinates.
+- [ ] **Unburied Remains & Burial Nodes**
+  - [ ] Drop temporary `eg_settlers:remains` node on settler death with 5-minute timer before Shade spawn.
+  - [ ] Simple earth burial (right-clicking dirt with remains to consume without metadata).
+  - [ ] Register `eg_settlers:headstone` individual tombstone node.
+  - [ ] Register `eg_settlers:crypt` multi-block vault structure (up to 20 remains).
+  - [ ] Campfire/Pyre cremation support (`new_campfire` integration).
+
 
