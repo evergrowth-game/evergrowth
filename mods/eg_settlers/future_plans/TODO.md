@@ -75,6 +75,8 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [ ] Midday social/lunch break (12:00–13:00) visiting public infrastructure nodes (Granary, Town Center, Tavern).
   - [ ] Evening commute (18:00–19:00: Job Block $\rightarrow$ Bed).
   - [ ] Nighttime indoor shelter/sleep state (19:00–06:00) at assigned Bed node.
+- [ ] **Bed Alignment (Future Polish)**
+  - [ ] Adjust sleeping entity position offset and yaw rotation to match bed node facedir during sleep phase.
 
 ## Phase 6: Settler Death Management & Remains ([settler_death_mechanic.md](settler_death_mechanic.md))
 - [ ] **Incident Logging & Graveyard UI**
