@@ -19,26 +19,28 @@ The existing mobs_redo pathfinding (`smart_mobs` in `api.lua:1440`) only fires d
 ```
 navigate_to(self, target_pos)
 │
-├── 1. Is NPC already within 2 blocks of target?
-│   └── YES → Skip. Set state to arrived.
+├── 1. Validate target_pos & record self._nav_target = target_pos
 │
-├── 2. Does NPC have line_of_sight to target? (core.line_of_sight with eye offset)
-│   └── YES → Direct walk (yaw_to_pos + set_velocity).
+├── 2. Is NPC already within 2 blocks of target?
+│   └── YES → Skip. Set self._nav_state = "arrived", self._nav_waypoints = nil, velocity = 0.
 │
-├── 3. Pre-pathing Door Check:
+├── 3. Does NPC have direct line_of_sight to target? (core.line_of_sight with eye offset)
+│   └── YES → Direct walk: self._nav_waypoints = {target_pos}, self._nav_state = "walking".
+│
+├── 4. Pre-pathing Door Check:
 │   └── Scan and open any closed door within 1.5 blocks of NPC via doors.get(pos):open()
 │       (Ensures A* pathfinder is not blocked when starting inside closed bedrooms)
 │
-├── 4. Call core.find_path(npc_pos, target_pos, ...)
-│   ├── Path found → Store in self._nav_waypoints. Begin waypoint walk.
+├── 5. Call core.find_path(npc_pos, target_pos, ...)
+│   ├── Path found → Store in self._nav_waypoints. Reset stuck timers. Begin waypoint walk.
 │   └── Path NOT found → Fallback safe teleport (eg_settlers.safe_teleport).
 │
-└── 5. Waypoint following runs in on_step(self, dtime):
-    ├── Check for closed doors within 1.5 blocks ahead and auto-open (doors.get(pos):open())
-    ├── Track opened doors in self._nav_opened_doors and close once NPC is 2+ blocks away
-    ├── Distance to current waypoint < 0.8 → pop waypoint, yaw to next
-    ├── All waypoints consumed → arrived
-    └── Stuck timer > 10s with no progress → fallback safe teleport (eg_settlers.safe_teleport)
+└── 6. Waypoint following runs in on_step(self, dtime):
+    ├── Interrupt check: If entity enters combat/flee state, clear _nav_waypoints and return
+    ├── Throttled Door Check (every 0.5s): Auto-open upcoming doors & auto-close doors left behind (2+ blocks away)
+    ├── Distance to current waypoint < 0.8 → pop waypoint, reset stuck timer, yaw to next
+    ├── All waypoints consumed → arrived (self.order = "stand", velocity = 0, animation = "stand")
+    └── Stuck timer (accumulated via 1.0s window check) > 10s with no progress → fallback safe teleport
 ```
 
 ### Parameters for `core.find_path`
@@ -57,8 +59,8 @@ Standard `core.find_path` treats closed door nodes (`group:door`) as solid (`wal
 In the Minetest Game `doors` mod, all door state variants (`_a`, `_b`, `_c`, `_d`) define `walkable = true`. Therefore, inspecting node definition flags (`def.walkable`) cannot distinguish open vs. closed doors. Door state must be checked and manipulated using the official `doors.get(pos)` API:
 
 1. **Pre-Pathing Door Open:** In `navigate_to()`, before executing `core.find_path()`, scan 1.5 blocks around the NPC. If `doors.get(pos)` returns a door where `not door:state()`, call `door:open()` and track the position in `self._nav_opened_doors`.
-2. **Proximity Auto-Opener in Waypoint Loop:** While following waypoints in `on_step`, scan 1.5 blocks around the NPC. If a nearby door is closed (`not door:state()`), call `door:open()` and append to `self._nav_opened_doors`.
-3. **Door Closure:** On each `on_step`, iterate `self._nav_opened_doors`. If the NPC is $\ge 2.0$ blocks away from an opened door, call `door:close()` and remove it from the tracking list.
+2. **Throttled Proximity Auto-Opener:** While following waypoints in `on_step`, scan 1.5 blocks around the NPC every 0.5 seconds. If a nearby door is closed (`not door:state()`), call `door:open()` and append to `self._nav_opened_doors` (avoiding duplicate bottom/top door node registrations).
+3. **Throttled Door Closure:** Every 0.5 seconds, iterate `self._nav_opened_doors`. If the NPC is $\ge 2.0$ blocks away from an opened door, call `door:close()` and remove it from the tracking list.
 
 ### Implementation: New Entity Fields
 
@@ -66,8 +68,10 @@ In the Minetest Game `doors` mod, all door state variants (`_a`, `_b`, `_c`, `_d
 |---|---|---|---|
 | `self._nav_waypoints` | `table` or `nil` | No (runtime only) | Current A* waypoint list |
 | `self._nav_target` | `vector` or `nil` | No | Final destination |
-| `self._nav_stuck_timer` | `number` | No | Elapsed seconds without position change |
-| `self._nav_last_pos` | `vector` or `nil` | No | Position at last tick check |
+| `self._nav_stuck_timer` | `number` | No | Elapsed seconds without sufficient progress |
+| `self._nav_pos_check_timer` | `number` | No | Periodic accumulator for 1-second position checks |
+| `self._nav_door_timer` | `number` | No | Periodic accumulator (0.5s) for door open/close checks |
+| `self._nav_last_pos` | `vector` or `nil` | No | Position at last 1-second check interval |
 | `self._nav_state` | `string` or `nil` | No | `"walking"`, `"arrived"`, or `nil` |
 | `self._nav_opened_doors`| `table` or `nil` | No | List of door positions opened to close behind NPC |
 
@@ -103,16 +107,44 @@ function eg_settlers.safe_teleport(self, target_pos)
 end
 ```
 
-### Waypoint Following (in `on_step`)
-
-Runs inside the behavior loop in `npc_behavior.lua` when `self._nav_waypoints ~= nil`:
+### Full `eg_settlers.navigate_to` Implementation
 
 ```lua
-if self._nav_waypoints and #self._nav_waypoints > 0 then
-    local wp = self._nav_waypoints[1]
-    local dist_to_wp = vector.distance(pos, wp)
+function eg_settlers.navigate_to(self, target_pos)
+    if not target_pos then return false end
+    local pos = self.object:get_pos()
+    if not pos then return false end
 
-    -- Proximity door opener
+    self._nav_target = {x = target_pos.x, y = target_pos.y, z = target_pos.z}
+    self._nav_stuck_timer = 0
+    self._nav_pos_check_timer = 0
+    self._nav_door_timer = 0
+    self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+
+    -- 1. Already at destination?
+    if vector.distance(pos, target_pos) < 2.0 then
+        self._nav_waypoints = nil
+        self._nav_state = "arrived"
+        self.order = "stand"
+        self:set_velocity(0)
+        self:set_animation("stand")
+        return true
+    end
+
+    -- 2. Line of sight check (direct walk without pathfinding cost)
+    local head_pos = {x = pos.x, y = pos.y + 1, z = pos.z}
+    local target_head = {x = target_pos.x, y = target_pos.y + 1, z = target_pos.z}
+    if minetest.line_of_sight(head_pos, target_head) then
+        self._nav_waypoints = {{x = target_pos.x, y = target_pos.y, z = target_pos.z}}
+        self._nav_state = "walking"
+        self.order = "walk"
+        self:yaw_to_pos(target_pos)
+        self:set_velocity(self.walk_velocity or 2)
+        self:set_animation("walk")
+        return true
+    end
+
+    -- 3. Pre-pathing Door Check (open doors within 1.5 blocks so A* is not obstructed)
     local door_nodes = minetest.find_nodes_in_area(
         vector.subtract(pos, {x=1.5, y=0.5, z=1.5}),
         vector.add(pos, {x=1.5, y=1.5, z=1.5}),
@@ -127,22 +159,99 @@ if self._nav_waypoints and #self._nav_waypoints > 0 then
         end
     end
 
-    -- Close doors left behind
-    if self._nav_opened_doors then
-        for i = #self._nav_opened_doors, 1, -1 do
-            local dpos = self._nav_opened_doors[i]
-            if vector.distance(pos, dpos) >= 2.0 then
-                local door = doors.get(dpos)
-                if door and door:state() then
-                    door:close()
+    -- 4. Execute C++ A* Pathfinding
+    local rounded_pos = vector.round(pos)
+    local rounded_target = vector.round(target_pos)
+    local path = minetest.find_path(rounded_pos, rounded_target, 25, 1, 3, "A*_noprefetch")
+
+    if path and #path > 0 then
+        self._nav_waypoints = path
+        self._nav_state = "walking"
+        self.order = "walk"
+        self:yaw_to_pos(path[1])
+        self:set_velocity(self.walk_velocity or 2)
+        self:set_animation("walk")
+        return true
+    else
+        -- Fallback safe teleport if no path exists
+        eg_settlers.safe_teleport(self, target_pos)
+        self._nav_waypoints = nil
+        self._nav_state = "arrived"
+        self.order = "stand"
+        self:set_velocity(0)
+        self:set_animation("stand")
+        return false
+    end
+end
+```
+
+### Waypoint Following (in `on_step`)
+
+Runs inside the behavior loop in `npc_behavior.lua`:
+
+```lua
+-- Interrupt check: Abort pathfinding if NPC enters combat or flee states
+if self.state == "attack" or self.state == "runaway" or self.attack then
+    self._nav_waypoints = nil
+    self._nav_state = nil
+    self._nav_target = nil
+end
+
+if self._nav_waypoints and #self._nav_waypoints > 0 then
+    local wp = self._nav_waypoints[1]
+    local dist_to_wp = vector.distance(pos, wp)
+
+    -- Throttled Door Opener & Closer (runs every 0.5s to conserve CPU)
+    self._nav_door_timer = (self._nav_door_timer or 0) + dtime
+    if self._nav_door_timer >= 0.5 then
+        self._nav_door_timer = 0
+
+        -- Proximity door opener
+        local door_nodes = minetest.find_nodes_in_area(
+            vector.subtract(pos, {x=1.5, y=0.5, z=1.5}),
+            vector.add(pos, {x=1.5, y=1.5, z=1.5}),
+            {"group:door"}
+        )
+        for _, dpos in ipairs(door_nodes) do
+            local door = doors.get(dpos)
+            if door and not door:state() then
+                door:open()
+                self._nav_opened_doors = self._nav_opened_doors or {}
+                -- Deduplicate door registrations
+                local exists = false
+                for _, existing_dpos in ipairs(self._nav_opened_doors) do
+                    if vector.equals(existing_dpos, dpos) then
+                        exists = true
+                        break
+                    end
                 end
-                table.remove(self._nav_opened_doors, i)
+                if not exists then
+                    table.insert(self._nav_opened_doors, dpos)
+                end
+            end
+        end
+
+        -- Close doors left behind (distance >= 2.0 blocks)
+        if self._nav_opened_doors then
+            for i = #self._nav_opened_doors, 1, -1 do
+                local dpos = self._nav_opened_doors[i]
+                if vector.distance(pos, dpos) >= 2.0 then
+                    local door = doors.get(dpos)
+                    if door and door:state() then
+                        door:close()
+                    end
+                    table.remove(self._nav_opened_doors, i)
+                end
             end
         end
     end
 
+    -- Waypoint progression
     if dist_to_wp < 0.8 then
         table.remove(self._nav_waypoints, 1)
+        self._nav_stuck_timer = 0
+        self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+
         if #self._nav_waypoints == 0 then
             self._nav_waypoints = nil
             self._nav_state = "arrived"
@@ -151,33 +260,38 @@ if self._nav_waypoints and #self._nav_waypoints > 0 then
             self:set_animation("stand")
         else
             self:yaw_to_pos(self._nav_waypoints[1])
-            self:set_velocity(self.walk_velocity)
+            self:set_velocity(self.walk_velocity or 2)
             self:set_animation("walk")
         end
     else
         self:yaw_to_pos(wp)
-        self:set_velocity(self.walk_velocity)
+        self:set_velocity(self.walk_velocity or 2)
         self:set_animation("walk")
     end
 
-    -- Stuck detection (accumulates real frame delta time)
-    self._nav_stuck_timer = (self._nav_stuck_timer or 0) + dtime
-    local last = self._nav_last_pos or pos
-    if vector.distance(pos, last) < 0.3 then
-        if self._nav_stuck_timer > 10.0 then
-            -- Fallback teleport with safety offsets
-            eg_settlers.safe_teleport(self, self._nav_target)
-            self._nav_waypoints = nil
-            self._nav_state = "arrived"
+    -- Robust Stuck Detection (evaluates position displacement every 1.0s window)
+    self._nav_pos_check_timer = (self._nav_pos_check_timer or 0) + dtime
+    if self._nav_pos_check_timer >= 1.0 then
+        self._nav_pos_check_timer = 0
+        local last = self._nav_last_pos or pos
+        if vector.distance(pos, last) < 0.3 then
+            self._nav_stuck_timer = (self._nav_stuck_timer or 0) + 1.0
+            if self._nav_stuck_timer > 10.0 then
+                -- Fallback safe teleport if stuck for 10 seconds
+                eg_settlers.safe_teleport(self, self._nav_target)
+                self._nav_waypoints = nil
+                self._nav_state = "arrived"
+                self._nav_stuck_timer = 0
+                self.order = "stand"
+                self:set_velocity(0)
+                self:set_animation("stand")
+            end
+        else
             self._nav_stuck_timer = 0
-            self.order = "stand"
-            self:set_velocity(0)
-            self:set_animation("stand")
         end
-    else
-        self._nav_stuck_timer = 0
+        self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
     end
-    self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+
     return
 end
 ```
@@ -332,24 +446,59 @@ end
 
 ## 4. Congregation & Scheduled Visits
 
-During `wander` (midday) and `social` (evening) phases, settlers can navigate to other villagers' job blocks (`eg_settlers:job_block_<prof>`).
+During `wander` (midday) and `social` (evening) phases, settlers navigate to other villagers' job blocks (`eg_settlers:job_block_<prof>`).
+
+To avoid costly full-world voxel queries (`minetest.find_nodes_in_area` across thousands of blocks), targets are looked up directly from `eg_settlers.db` resident records.
+
+### Helper: Database Job Block Lookup
+
+```lua
+function eg_settlers.find_profession_job_block(self, target_profession)
+    local pos = self.object:get_pos()
+    if not pos then return nil end
+
+    local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
+    if sid then
+        local residents = eg_settlers.db.get_residents(sid)
+        local candidates = {}
+        for pos_str, res in pairs(residents) do
+            if res.profession == target_profession then
+                local bpos = minetest.string_to_pos(pos_str)
+                if bpos then
+                    table.insert(candidates, bpos)
+                end
+            end
+        end
+        if #candidates > 0 then
+            return candidates[math.random(#candidates)]
+        end
+    end
+
+    -- Fallback: localized node scan (tight 15-node radius only if settlement unindexed)
+    local nodes = minetest.find_nodes_in_area(
+        vector.subtract(pos, {x=15, y=5, z=15}),
+        vector.add(pos, {x=15, y=5, z=15}),
+        {"eg_settlers:job_block_" .. target_profession}
+    )
+    if #nodes > 0 then
+        return nodes[math.random(#nodes)]
+    end
+
+    return nil
+end
+```
 
 ### 4.1 Evening Brewer (Tavern) Visits (`17000 - 18500`)
 
-A random subset of all settlers (e.g., 50% chance) visits the Brewer's workstation (`eg_settlers:job_block_brewer`) during the evening social window. Settlers who fail the roll remain in their local area wandering near their job block or residence.
+Settlers have an independent 50% chance to visit the Brewer's workstation (`eg_settlers:job_block_brewer`) during the evening social window.
 
 ```lua
 function eg_settlers.get_tavern_target(self)
     -- Random subset roll: 50% chance to socialize at the Brewer's workstation
     if math.random(100) > 50 then return nil end
 
-    local brewer_blocks = minetest.find_nodes_in_area(
-        vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
-        vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
-        {"eg_settlers:job_block_brewer"}
-    )
-    if #brewer_blocks > 0 then
-        local base = brewer_blocks[1]
+    local base = eg_settlers.find_profession_job_block(self, "brewer")
+    if base then
         return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
     end
     return nil
@@ -358,41 +507,36 @@ end
 
 ### 4.2 Midday Supply-Chain Visits (`11000 - 12500`)
 
-Upstream resource gatherers have a random chance (e.g., 50%) to visit downstream processors during the lunch break.
+Upstream resource gatherers have a 50% chance to visit downstream processors during the lunch break.
 
-| Settler Profession | Target Workstation Node | Narrative Action |
+| Settler Profession | Target Profession | Narrative Action |
 |---|---|---|
-| **Miner** | `eg_settlers:job_block_smith` | Delivers ores to forge |
-| **Lumberjack** | `eg_settlers:job_block_carpenter` | Delivers timber to workshop |
-| **Farmer** | `eg_settlers:job_block_brewer` or `eg_settlers:job_block_rancher` | Delivers grains/crops |
-| **Gunsmith** | `eg_settlers:job_block_smith` | Confers at anvil |
-| **Technologist** | `eg_settlers:job_block_roboticist` or `eg_settlers:job_block_automobile_mechanic` | Reviews machinery |
-| **Fisher** | `eg_settlers:job_block_brewer` | Delivers fish to kitchen |
+| **Miner** | `smith` | Delivers ores to forge |
+| **Lumberjack** | `carpenter` | Delivers timber to workshop |
+| **Farmer** | `brewer` | Delivers grains/crops |
+| **Gunsmith** | `smith` | Confers at anvil |
+| **Technologist** | `roboticist` | Reviews machinery |
+| **Fisher** | `brewer` | Delivers fish to kitchen |
 
 ```lua
 local SUPPLY_CHAIN_MAP = {
-    miner = "eg_settlers:job_block_smith",
-    lumberjack = "eg_settlers:job_block_carpenter",
-    farmer = "eg_settlers:job_block_brewer",
-    gunsmith = "eg_settlers:job_block_smith",
-    technologist = "eg_settlers:job_block_roboticist",
-    fisher = "eg_settlers:job_block_brewer",
+    miner = "smith",
+    lumberjack = "carpenter",
+    farmer = "brewer",
+    gunsmith = "smith",
+    technologist = "roboticist",
+    fisher = "brewer",
 }
 
 function eg_settlers.get_supply_chain_target(self)
     -- Random subset roll: 50% chance to visit partner
     if math.random(100) > 50 then return nil end
 
-    local target_node = SUPPLY_CHAIN_MAP[self.evergrowth_profession]
-    if not target_node then return nil end
+    local target_prof = SUPPLY_CHAIN_MAP[self.evergrowth_profession]
+    if not target_prof then return nil end
 
-    local nodes = minetest.find_nodes_in_area(
-        vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
-        vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
-        {target_node}
-    )
-    if #nodes > 0 then
-        local base = nodes[1]
+    local base = eg_settlers.find_profession_job_block(self, target_prof)
+    if base then
         return {x = base.x + math.random(-1, 1), y = base.y, z = base.z + math.random(-1, 1)}
     end
     return nil
@@ -401,7 +545,7 @@ end
 
 ### 4.3 Educated Profession Social Distribution (Library vs. Brewer)
 
-Educated and technical professions (`mage`, `technologist`, `roboticist`) do not exclusively visit the library. During the evening social phase, their destination is distributed as follows:
+Educated and technical professions (`mage`, `technologist`, `roboticist`) do not exclusively visit the library. During the evening social phase, their destination is distributed with exact probabilities:
 - **40% Chance:** Visit the Librarian's job block (`eg_settlers:job_block_librarian`).
 - **35% Chance:** Visit the Brewer's job block (`eg_settlers:job_block_brewer`).
 - **25% Chance:** Stay and wander near their own workstation/home.
@@ -420,24 +564,22 @@ function eg_settlers.get_social_target(self)
     if LIBRARY_VISITORS[prof] then
         if roll <= 40 then
             -- 40% chance: Visit Library
-            local nodes = minetest.find_nodes_in_area(
-                vector.subtract(self.object:get_pos(), {x=50, y=10, z=50}),
-                vector.add(self.object:get_pos(), {x=50, y=10, z=50}),
-                {"eg_settlers:job_block_librarian"}
-            )
-            if #nodes > 0 then
-                local base = nodes[1]
+            local base = eg_settlers.find_profession_job_block(self, "librarian")
+            if base then
                 return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
             end
         elseif roll <= 75 then
-            -- 35% chance: Visit Brewer
-            return eg_settlers.get_tavern_target(self)
+            -- 35% chance: Visit Brewer (direct lookup without secondary roll)
+            local base = eg_settlers.find_profession_job_block(self, "brewer")
+            if base then
+                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
+            end
         end
         -- Remaining 25%: Wander locally
         return nil
     end
 
-    -- Non-educated professions check standard Brewer target
+    -- Non-educated professions evaluate standard Brewer target (50% roll)
     return eg_settlers.get_tavern_target(self)
 end
 ```
@@ -448,7 +590,7 @@ end
 
 | File | Change |
 |---|---|
-| `npc_behavior.lua` | Replace binary day/night branch with schedule state machine. Add waypoint-following, door auto-opener, and `eg_settlers.safe_teleport()` to `on_step`. Add `navigate_to()` function. |
+| `npc_behavior.lua` | Replace binary day/night branch with schedule state machine. Add waypoint-following, throttled door auto-opener/closer, robust stuck detection, and `eg_settlers.safe_teleport()` to `on_step`. Add `navigate_to()` function and DB-backed visit resolution helpers. |
 | `town/job_blocks.lua` | No schema changes. Existing `eg_settlers:job_block_<prof>` nodes serve as navigation targets. |
 | `town/contracts.lua` | No changes. Existing hiring contract flow already binds `self.job_pos` and `self.home_pos`. |
 
@@ -456,16 +598,16 @@ end
 
 | Component | New Lines (approx) |
 |---|---|
-| `navigate_to()` + `safe_teleport()` + waypoint following + door opener | ~130-150 |
+| `navigate_to()` + `safe_teleport()` + waypoint following + door opener + stuck detection | ~150-170 |
 | Schedule state machine (supporting guard shifts) | ~70-90 |
-| Visit resolution functions (tavern, supply chain, library) | ~40-50 |
-| **Total** | **~240-290** |
+| DB-backed visit resolution functions (`find_profession_job_block`, tavern, supply chain, library) | ~50-60 |
+| **Total** | **~270-320** |
 
 ---
 
 ## 6. Implementation Order
 
-1. **`navigate_to` wrapper + `safe_teleport` helper + waypoint following + door opener:** Implement in `npc_behavior.lua` and test navigating between bed and job block without teleporting.
+1. **`navigate_to` wrapper + `safe_teleport` helper + waypoint following + throttled door opener:** Implement in `npc_behavior.lua` and test navigating between bed and job block without teleporting.
 2. **Schedule state machine:** Replace day/night check with multi-phase table (`sleep`, `commute`, `work`, `wander`, `social`) and guard shift routing.
-3. **Scheduled visits integration:** Wire up supply-chain, library, and tavern lookups during `wander` and `social` phase transitions.
+3. **Scheduled visits integration:** Wire up DB-backed supply-chain, library, and tavern lookups during `wander` and `social` phase transitions.
 4. **Tuning & verification:** Verify timing transitions and stuck teleport fallback reliability across diverse village layouts.
