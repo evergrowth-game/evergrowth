@@ -2,10 +2,8 @@ Skins Attribution & Licenses - eg_constructs
 =============================================
 
 1. Target Filename: eg_constructs_combat_drone.png
-   Source: Minetest SkinsDB (ID: 735)
-   Name: Robot / Android
-   License: CC BY-SA 3.0
-   Origin URL: https://skinsdb.terraqueststudios.net/
+   Source: Evergrowth Project (Custom Magitech / Industrial Automaton)
+   License: CC0 / MIT (Evergrowth original asset)
 
 2. Target Filename: eg_constructs_golem_clay.png
    Source: mobs_monster (mobs_land_guard4.png)
