@@ -19,7 +19,6 @@ eg_settlers = {}
 
 dofile(modpath .. "/api/aliases.lua")
 dofile(modpath .. "/npc/trades.lua")
-dofile(modpath .. "/npc/companions.lua")
 dofile(modpath .. "/npc/npc_behavior.lua")
 dofile(modpath .. "/npc/spawners.lua")
 dofile(modpath .. "/api/settlement.lua")

@@ -30,7 +30,7 @@ This TODO list tracks the status of all planned features from the [Master Develo
 - [x] **Job Block Registration & Workstation Nodes**
   - [x] Implement `town/job_blocks.lua` helper and register 18 job blocks.
   - [x] Job blocks replace Housing Deeds for all 18 villager professions, functioning as workstation nodes.
-  - [x] Retain `housing_deed` exclusively for Companion NPCs (`contract_companion_male`, etc.).
+  - [x] Spun off Companion NPCs and wallmounted Companion Plaques into dedicated standalone mod `eg_companions`.
   - [x] Store `occupied`, `resident_name`, `profession`, `settlement_id`, `job_pos`, `home_pos` metadata.
 - [x] **Unified Hiring Contract**
   - [x] Replace 18 contract craftitems with single `eg_settlers:hiring_contract`.

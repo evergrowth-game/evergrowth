@@ -4,10 +4,10 @@
 
 ## Features
 
-- **Dynamic NPCs & Professions:** Supports a variety of villager professions including Merchants, Farmers, Miners, Blacksmiths, Machinists, Guards, and Companions.
+- **Dynamic NPCs & Professions:** Supports a variety of villager professions including Merchants, Farmers, Miners, Blacksmiths, Machinists, and Guards.
 - **Trading & NPC Commerce:** Interactive trade interface for each profession, allowing players to exchange resources, tools, and specialized items.
 - **Workstations & Job Blocks:** 3D workstation nodes defining settler professions, paired with dual-tethered day/night routines (working at workstations by day, sleeping in assigned beds by night).
-- **Hiring, Relocation & Contracts:** Systems for recruiting settlers via unified hiring contracts, relocating existing NPCs, and placing companion contracts on housing deeds.
+- **Hiring, Relocation & Contracts:** Systems for recruiting settlers via unified hiring contracts and relocating existing NPCs.
 - **Job Board Hub:** Central procurement board for purchasing workstation blocks and hiring contracts directly with gold, alongside daily town bounties.
 - **Town Management & Satiation:** Centralized administration via the Town Ledger and Granary, tracking population, town progression tiers (Outpost, Hamlet, Village), resident rosters, and food supplies.
 - **Town Depot (Passive Production):** Generates daily resource yields based on resident professions when the settlement is well-fed.
