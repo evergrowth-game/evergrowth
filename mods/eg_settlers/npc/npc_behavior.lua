@@ -940,6 +940,11 @@ for _, entity_name in ipairs(target_entities) do
             if clicker and clicker:is_player() then
                 local name = clicker:get_player_name()
                 
+                if self._sleeping or self._current_phase == "sleep" then
+                    minetest.chat_send_player(name, S("This settler is sleeping."))
+                    return
+                end
+                
                 if clicker:get_player_control().sneak then
                     if self.is_villager then
                         local allowed = false

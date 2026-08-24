@@ -93,6 +93,12 @@ mobs:register_mob("eg_companions:companion", {
     on_rightclick = function(self, clicker)
         if not clicker or not clicker:is_player() then return end
         local pname = clicker:get_player_name()
+
+        if self._sleeping then
+            minetest.chat_send_player(pname, S("This companion is sleeping."))
+            return
+        end
+
         local is_owner = (self.owner == "" or self.owner == pname or minetest.is_singleplayer() or minetest.check_player_privs(pname, {server=true}))
 
         -- 1. Sneak + Right-Click: Relocate Companion into Contract
