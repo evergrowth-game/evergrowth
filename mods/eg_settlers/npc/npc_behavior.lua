@@ -66,7 +66,8 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
     if is_facedir then
         local front_offsets = {}
         local param2 = (target_node.param2 or 0) % 4
-        local fdir = minetest.facedir_to_dir(param2)
+        local raw_dir = minetest.facedir_to_dir(param2)
+        local fdir = {x = -raw_dir.x, y = 0, z = -raw_dir.z}
         local right = {x = -fdir.z, y = 0, z = fdir.x}
         
         for f = 1, 3 do
