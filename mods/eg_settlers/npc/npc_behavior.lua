@@ -57,7 +57,34 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
         z = math.floor(target_pos.z + 0.5)
     }
     
-    local offsets = {
+    local target_node = minetest.get_node(rounded)
+    local target_def = minetest.registered_nodes[target_node.name]
+    local offset_groups = {}
+
+    -- Primary: Facedir orientation (e.g. Job Board) strictly in front of readable face
+    local is_facedir = (target_node.name == "eg_settlers:job_board" or (target_def and target_def.paramtype2 == "facedir" and minetest.get_item_group(target_node.name, "bed") == 0))
+    if is_facedir then
+        local front_offsets = {}
+        local param2 = (target_node.param2 or 0) % 4
+        local fdir = minetest.facedir_to_dir(param2)
+        local right = {x = -fdir.z, y = 0, z = fdir.x}
+        
+        for f = 1, 3 do
+            for s = -3, 3 do
+                for y_off = -1, 1 do
+                    table.insert(front_offsets, {
+                        x = fdir.x * f + right.x * s,
+                        y = y_off,
+                        z = fdir.z * f + right.z * s,
+                    })
+                end
+            end
+        end
+        table.insert(offset_groups, front_offsets)
+    end
+
+    -- Secondary / Standard: 360-degree omnidirectional offsets
+    local omni_offsets = {
         {x=0, y=0, z=1}, {x=0, y=0, z=-1},
         {x=1, y=0, z=0}, {x=-1, y=0, z=0},
         {x=1, y=0, z=1}, {x=-1, y=0, z=1},
@@ -71,43 +98,47 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
         {x=0, y=-1, z=1}, {x=0, y=-1, z=-1},
         {x=1, y=-1, z=0}, {x=-1, y=-1, z=0},
     }
+    table.insert(offset_groups, omni_offsets)
 
-    local valid_unoccupied = {}
     local best_fallback = nil
 
-    for _, off in ipairs(offsets) do
-        local candidate = {x = rounded.x + off.x, y = rounded.y + off.y, z = rounded.z + off.z}
-        local node_body = minetest.get_node(candidate)
-        local node_head = minetest.get_node({x = candidate.x, y = candidate.y + 1, z = candidate.z})
-        local node_floor = minetest.get_node({x = candidate.x, y = candidate.y - 1, z = candidate.z})
-        
-        local def_body = minetest.registered_nodes[node_body.name]
-        local def_head = minetest.registered_nodes[node_head.name]
+    for _, offsets in ipairs(offset_groups) do
+        local valid_unoccupied = {}
 
-        if def_body and not def_body.walkable and
-           def_head and not def_head.walkable and
-           eg_settlers.is_valid_floor(node_floor.name) then
+        for _, off in ipairs(offsets) do
+            local candidate = {x = rounded.x + off.x, y = rounded.y + off.y, z = rounded.z + off.z}
+            local node_body = minetest.get_node(candidate)
+            local node_head = minetest.get_node({x = candidate.x, y = candidate.y + 1, z = candidate.z})
+            local node_floor = minetest.get_node({x = candidate.x, y = candidate.y - 1, z = candidate.z})
             
-            -- Anti-stacking check (ensures NPCs distribute across the room)
-            local objs = minetest.get_objects_inside_radius(candidate, 0.9)
-            local occupied = false
-            for _, obj in ipairs(objs) do
-                if obj ~= exclude_obj and not obj:is_player() then
-                    occupied = true
-                    break
+            local def_body = minetest.registered_nodes[node_body.name]
+            local def_head = minetest.registered_nodes[node_head.name]
+
+            if def_body and not def_body.walkable and
+               def_head and not def_head.walkable and
+               eg_settlers.is_valid_floor(node_floor.name) then
+                
+                -- Anti-stacking check (ensures NPCs distribute across the room)
+                local objs = minetest.get_objects_inside_radius(candidate, 0.9)
+                local occupied = false
+                for _, obj in ipairs(objs) do
+                    if obj ~= exclude_obj and not obj:is_player() then
+                        occupied = true
+                        break
+                    end
+                end
+
+                if not occupied then
+                    table.insert(valid_unoccupied, candidate)
+                elseif not best_fallback then
+                    best_fallback = candidate
                 end
             end
-
-            if not occupied then
-                table.insert(valid_unoccupied, candidate)
-            elseif not best_fallback then
-                best_fallback = candidate
-            end
         end
-    end
 
-    if #valid_unoccupied > 0 then
-        return valid_unoccupied[math.random(#valid_unoccupied)]
+        if #valid_unoccupied > 0 then
+            return valid_unoccupied[math.random(#valid_unoccupied)]
+        end
     end
 
     return best_fallback or target_pos
