@@ -17,20 +17,20 @@ local SCHEDULES = {
         {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
         {start = 4500,  stop = 5500,  phase = "commute", target = "job_pos"},
         {start = 5500,  stop = 11000, phase = "work",    target = "job_pos"},
-        {start = 11000, stop = 12500, phase = "wander",  target = nil},
+        {start = 11000, stop = 12500, phase = "wander",  target = "supply_chain"},
         {start = 12500, stop = 17000, phase = "work",    target = "job_pos"},
-        {start = 17000, stop = 18500, phase = "social",  target = nil},
+        {start = 17000, stop = 18500, phase = "social",  target = "social_hub"},
         {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
     },
     guard_day = {
         {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
-        {start = 4500,  stop = 18500, phase = "patrol",  target = nil},
+        {start = 4500,  stop = 18500, phase = "patrol",  target = "job_pos"},
         {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
     },
     guard_night = {
-        {start = 0,     stop = 6500,  phase = "patrol",  target = nil},
+        {start = 0,     stop = 6500,  phase = "patrol",  target = "job_pos"},
         {start = 6500,  stop = 16500, phase = "sleep",   target = "home_pos"},
-        {start = 16500, stop = 24000, phase = "patrol",  target = nil},
+        {start = 16500, stop = 24000, phase = "patrol",  target = "job_pos"},
     },
 }
 
@@ -80,12 +80,17 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
         {x=1, y=0, z=0}, {x=-1, y=0, z=0},
         {x=1, y=0, z=1}, {x=-1, y=0, z=1},
         {x=1, y=0, z=-1}, {x=-1, y=0, z=-1},
+        {x=2, y=0, z=0}, {x=-2, y=0, z=0},
+        {x=0, y=0, z=2}, {x=0, y=0, z=-2},
+        {x=2, y=0, z=1}, {x=-2, y=0, z=1},
+        {x=1, y=0, z=2}, {x=-1, y=0, z=2},
         {x=0, y=1, z=1}, {x=0, y=1, z=-1},
         {x=1, y=1, z=0}, {x=-1, y=1, z=0},
         {x=0, y=-1, z=1}, {x=0, y=-1, z=-1},
         {x=1, y=-1, z=0}, {x=-1, y=-1, z=0},
     }
 
+    local valid_unoccupied = {}
     local best_fallback = nil
 
     for _, off in ipairs(offsets) do
@@ -101,8 +106,8 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
            def_head and not def_head.walkable and
            eg_settlers.is_valid_floor(node_floor.name) then
             
-            -- Anti-stacking check
-            local objs = minetest.get_objects_inside_radius(candidate, 0.7)
+            -- Anti-stacking check (ensures NPCs distribute across the room)
+            local objs = minetest.get_objects_inside_radius(candidate, 0.9)
             local occupied = false
             for _, obj in ipairs(objs) do
                 if obj ~= exclude_obj and not obj:is_player() then
@@ -112,11 +117,15 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
             end
 
             if not occupied then
-                return candidate
+                table.insert(valid_unoccupied, candidate)
             elseif not best_fallback then
                 best_fallback = candidate
             end
         end
+    end
+
+    if #valid_unoccupied > 0 then
+        return valid_unoccupied[math.random(#valid_unoccupied)]
     end
 
     return best_fallback or target_pos
@@ -142,6 +151,8 @@ function eg_settlers.safe_teleport(self, target_pos)
     local goal = eg_settlers.get_walkable_goal(target_pos, self.object)
     if goal then
         self.object:set_pos({x = goal.x, y = goal.y + 0.5, z = goal.z})
+        self.order = "wander"
+        self:set_animation("walk")
         return true
     end
     return false
@@ -218,82 +229,7 @@ end
 
 function eg_settlers.navigate_to(self, target_pos)
     if not target_pos then return false end
-    local pos = self.object:get_pos()
-    if not pos then return false end
-
-    local goal_pos = eg_settlers.get_walkable_goal(target_pos, self.object)
-    if not goal_pos then goal_pos = target_pos end
-
-    self._nav_target = {x = goal_pos.x, y = goal_pos.y, z = goal_pos.z}
-    self._nav_stuck_timer = 0
-    self._nav_pos_check_timer = 0
-    self._nav_door_timer = 0
-    self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
-
-    -- 1. Already at destination?
-    if vector.distance(pos, goal_pos) < 1.5 then
-        self._nav_waypoints = nil
-        self._nav_state = "arrived"
-        self.order = "stand"
-        self:set_velocity(0)
-        self:set_animation("stand")
-        return true
-    end
-
-    -- 2. Pre-pathing Door/Gate Check (open closed doors along direct path bounding box)
-    if rawget(_G, "doors") and doors.get then
-        local min_p = {
-            x = math.min(pos.x, goal_pos.x) - 1,
-            y = math.min(pos.y, goal_pos.y) - 1,
-            z = math.min(pos.z, goal_pos.z) - 1
-        }
-        local max_p = {
-            x = math.max(pos.x, goal_pos.x) + 1,
-            y = math.max(pos.y, goal_pos.y) + 2,
-            z = math.max(pos.z, goal_pos.z) + 1
-        }
-        if (max_p.x - min_p.x) <= 40 and (max_p.z - min_p.z) <= 40 then
-            local path_doors = minetest.find_nodes_in_area(min_p, max_p, {"group:door", "group:gate"})
-            for _, dpos in ipairs(path_doors) do
-                local door = doors.get(dpos)
-                if door and not door:state() then
-                    door:open()
-                    self._nav_opened_doors = self._nav_opened_doors or {}
-                    local exists = false
-                    for _, existing_dpos in ipairs(self._nav_opened_doors) do
-                        if vector.equals(existing_dpos, dpos) then exists = true; break end
-                    end
-                    if not exists then table.insert(self._nav_opened_doors, dpos) end
-                end
-            end
-        end
-    end
-
-    -- 3. Execute C++ A* Pathfinding (emerge chunks along path first)
-    local start_pos = eg_settlers.get_walkable_start(pos)
-    minetest.load_area(start_pos, goal_pos)
-    local path = minetest.find_path(start_pos, goal_pos, 80, 1, 3, "A*_noprefetch")
-
-    if path and #path > 0 then
-        self._nav_waypoints = path
-        self._nav_state = "walking"
-        self.order = "walk"
-        self:yaw_to_pos(path[1])
-        self:set_velocity(self.walk_velocity or 2)
-        self:set_animation("walk")
-        return true
-    else
-        -- Fallback: move towards target directly with stuck timer and safe_teleport fallback
-        self._nav_waypoints = {goal_pos}
-        self._nav_state = "walking"
-        self._nav_stuck_timer = 0
-        self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
-        self.order = "walk"
-        self:yaw_to_pos(goal_pos)
-        self:set_velocity(self.walk_velocity or 2)
-        self:set_animation("walk")
-        return false
-    end
+    return eg_settlers.safe_teleport(self, target_pos)
 end
 
 local target_entities = {"mobs_npc:trader", "mobs_npc:npc"}
@@ -306,7 +242,7 @@ for _, entity_name in ipairs(target_entities) do
         if base_entity.initial_properties then
             base_entity.initial_properties.stepheight = 1.1
         end
-        base_entity.jump_height = 4
+        base_entity.jump_height = 1.1
         base_entity.jump = true
         
         local old_on_punch = base_entity.on_punch
@@ -517,10 +453,20 @@ for _, entity_name in ipairs(target_entities) do
                                 end
                                 self.object:set_acceleration({x = 0, y = -9.81, z = 0})
                                 self._current_phase = entry.phase
-                                local target_pos = entry.target and self[entry.target]
-                                if target_pos then
-                                    eg_settlers.navigate_to(self, target_pos)
+                                local target_pos = nil
+                                if entry.phase == "patrol" then
+                                    target_pos = self.job_pos or self.home_pos
+                                elseif entry.phase == "wander" then
+                                    target_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
+                                elseif entry.phase == "social" then
+                                    target_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                elseif entry.target then
+                                    target_pos = self[entry.target]
                                 end
+                                if target_pos then
+                                    eg_settlers.safe_teleport(self, target_pos)
+                                end
+                                self.order = "wander"
                             end
                             break
                         end
@@ -532,144 +478,10 @@ for _, entity_name in ipairs(target_entities) do
             -- Call original logic
             if old_on_step then old_on_step(self, dtime) end
 
-            -- Scheduled Navigation / Waypoint Following
+            -- Scheduled Behavior & Schedule Management
             if self.is_villager then
                 local pos = self.object:get_pos()
                 if pos then
-                    -- Interrupt check: Abort pathfinding if NPC enters combat or flee states
-                    if self.state == "attack" or self.state == "runaway" or self.attack then
-                        self._nav_waypoints = nil
-                        self._nav_state = nil
-                        self._nav_target = nil
-                    end
-
-                    if self._nav_waypoints and #self._nav_waypoints > 0 then
-                        local wp = self._nav_waypoints[1]
-                        local dist_to_wp = vector.distance(pos, wp)
-
-                        -- Door Handling: open door only if next waypoint is a door, auto-close doors left behind
-                        self._nav_door_timer = (self._nav_door_timer or 0) + dtime
-                        if self._nav_door_timer >= 0.3 then
-                            self._nav_door_timer = 0
-
-                            if rawget(_G, "doors") and doors.get then
-                                local wp_node = minetest.get_node(wp)
-                                if minetest.get_item_group(wp_node.name, "door") > 0 or minetest.get_item_group(wp_node.name, "gate") > 0 then
-                                    local door = doors.get(wp)
-                                    if door and not door:state() then
-                                        door:open()
-                                        self._nav_opened_doors = self._nav_opened_doors or {}
-                                        local exists = false
-                                        for _, existing_dpos in ipairs(self._nav_opened_doors) do
-                                            if vector.equals(existing_dpos, wp) then
-                                                exists = true
-                                                break
-                                            end
-                                        end
-                                        if not exists then
-                                            table.insert(self._nav_opened_doors, wp)
-                                        end
-                                    end
-                                end
-
-                                -- Close doors left behind (distance >= 1.8 blocks)
-                                if self._nav_opened_doors then
-                                    for i = #self._nav_opened_doors, 1, -1 do
-                                        local dpos = self._nav_opened_doors[i]
-                                        if vector.distance(pos, dpos) >= 1.8 then
-                                            local door = doors.get(dpos)
-                                            if door and door:state() then
-                                                door:close()
-                                            end
-                                            table.remove(self._nav_opened_doors, i)
-                                        end
-                                    end
-                                end
-                            end
-                        end
-
-                        -- Waypoint progression
-                        if dist_to_wp < 0.8 then
-                            table.remove(self._nav_waypoints, 1)
-                            self._nav_stuck_timer = 0
-                            self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
-
-                            if #self._nav_waypoints == 0 then
-                                if self._nav_opened_doors then
-                                    for i = #self._nav_opened_doors, 1, -1 do
-                                        local dpos = self._nav_opened_doors[i]
-                                        local door = doors.get(dpos)
-                                        if door and door:state() then
-                                            door:close()
-                                        end
-                                        table.remove(self._nav_opened_doors, i)
-                                    end
-                                end
-                                self._nav_waypoints = nil
-                                self._nav_state = "arrived"
-                                self.order = "stand"
-                                self:set_velocity(0)
-                                self:set_animation("stand")
-                            else
-                                local next_wp = self._nav_waypoints[1]
-                                self:yaw_to_pos(next_wp)
-                                self:set_velocity(self.walk_velocity or 2)
-                                self:set_animation("walk")
-                                if next_wp.y > pos.y + 0.5 then
-                                    local v = self.object:get_velocity()
-                                    if v and v.y <= 0.1 then
-                                        self.object:set_velocity({x = v.x, y = 4.5, z = v.z})
-                                    end
-                                end
-                            end
-                        else
-                            self:yaw_to_pos(wp)
-                            self:set_velocity(self.walk_velocity or 2)
-                            self:set_animation("walk")
-                            if wp.y > pos.y + 0.5 then
-                                local v = self.object:get_velocity()
-                                if v and v.y <= 0.1 then
-                                    self.object:set_velocity({x = v.x, y = 4.5, z = v.z})
-                                end
-                            end
-                        end
-
-                        -- Liquid Avoidance Check Ahead
-                        local cur_yaw = self.object:get_yaw() or 0
-                        local dir_x = -math.sin(cur_yaw)
-                        local dir_z = math.cos(cur_yaw)
-                        local node_ahead = minetest.get_node({x = math.floor(pos.x + dir_x * 0.9 + 0.5), y = math.floor(pos.y - 0.5), z = math.floor(pos.z + dir_z * 0.9 + 0.5)})
-                        local def_ahead = minetest.registered_nodes[node_ahead.name]
-                        if def_ahead and (def_ahead.liquidtype ~= "none" or (def_ahead.groups and def_ahead.groups.water)) then
-                            self:set_velocity(0)
-                        end
-
-                        -- Robust Stuck Detection (evaluates position displacement every 1.0s window)
-                        self._nav_pos_check_timer = (self._nav_pos_check_timer or 0) + dtime
-                        if self._nav_pos_check_timer >= 1.0 then
-                            self._nav_pos_check_timer = 0
-                            local last = self._nav_last_pos or pos
-                            if vector.distance(pos, last) < 0.3 then
-                                self._nav_stuck_timer = (self._nav_stuck_timer or 0) + 1.0
-                                if self._nav_stuck_timer > 10.0 then
-                                    -- Fallback safe teleport if stuck for 10 seconds
-                                    if self._nav_target then
-                                        eg_settlers.safe_teleport(self, self._nav_target)
-                                    end
-                                    self._nav_waypoints = nil
-                                    self._nav_state = "arrived"
-                                    self._nav_stuck_timer = 0
-                                    self.order = "stand"
-                                    self:set_velocity(0)
-                                    self:set_animation("stand")
-                                end
-                            else
-                                self._nav_stuck_timer = 0
-                            end
-                            self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
-                        end
-                    end
-
                     -- Custom Nametag & Engagement Logic (evaluated once per second)
                     if self.evergrowth_nametag_mode then
                         self._behavior_timer = (self._behavior_timer or 0) + dtime
@@ -796,33 +608,79 @@ for _, entity_name in ipairs(target_entities) do
                                     self._current_phase = new_entry.phase
                                     
                                     if new_entry.phase == "wander" then
-                                        local visit_pos = eg_settlers.get_supply_chain_target(self)
+                                        local visit_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
                                         if visit_pos then
-                                            eg_settlers.navigate_to(self, visit_pos)
-                                        else
-                                            self.order = "wander"
+                                            eg_settlers.safe_teleport(self, visit_pos)
                                         end
-                                    elseif new_entry.phase == "social" then
-                                        local visit_pos = eg_settlers.get_social_target(self)
-                                        if visit_pos then
-                                            eg_settlers.navigate_to(self, visit_pos)
-                                        else
-                                            self.order = "wander"
-                                        end
-                                    elseif new_entry.phase == "patrol" then
                                         self.order = "wander"
-                                    elseif new_entry.target then
-                                        local target_pos = self[new_entry.target]
-                                        if target_pos then
-                                            eg_settlers.navigate_to(self, target_pos)
-                                        else
-                                            self.order = (new_entry.phase == "sleep") and "stand" or "wander"
+                                    elseif new_entry.phase == "social" then
+                                        local visit_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                        if visit_pos then
+                                            eg_settlers.safe_teleport(self, visit_pos)
+                                        end
+                                        self.order = "wander"
+                                    elseif new_entry.phase == "patrol" then
+                                        local guard_target = self.job_pos or self.home_pos
+                                        if guard_target then
+                                            eg_settlers.safe_teleport(self, guard_target)
+                                        end
+                                        self.order = "wander"
+                                    elseif new_entry.phase == "work" or new_entry.phase == "commute" then
+                                        local work_target = self.job_pos or self.home_pos
+                                        if work_target then
+                                            eg_settlers.safe_teleport(self, work_target)
+                                        end
+                                        self.order = "wander"
+                                    elseif new_entry.phase == "sleep" then
+                                        local bed_pos = self.home_pos or self.job_pos
+                                        if bed_pos then
+                                            local bed_node = minetest.get_node(bed_pos)
+                                            local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
+                                            if is_bed then
+                                                local is_top = bed_node.name:find("_top") ~= nil
+                                                local param2 = (bed_node.param2 or 0) % 4
+                                                local yaw = 0
+                                                if param2 == 1 then
+                                                    yaw = math.pi / 2
+                                                elseif param2 == 3 then
+                                                    yaw = -math.pi / 2
+                                                elseif param2 == 0 then
+                                                    yaw = math.pi
+                                                else
+                                                    yaw = 0
+                                                end
+                                                local dir = minetest.facedir_to_dir(param2)
+                                                local offset_mult = is_top and -0.4 or 0.4
+                                                local sleep_pos = {
+                                                    x = bed_pos.x + dir.x * offset_mult,
+                                                    y = bed_pos.y + 0.12,
+                                                    z = bed_pos.z + dir.z * offset_mult
+                                                }
+                                                self._sleeping = true
+                                                self._sleep_pos = sleep_pos
+                                                self._sleep_yaw = yaw
+                                                self.object:set_properties({
+                                                    collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                                                    physical = false,
+                                                })
+                                                self.object:set_pos(sleep_pos)
+                                                self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                                                self.object:set_velocity({x = 0, y = 0, z = 0})
+                                                self.object:set_acceleration({x = 0, y = 0, z = 0})
+                                                self.order = "stand"
+                                                if self.stop_attack then self:stop_attack() end
+                                                self:set_animation("stand")
+                                            else
+                                                eg_settlers.safe_teleport(self, bed_pos)
+                                                self.order = "stand"
+                                                if self.stop_attack then self:stop_attack() end
+                                                self:set_animation("stand")
+                                                self:set_velocity(0)
+                                            end
                                         end
                                     end
-                                end
-
-                                -- Continuous Tether / Workstation check (when not actively navigating along waypoints)
-                                if not self._nav_waypoints or #self._nav_waypoints == 0 then
+                                else
+                                    -- Continuous Tether / Workstation check (keeps NPC in active zone)
                                     if self._current_phase == "sleep" then
                                         local bed_pos = self.home_pos or self.job_pos
                                         if bed_pos then
@@ -849,21 +707,14 @@ for _, entity_name in ipairs(target_entities) do
                                                     z = bed_pos.z + dir.z * offset_mult
                                                 }
 
-                                                if vector.distance(pos, sleep_pos) > 1.8 then
-                                                    if not self._nav_waypoints then
-                                                        eg_settlers.navigate_to(self, bed_pos)
-                                                    end
-                                                else
-                                                    -- Assume sleep posture identical to eg_companions
-                                                    if not self._sleeping then
-                                                        self._sleeping = true
-                                                        self.object:set_properties({
-                                                            collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
-                                                            physical = false,
-                                                        })
-                                                    end
+                                                if not self._sleeping or vector.distance(pos, sleep_pos) > 1.8 then
+                                                    self._sleeping = true
                                                     self._sleep_pos = sleep_pos
                                                     self._sleep_yaw = yaw
+                                                    self.object:set_properties({
+                                                        collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                                                        physical = false,
+                                                    })
                                                     self.object:set_pos(sleep_pos)
                                                     self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
                                                     self.object:set_velocity({x = 0, y = 0, z = 0})
@@ -872,33 +723,31 @@ for _, entity_name in ipairs(target_entities) do
                                                     if self.stop_attack then self:stop_attack() end
                                                     self:set_animation("stand")
                                                 end
-                                            else
-                                                local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
-                                                if goal and vector.distance(pos, goal) > 2.0 then
-                                                    eg_settlers.navigate_to(self, bed_pos)
-                                                else
-                                                    self.order = "stand"
-                                                    if self.stop_attack then self:stop_attack() end
-                                                    self:set_animation("stand")
-                                                    self:set_velocity(0)
-                                                end
                                             end
                                         end
                                     elseif self._current_phase == "work" or self._current_phase == "commute" then
                                         local work_target = self.job_pos or self.home_pos
-                                        if work_target then
-                                            local tether_radius = (self.evergrowth_profession == "guard") and 45 or 14
-                                            if vector.distance(pos, work_target) > tether_radius then
-                                                eg_settlers.navigate_to(self, work_target)
-                                            end
+                                        if work_target and vector.distance(pos, work_target) > 16 then
+                                            eg_settlers.safe_teleport(self, work_target)
                                         end
                                     elseif self._current_phase == "patrol" then
                                         local guard_target = self.job_pos or self.home_pos
                                         if guard_target and vector.distance(pos, guard_target) > 45 then
-                                            eg_settlers.navigate_to(self, guard_target)
+                                            eg_settlers.safe_teleport(self, guard_target)
+                                        end
+                                    elseif self._current_phase == "wander" then
+                                        local visit_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
+                                        if visit_pos and vector.distance(pos, visit_pos) > 16 then
+                                            eg_settlers.safe_teleport(self, visit_pos)
+                                        end
+                                    elseif self._current_phase == "social" then
+                                        local visit_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                        if visit_pos and vector.distance(pos, visit_pos) > 16 then
+                                            eg_settlers.safe_teleport(self, visit_pos)
                                         end
                                     end
                                 end
+                            end
 
                                 -- Ice Avoidance Check (Prevent wandering onto frozen rivers)
                                 local yaw = self.object:get_yaw() or 0
@@ -926,7 +775,6 @@ for _, entity_name in ipairs(target_entities) do
                                     self:set_velocity(self.walk_velocity or 2)
                                     self:set_animation("walk")
                                 end
-                            end
 
                             -- Player Interaction (Look & Greet)
                             if interacting_player and self._current_phase ~= "sleep" then
