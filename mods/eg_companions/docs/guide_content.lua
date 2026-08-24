@@ -3,19 +3,19 @@
 
 local chapters = {
 	{
-		id = "overview",
-		title = "1. Companion Hiring & Contracts",
-		text = "Companions are humanoid combat allies hired through Hiring Contracts purchased at settlement Job Boards or local taverns.\n\nOnce hired, companions bind to the player who recruited them, providing combat assistance and mobile storage."
+		id = "plaque_and_hiring",
+		title = "Companion Plaques & Recruitment",
+		text = "Companions are domestic NPCs residing in your home. They require a wallmounted Companion Plaque and an assigned Player Bed within 50 blocks.\n\nPlacement & Hiring:\n1. Place a Companion Plaque on a wall inside your house.\n2. Claim a bed by sleeping in it to designate it as your Player Bed.\n3. Place a Hiring Contract onto the Plaque to assign a companion."
 	},
 	{
-		id = "orders",
-		title = "2. Command Stances & Inventory",
-		text = "Companions can be commanded in the field:\n\n• Follow Stance:\nCompanion follows close behind the player, engaging hostile targets that attack or are attacked by the player.\n\n• Guard Stance:\nCompanion holds their current position and engages any hostiles entering their defensive perimeter.\n\n• Free Roam:\nCompanion wanders locally near their assigned Companion Plaque.\n\n• Pack Inventory:\nRight-click a companion to access their portable pack inventory for field item storage."
+		id = "daily_routine",
+		title = "Daily Routine & Sleep",
+		text = "Companions follow a household routine:\n\n• Daytime (06:00–19:00):\nCompanions wander within a 16-block radius of their Companion Plaque.\n\n• Nighttime (19:00–06:00):\nCompanions sleep in their assigned bed. While sleeping, they lie down and refuse conversation until morning."
 	},
 	{
-		id = "sleep",
-		title = "3. Bed Tethering & Sleep Cycles",
-		text = "Companions follow a daily routine:\n\n• Daytime (06:00–19:00):\nActive duty, following orders or guarding their designated post.\n\n• Night Sleep (19:00–06:00):\nCompanions navigate to their assigned player bed to rest. While sleeping, companions lie down and play a resting animation. They refuse trade and dialogue interactions until morning."
+		id = "care_and_customization",
+		title = "Care, Outfits & Relocation",
+		text = "• Conversation & Healing:\nRight-click your companion to talk. Right-click with food items to heal them.\n\n• Outfits:\nHit your companion with a Wardrobe Wand (eg_companions:wardrobe_wand) to cycle through clothing styles.\n\n• Relocation:\nSneak+Right-Click an owned companion with an empty hand to package them into a Relocation Contract, allowing them to be moved to a new Plaque."
 	},
 }
 
