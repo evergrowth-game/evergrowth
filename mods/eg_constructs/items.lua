@@ -74,6 +74,8 @@ end
 -- 1. GOLEM CORE
 minetest.register_craftitem("eg_constructs:golem_core", {
     description = S("Golem Core") .. "\n" .. S("Activation focus for the Clay Golem. Right-click the ground to deploy."),
+    _doc_items_longdesc = S("A mystical clay and gold matrix infused with arcane energy to animate and command a Clay Golem companion."),
+    _doc_items_usagehelp = S("Right-click the ground to deploy the Clay Golem. Sneak+Right-Click an owned golem with an empty hand to recall it back into this core. Stored inventory is preserved inside the core."),
     inventory_image = "eg_constructs_golem_core.png",
     stack_max = 1,
     on_place = function(itemstack, placer, pointed_thing)
@@ -84,6 +86,8 @@ minetest.register_craftitem("eg_constructs:golem_core", {
 -- 2. COMBAT DRONE CORE
 minetest.register_craftitem("eg_constructs:combat_drone_core", {
     description = S("Combat Drone Core") .. "\n" .. S("Power and logic core for the Combat Drone. Right-click the ground to deploy."),
+    _doc_items_longdesc = S("A precision logic module and propulsion core used to manufacture and deploy an autonomous Combat Drone."),
+    _doc_items_usagehelp = S("Right-click the ground to deploy the Combat Drone. Sneak+Right-Click an owned drone with an empty hand to recall it back into this core. Stored inventory is preserved inside the core."),
     inventory_image = "eg_constructs_combat_drone_core.png",
     stack_max = 1,
     on_place = function(itemstack, placer, pointed_thing)

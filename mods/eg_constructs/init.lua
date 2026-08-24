@@ -8,3 +8,4 @@ local modpath = minetest.get_modpath("eg_constructs")
 
 dofile(modpath .. "/entities.lua")
 dofile(modpath .. "/items.lua")
+dofile(modpath .. "/docs/guide_content.lua")

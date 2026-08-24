@@ -527,6 +527,8 @@ minetest.register_on_mods_loaded(function()
 
 		-- Column 2: Advanced Systems & Settlements
 		"eg_settlers_guide",
+		"eg_companions_guide",
+		"eg_constructs_guide",
 		"techage_industry",
 		"minecart",
 		"castle_gates",
