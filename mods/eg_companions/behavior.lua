@@ -305,7 +305,7 @@ function eg_companions.on_step(self, dtime)
 
     -- 4. Day / Night Schedule State Machine
     local current_time = (minetest.get_timeofday() * 24000) % 24000
-    local is_night = (current_time >= 18500 or current_time < 5500)
+    local is_night = (current_time >= 19000 or current_time < 6000)
 
     if is_night then
         -- Night Phase: Sleep in player bed
