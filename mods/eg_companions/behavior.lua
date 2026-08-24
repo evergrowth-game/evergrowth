@@ -339,12 +339,19 @@ function eg_companions.on_step(self, dtime)
                     end
                 else
                     -- Assume sleep posture
-                    self._sleeping = true
+                    if not self._sleeping then
+                        self._sleeping = true
+                        self.object:set_properties({
+                            collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                            physical = false,
+                        })
+                    end
                     self.object:set_pos(sleep_pos)
                     self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                    self.object:set_velocity({x = 0, y = 0, z = 0})
+                    self.object:set_acceleration({x = 0, y = 0, z = 0})
                     self.order = "stand"
                     self:set_animation("stand")
-                    self:set_velocity(0)
                     return true
                 end
             end
@@ -353,9 +360,14 @@ function eg_companions.on_step(self, dtime)
         -- Day Phase: Wake up & wander near Companion Plaque
         if self._sleeping then
             self._sleeping = nil
+            self.object:set_properties({
+                collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                physical = true,
+            })
             local cur_y = self.object:get_yaw() or 0
             self.object:set_rotation({x = 0, y = cur_y, z = 0})
             self.object:set_pos({x = pos.x, y = pos.y + 0.6, z = pos.z})
+            self.object:set_acceleration({x = 0, y = -9.81, z = 0})
             self.order = "wander"
         end
 
