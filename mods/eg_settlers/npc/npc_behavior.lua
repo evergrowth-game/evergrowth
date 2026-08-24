@@ -240,42 +240,7 @@ function eg_settlers.navigate_to(self, target_pos)
         return true
     end
 
-    -- 2. Pre-pathing Door/Gate Check (open closed doors near start and destination)
-    if rawget(_G, "doors") and doors.get then
-        local door_nodes_start = minetest.find_nodes_in_area(
-            vector.subtract(pos, {x=10, y=2, z=10}),
-            vector.add(pos, {x=10, y=3, z=10}),
-            {"group:door", "group:gate"}
-        )
-        local door_nodes_goal = minetest.find_nodes_in_area(
-            vector.subtract(goal_pos, {x=10, y=2, z=10}),
-            vector.add(goal_pos, {x=10, y=2, z=10}),
-            {"group:door", "group:gate"}
-        )
-        local all_doors = {}
-        for _, dp in ipairs(door_nodes_start) do table.insert(all_doors, dp) end
-        for _, dp in ipairs(door_nodes_goal) do table.insert(all_doors, dp) end
-
-        for _, dpos in ipairs(all_doors) do
-            local door = doors.get(dpos)
-            if door and not door:state() then
-                door:open()
-                self._nav_opened_doors = self._nav_opened_doors or {}
-                local exists = false
-                for _, existing_dpos in ipairs(self._nav_opened_doors) do
-                    if vector.equals(existing_dpos, dpos) then
-                        exists = true
-                        break
-                    end
-                end
-                if not exists then
-                    table.insert(self._nav_opened_doors, dpos)
-                end
-            end
-        end
-    end
-
-    -- 3. Execute C++ A* Pathfinding (emerge chunks along path first)
+    -- 2. Execute C++ A* Pathfinding (emerge chunks along path first)
     local start_pos = eg_settlers.get_walkable_start(pos)
     minetest.load_area(start_pos, goal_pos)
     local path = minetest.find_path(start_pos, goal_pos, 80, 1, 3, "A*_noprefetch")
@@ -446,19 +411,7 @@ for _, entity_name in ipairs(target_entities) do
 
                 if self.home_pos then
                     minetest.load_area(self.home_pos, self.home_pos)
-                    local hnode = minetest.get_node(self.home_pos)
-                    if hnode.name == "eg_settlers:housing_deed" then
-                        local dmeta = minetest.get_meta(self.home_pos)
-                        dmeta:set_int("occupied", 0)
-                        dmeta:set_string("resident_name", "")
-                        dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-                        local deed_sid = dmeta:get_string("settlement_id")
-                        if deed_sid and deed_sid ~= "" then
-                            eg_settlers.db.unregister_resident(deed_sid, self.home_pos)
-                        end
-                    else
-                        eg_settlers.clear_bed_assignment(self.home_pos)
-                    end
+                    eg_settlers.clear_bed_assignment(self.home_pos)
                 end
                 if self.job_pos then
                     minetest.load_area(self.job_pos, self.job_pos)
@@ -488,52 +441,12 @@ for _, entity_name in ipairs(target_entities) do
         
         local old_on_step = base_entity.on_step
         base_entity.on_step = function(self, dtime)
-            -- If sleeping, lock position and rotation and bypass mobs_redo idle routines
+            -- Clear any legacy sleep posture if left on active entity
             if self._sleeping then
-                self.object:set_velocity({x=0, y=0, z=0})
-                self.object:set_acceleration({x=0, y=0, z=0})
-                if self._sleep_pos then
-                    self.object:set_pos(self._sleep_pos)
-                end
-                if self._sleep_yaw then
-                    self.object:set_rotation({x = math.pi / 2, y = self._sleep_yaw, z = 0})
-                end
-                self.order = "stand"
-                self:set_animation("stand")
-                
-                -- Check for schedule wake-up
-                self._schedule_timer = (self._schedule_timer or 0) + dtime
-                if self._schedule_timer >= 1.0 then
-                    self._schedule_timer = 0
-                    local current_time = (minetest.get_timeofday() * 24000 + (self._schedule_jitter or 0)) % 24000
-                    local schedule_key = "default"
-                    if self.evergrowth_profession == "guard" then
-                        schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
-                    end
-                    local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
-                    for _, entry in ipairs(schedule) do
-                        if current_time >= entry.start and current_time < entry.stop then
-                            if entry.phase ~= "sleep" then
-                                self._sleeping = nil
-                                self._sleep_pos = nil
-                                self._sleep_yaw = nil
-                                local cur_y = self.object:get_yaw() or 0
-                                self.object:set_rotation({x = 0, y = cur_y, z = 0})
-                                local cur_p = self.object:get_pos()
-                                if cur_p then
-                                    self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
-                                end
-                                self._current_phase = entry.phase
-                                local target_pos = entry.target and self[entry.target]
-                                if target_pos then
-                                    eg_settlers.navigate_to(self, target_pos)
-                                end
-                            end
-                            break
-                        end
-                    end
-                end
-                return
+                self._sleeping = nil
+                self._sleep_pos = nil
+                self._sleep_yaw = nil
+                self.object:set_rotation({x = 0, y = self.object:get_yaw() or 0, z = 0})
             end
 
             -- Call original logic
@@ -554,40 +467,36 @@ for _, entity_name in ipairs(target_entities) do
                         local wp = self._nav_waypoints[1]
                         local dist_to_wp = vector.distance(pos, wp)
 
-                        -- Throttled Door Opener & Closer (runs every 0.5s)
+                        -- Door Handling: open door only if next waypoint is a door, auto-close doors left behind
                         self._nav_door_timer = (self._nav_door_timer or 0) + dtime
-                        if self._nav_door_timer >= 0.5 then
+                        if self._nav_door_timer >= 0.3 then
                             self._nav_door_timer = 0
 
                             if rawget(_G, "doors") and doors.get then
-                                local door_nodes = minetest.find_nodes_in_area(
-                                    vector.subtract(pos, {x=2.5, y=1.0, z=2.5}),
-                                    vector.add(pos, {x=2.5, y=2.0, z=2.5}),
-                                    {"group:door", "group:gate"}
-                                )
-                                for _, dpos in ipairs(door_nodes) do
-                                    local door = doors.get(dpos)
+                                local wp_node = minetest.get_node(wp)
+                                if minetest.get_item_group(wp_node.name, "door") > 0 or minetest.get_item_group(wp_node.name, "gate") > 0 then
+                                    local door = doors.get(wp)
                                     if door and not door:state() then
                                         door:open()
                                         self._nav_opened_doors = self._nav_opened_doors or {}
                                         local exists = false
                                         for _, existing_dpos in ipairs(self._nav_opened_doors) do
-                                            if vector.equals(existing_dpos, dpos) then
+                                            if vector.equals(existing_dpos, wp) then
                                                 exists = true
                                                 break
                                             end
                                         end
                                         if not exists then
-                                            table.insert(self._nav_opened_doors, dpos)
+                                            table.insert(self._nav_opened_doors, wp)
                                         end
                                     end
                                 end
 
-                                -- Close doors left behind (distance >= 2.0 blocks)
+                                -- Close doors left behind (distance >= 1.8 blocks)
                                 if self._nav_opened_doors then
                                     for i = #self._nav_opened_doors, 1, -1 do
                                         local dpos = self._nav_opened_doors[i]
-                                        if vector.distance(pos, dpos) >= 2.0 then
+                                        if vector.distance(pos, dpos) >= 1.8 then
                                             local door = doors.get(dpos)
                                             if door and door:state() then
                                                 door:close()
@@ -606,6 +515,16 @@ for _, entity_name in ipairs(target_entities) do
                             self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
 
                             if #self._nav_waypoints == 0 then
+                                if self._nav_opened_doors then
+                                    for i = #self._nav_opened_doors, 1, -1 do
+                                        local dpos = self._nav_opened_doors[i]
+                                        local door = doors.get(dpos)
+                                        if door and door:state() then
+                                            door:close()
+                                        end
+                                        table.remove(self._nav_opened_doors, i)
+                                    end
+                                end
                                 self._nav_waypoints = nil
                                 self._nav_state = "arrived"
                                 self.order = "stand"
@@ -714,7 +633,7 @@ for _, entity_name in ipairs(target_entities) do
                             -- Defensive anchor check
                             if self.job_pos then
                                 local jnode = minetest.get_node(self.job_pos)
-                                if jnode.name ~= "ignore" and minetest.get_item_group(jnode.name, "job_block") == 0 and jnode.name ~= "eg_settlers:housing_deed" then
+                                if jnode.name ~= "ignore" and minetest.get_item_group(jnode.name, "job_block") == 0 then
                                     self.job_pos = nil
                                 end
                             end
@@ -723,10 +642,9 @@ for _, entity_name in ipairs(target_entities) do
                                 local hnode = minetest.get_node(self.home_pos)
                                 local hmeta = minetest.get_meta(self.home_pos)
                                 local is_bed = hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0
-                                local is_deed = hnode.name == "eg_settlers:housing_deed"
                                 local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
                                 
-                                if (hnode.name ~= "ignore" and not is_bed and not is_deed) or is_reserved then
+                                if (hnode.name ~= "ignore" and not is_bed) or is_reserved then
                                     if is_bed and is_reserved then
                                         eg_settlers.clear_bed_assignment(self.home_pos)
                                     end
@@ -823,51 +741,14 @@ for _, entity_name in ipairs(target_entities) do
                                     if self._current_phase == "sleep" then
                                         local bed_pos = self.home_pos or self.job_pos
                                         if bed_pos then
-                                            local bed_node = minetest.get_node(bed_pos)
-                                            local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
-                                            if is_bed then
-                                                local is_top = bed_node.name:find("_top") ~= nil
-                                                local param2 = (bed_node.param2 or 0) % 4
-                                                local yaw = 0
-                                                if param2 == 1 then
-                                                    yaw = math.pi / 2
-                                                elseif param2 == 3 then
-                                                    yaw = -math.pi / 2
-                                                elseif param2 == 0 then
-                                                    yaw = math.pi
-                                                else
-                                                    yaw = 0
-                                                end
-                                                local dir = minetest.facedir_to_dir(param2)
-                                                local offset_mult = is_top and -0.4 or 0.4
-                                                local sleep_pos = {
-                                                    x = bed_pos.x + dir.x * offset_mult,
-                                                    y = bed_pos.y - 0.15,
-                                                    z = bed_pos.z + dir.z * offset_mult
-                                                }
-                                                if vector.distance(pos, sleep_pos) > 2.0 then
-                                                    eg_settlers.navigate_to(self, bed_pos)
-                                                else
-                                                    self._sleeping = true
-                                                    self._sleep_pos = sleep_pos
-                                                    self._sleep_yaw = yaw
-                                                    self.object:set_pos(sleep_pos)
-                                                    self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
-                                                    self.order = "stand"
-                                                    if self.stop_attack then self:stop_attack() end
-                                                    self:set_animation("stand")
-                                                    self:set_velocity(0)
-                                                end
+                                            local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
+                                            if goal and vector.distance(pos, goal) > 2.0 then
+                                                eg_settlers.navigate_to(self, bed_pos)
                                             else
-                                                local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
-                                                if goal and vector.distance(pos, goal) > 2.0 then
-                                                    eg_settlers.navigate_to(self, bed_pos)
-                                                else
-                                                    self.order = "stand"
-                                                    if self.stop_attack then self:stop_attack() end
-                                                    self:set_animation("stand")
-                                                    self:set_velocity(0)
-                                                end
+                                                self.order = "stand"
+                                                if self.stop_attack then self:stop_attack() end
+                                                self:set_animation("stand")
+                                                self:set_velocity(0)
                                             end
                                         end
                                     elseif self._current_phase == "work" or self._current_phase == "commute" then
@@ -1029,54 +910,27 @@ for _, entity_name in ipairs(target_entities) do
                 self.object:set_hp(self.health)
                 self.old_health = self.health
 
-                local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
-                local s = jmeta and jmeta:get_string("guard_shift")
-                if s and s ~= "" then
-                    self.guard_shift = s
+                local ntag = self.game_name or self.nametag or ""
+                if ntag:find("Day Guard") then
+                    self.guard_shift = "day"
+                elseif ntag:find("Night Guard") then
+                    self.guard_shift = "night"
                 else
-                    local pos = self.object:get_pos() or self.job_pos or self.home_pos
-                    local my_index = 1
-                    if pos then
-                        local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-                        if sid then
-                            local residents = eg_settlers.db.get_residents(sid)
-                            local guard_keys = {}
-                            for p_str, res in pairs(residents) do
-                                if res.profession == "guard" then
-                                    table.insert(guard_keys, p_str)
-                                end
-                            end
-                            table.sort(guard_keys)
-                            local my_key = self.job_pos and (self.job_pos.x .. "," .. self.job_pos.y .. "," .. self.job_pos.z) or ""
-                            local my_name = self.game_name or self.nametag or ""
-                            for idx, k in ipairs(guard_keys) do
-                                local r_info = residents[k]
-                                if k == my_key or (my_name ~= "" and r_info and r_info.name == my_name) then
-                                    my_index = idx
-                                    break
-                                end
-                            end
-                        end
-                    end
-                    self.guard_shift = (my_index % 2 == 1) and "day" or "night"
-                    if jmeta then
-                        jmeta:set_string("guard_shift", self.guard_shift)
-                        local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
-                        local rname = self.nametag or self.game_name or "Guard"
-                        jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
+                    local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
+                    local s = jmeta and jmeta:get_string("guard_shift")
+                    if s and s ~= "" then
+                        self.guard_shift = s
+                    else
+                        self.guard_shift = "day"
                     end
                 end
 
-                if self.game_name and self.game_name ~= "" and self.guard_shift then
-                    if self.guard_shift == "night" and self.game_name:find("Day Guard") then
-                        self.game_name = self.game_name:gsub("Day Guard", "Night Guard")
-                        self.nametag = self.game_name
-                        self.object:set_properties({nametag = self.nametag})
-                    elseif self.guard_shift == "day" and self.game_name:find("Night Guard") then
-                        self.game_name = self.game_name:gsub("Night Guard", "Day Guard")
-                        self.nametag = self.game_name
-                        self.object:set_properties({nametag = self.nametag})
-                    end
+                local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
+                if jmeta then
+                    jmeta:set_string("guard_shift", self.guard_shift)
+                    local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
+                    local rname = self.nametag or self.game_name or "Guard"
+                    jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
                 end
             end
         end
@@ -1143,19 +997,7 @@ for _, entity_name in ipairs(target_entities) do
 
                         if self.home_pos then
                             minetest.load_area(self.home_pos, self.home_pos)
-                            local hnode = minetest.get_node(self.home_pos)
-                            if hnode.name == "eg_settlers:housing_deed" then
-                                local dmeta = minetest.get_meta(self.home_pos)
-                                dmeta:set_int("occupied", 0)
-                                dmeta:set_string("resident_name", "")
-                                dmeta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-                                local sid = dmeta:get_string("settlement_id")
-                                if sid and sid ~= "" then
-                                    eg_settlers.db.unregister_resident(sid, self.home_pos)
-                                end
-                            else
-                                eg_settlers.clear_bed_assignment(self.home_pos)
-                            end
+                            eg_settlers.clear_bed_assignment(self.home_pos)
                         end
                         if self.job_pos then
                             minetest.load_area(self.job_pos, self.job_pos)

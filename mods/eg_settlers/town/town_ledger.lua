@@ -21,27 +21,33 @@ local function get_sorted_residents(s)
     if not s or not s.residents then return list end
     for pos_str, res in pairs(s.residents) do
         local prof = res.profession or "Unknown"
-        local shift = nil
         local display_name = res.name or "Settler"
-        local rpos = parse_pos(pos_str)
-        if prof == "guard" and rpos then
-            local rmeta = minetest.get_meta(rpos)
-            shift = rmeta:get_string("guard_shift")
-            if shift == "" then shift = "day" end
-            if shift == "night" and display_name:find(" the Day Guard") then
-                display_name = display_name:gsub(" the Day Guard", " the Night Guard")
-            elseif shift == "day" and display_name:find(" the Night Guard") then
-                display_name = display_name:gsub(" the Night Guard", " the Day Guard")
+        if prof == "" or prof == "Unknown" or display_name:find("the Companion") then
+            -- Purge non-settler/companion from town database
+            s.residents[pos_str] = nil
+            eg_settlers.db.mark_dirty()
+        else
+            local shift = nil
+            local rpos = parse_pos(pos_str)
+            if prof == "guard" and rpos then
+                local rmeta = minetest.get_meta(rpos)
+                shift = rmeta:get_string("guard_shift")
+                if shift == "" then shift = "day" end
+                if shift == "night" and display_name:find(" the Day Guard") then
+                    display_name = display_name:gsub(" the Day Guard", " the Night Guard")
+                elseif shift == "day" and display_name:find(" the Night Guard") then
+                    display_name = display_name:gsub(" the Night Guard", " the Day Guard")
+                end
             end
+            table.insert(list, {
+                pos_str = pos_str,
+                rpos = rpos,
+                name = display_name,
+                raw_name = res.name,
+                profession = prof,
+                shift = shift,
+            })
         end
-        table.insert(list, {
-            pos_str = pos_str,
-            rpos = rpos,
-            name = display_name,
-            raw_name = res.name,
-            profession = prof,
-            shift = shift,
-        })
     end
     table.sort(list, function(a, b)
         if a.profession == b.profession then
@@ -602,37 +608,4 @@ minetest.register_globalstep(function(dtime)
         end
     end
 end)
-
-
--- LBM for Retroactive Deed Registration + Stale Occupied Cleanup
-minetest.register_lbm({
-    label = "Retroactive Deed Registration and Stale Cleanup",
-    name = "eg_settlers:retro_deed_registration_v2",
-    nodenames = {"eg_settlers:housing_deed"},
-    run_at_every_load = true,
-    action = function(pos, node)
-        local meta = minetest.get_meta(pos)
-        if meta:get_int("occupied") == 1 then
-            local sid = meta:get_string("settlement_id")
-            if sid and sid ~= "" and not eg_settlers.db.get_settlement(sid) then
-                sid = ""
-                meta:set_string("settlement_id", "")
-            end
-            
-            if not sid or sid == "" then
-                local found_sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-                if found_sid then
-                    meta:set_string("settlement_id", found_sid)
-                    local resident_name = meta:get_string("resident_name")
-                    local profession = meta:get_string("profession")
-                    eg_settlers.db.register_resident(found_sid, pos, resident_name, profession)
-                end
-            end
-
-            -- Stale occupied cleanup: disabled because get_objects_inside_radius fails 
-            -- to find unloaded entities or entities that wandered >50 blocks away during day/night cycle.
-            -- (Occupied clearing is handled gracefully in npc_behavior's on_die hook).
-        end
-    end,
-})
 

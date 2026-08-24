@@ -261,10 +261,15 @@ end
 
 function eg_settlers.db.get_resident_count(settlement_id)
     local s = db_data.settlements[settlement_id]
-    if not s then return 0 end
+    if not s or not s.residents then return 0 end
     local count = 0
-    for _ in pairs(s.residents) do
-        count = count + 1
+    for pos_str, res in pairs(s.residents) do
+        if res.profession and res.profession ~= "" and res.profession ~= "Unknown" and not (res.name and res.name:find("the Companion")) then
+            count = count + 1
+        else
+            s.residents[pos_str] = nil
+            eg_settlers.db.mark_dirty()
+        end
     end
     return count
 end

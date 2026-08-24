@@ -329,7 +329,7 @@ function eg_companions.on_step(self, dtime)
                 local offset_mult = is_top and -0.4 or 0.4
                 local sleep_pos = {
                     x = self.bed_pos.x + dir.x * offset_mult,
-                    y = self.bed_pos.y + 0.07,
+                    y = self.bed_pos.y + 0.12,
                     z = self.bed_pos.z + dir.z * offset_mult
                 }
 
