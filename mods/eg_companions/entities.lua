@@ -54,6 +54,7 @@ mobs:register_mob("eg_companions:companion", {
     water_damage = 0,
     lava_damage = 4,
     light_damage = 0,
+    suffocation = 0,
     animation = {
         speed_normal = 30, speed_run = 30,
         stand_start = 0, stand_end = 79,
