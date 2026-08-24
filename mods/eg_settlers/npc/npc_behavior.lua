@@ -463,6 +463,7 @@ for _, entity_name in ipairs(target_entities) do
                                 elseif entry.target then
                                     target_pos = self[entry.target]
                                 end
+                                self._phase_target = target_pos
                                 if target_pos then
                                     eg_settlers.safe_teleport(self, target_pos)
                                 end
@@ -609,24 +610,28 @@ for _, entity_name in ipairs(target_entities) do
                                     
                                     if new_entry.phase == "wander" then
                                         local visit_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
+                                        self._phase_target = visit_pos
                                         if visit_pos then
                                             eg_settlers.safe_teleport(self, visit_pos)
                                         end
                                         self.order = "wander"
                                     elseif new_entry.phase == "social" then
                                         local visit_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                        self._phase_target = visit_pos
                                         if visit_pos then
                                             eg_settlers.safe_teleport(self, visit_pos)
                                         end
                                         self.order = "wander"
                                     elseif new_entry.phase == "patrol" then
                                         local guard_target = self.job_pos or self.home_pos
+                                        self._phase_target = guard_target
                                         if guard_target then
                                             eg_settlers.safe_teleport(self, guard_target)
                                         end
                                         self.order = "wander"
                                     elseif new_entry.phase == "work" or new_entry.phase == "commute" then
                                         local work_target = self.job_pos or self.home_pos
+                                        self._phase_target = work_target
                                         if work_target then
                                             eg_settlers.safe_teleport(self, work_target)
                                         end
@@ -734,24 +739,33 @@ for _, entity_name in ipairs(target_entities) do
                                             end
                                         end
                                     elseif self._current_phase == "work" or self._current_phase == "commute" then
-                                        local work_target = self.job_pos or self.home_pos
+                                        local work_target = self._phase_target or self.job_pos or self.home_pos
                                         if work_target and vector.distance(pos, work_target) > 16 then
-                                            eg_settlers.safe_teleport(self, work_target)
+                                            self:yaw_to_pos(work_target)
+                                            self:set_velocity(self.walk_velocity or 2)
+                                            self:set_animation("walk")
                                         end
                                     elseif self._current_phase == "patrol" then
-                                        local guard_target = self.job_pos or self.home_pos
+                                        local guard_target = self._phase_target or self.job_pos or self.home_pos
                                         if guard_target and vector.distance(pos, guard_target) > 45 then
-                                            eg_settlers.safe_teleport(self, guard_target)
+                                            self:yaw_to_pos(guard_target)
+                                            self:set_velocity(self.walk_velocity or 2)
+                                            self:set_animation("walk")
                                         end
                                     elseif self._current_phase == "wander" then
-                                        local visit_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
-                                        if visit_pos and vector.distance(pos, visit_pos) > 16 then
-                                            eg_settlers.safe_teleport(self, visit_pos)
+                                        local visit_pos = self._phase_target or self.job_pos or self.home_pos
+                                        local max_dist = (self._phase_target and self.job_pos and not vector.equals(self._phase_target, self.job_pos)) and 16 or 40
+                                        if visit_pos and vector.distance(pos, visit_pos) > max_dist then
+                                            self:yaw_to_pos(visit_pos)
+                                            self:set_velocity(self.walk_velocity or 2)
+                                            self:set_animation("walk")
                                         end
                                     elseif self._current_phase == "social" then
-                                        local visit_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
-                                        if visit_pos and vector.distance(pos, visit_pos) > 16 then
-                                            eg_settlers.safe_teleport(self, visit_pos)
+                                        local visit_pos = self._phase_target or self.job_pos or self.home_pos
+                                        if visit_pos and vector.distance(pos, visit_pos) > 20 then
+                                            self:yaw_to_pos(visit_pos)
+                                            self:set_velocity(self.walk_velocity or 2)
+                                            self:set_animation("walk")
                                         end
                                     end
                                 end
