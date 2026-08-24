@@ -61,9 +61,8 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
     local target_def = minetest.registered_nodes[target_node.name]
     local offset_groups = {}
 
-    -- Primary: Facedir orientation (e.g. Job Board) strictly in front of readable face
-    local is_facedir = (target_node.name == "eg_settlers:job_board" or (target_def and target_def.paramtype2 == "facedir" and minetest.get_item_group(target_node.name, "bed") == 0))
-    if is_facedir then
+    -- Primary: Facedir orientation strictly for the Town Square Job Board
+    if target_node.name == "eg_settlers:job_board" then
         local front_offsets = {}
         local param2 = (target_node.param2 or 0) % 4
         local raw_dir = minetest.facedir_to_dir(param2)
@@ -84,22 +83,29 @@ function eg_settlers.get_walkable_goal(target_pos, exclude_obj)
         table.insert(offset_groups, front_offsets)
     end
 
-    -- Secondary / Standard: 360-degree omnidirectional offsets
-    local omni_offsets = {
+    -- Priority 1: Immediate 1-block adjacent radius (keeps workers inside workshops)
+    local immediate_offsets = {
         {x=0, y=0, z=1}, {x=0, y=0, z=-1},
         {x=1, y=0, z=0}, {x=-1, y=0, z=0},
         {x=1, y=0, z=1}, {x=-1, y=0, z=1},
         {x=1, y=0, z=-1}, {x=-1, y=0, z=-1},
-        {x=2, y=0, z=0}, {x=-2, y=0, z=0},
-        {x=0, y=0, z=2}, {x=0, y=0, z=-2},
-        {x=2, y=0, z=1}, {x=-2, y=0, z=1},
-        {x=1, y=0, z=2}, {x=-1, y=0, z=2},
         {x=0, y=1, z=1}, {x=0, y=1, z=-1},
         {x=1, y=1, z=0}, {x=-1, y=1, z=0},
         {x=0, y=-1, z=1}, {x=0, y=-1, z=-1},
         {x=1, y=-1, z=0}, {x=-1, y=-1, z=0},
     }
-    table.insert(offset_groups, omni_offsets)
+    table.insert(offset_groups, immediate_offsets)
+
+    -- Priority 2: Outer 2-block radius (fallback only if immediate tiles are blocked)
+    local outer_offsets = {
+        {x=2, y=0, z=0}, {x=-2, y=0, z=0},
+        {x=0, y=0, z=2}, {x=0, y=0, z=-2},
+        {x=2, y=0, z=1}, {x=-2, y=0, z=1},
+        {x=1, y=0, z=2}, {x=-1, y=0, z=2},
+        {x=2, y=0, z=-1}, {x=-2, y=0, z=-1},
+        {x=-1, y=0, z=-2}, {x=1, y=0, z=-2},
+    }
+    table.insert(offset_groups, outer_offsets)
 
     local best_fallback = nil
 
