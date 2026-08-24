@@ -1,120 +1,11 @@
 --[[
     Evergrowth Villages - Settlement System
     =======================================
-    Registers the Housing Deed node, which acts as a home marker for villager
-    NPCs. Players build their own houses and place a Deed inside to designate
-    it as a residence. Villagers are then assigned via Contracts.
-
-    The Deed cannot be dug while it has a resident assigned to it.
-    The player must relocate the resident first (sneak+right-click the NPC).
+    Manages Bed Management, Unassigned Bed Scanners, Population Counting,
+    and Infrastructure Validation for town settlers.
 ]]--
 
 local S = minetest.get_translator("eg_settlers")
-
--- Housing Deed Node
--- Housing Deed Node (Deprecated for Villagers; Retained for Companions)
-minetest.register_node("eg_settlers:housing_deed", {
-    description = S("Housing Deed (Companions Only)") .. "\n" .. S("Workstations (Job Blocks) are now required for villager contracts."),
-    groups = {choppy = 2, oddly_breakable_by_hand = 2},
-    drawtype = "nodebox",
-    tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},
-    inventory_image = "default_sign_steel.png^[multiply:#FFD700",
-    wield_image = "default_sign_steel.png^[multiply:#FFD700",
-    paramtype = "light",
-    paramtype2 = "wallmounted",
-    sunlight_propagates = true,
-    walkable = false,
-    use_texture_alpha = "opaque",
-    node_box = {
-        type = "wallmounted",
-        wall_top    = {-0.4375, 0.4375, -0.3125, 0.4375, 0.5, 0.3125},
-        wall_bottom = {-0.4375, -0.5, -0.3125, 0.4375, -0.4375, 0.3125},
-        wall_side   = {-0.5, -0.3125, -0.4375, -0.4375, 0.3125, 0.4375},
-    },
-    selection_box = {
-        type = "wallmounted",
-    },
-    on_place = function(itemstack, placer, pointed_thing)
-        if pointed_thing.type == "node" and placer and placer:is_player() then
-            local pos = pointed_thing.above
-            if minetest.is_protected(pos, placer:get_player_name()) then
-                minetest.record_protection_violation(pos, placer:get_player_name())
-                return itemstack
-            end
-        end
-        return minetest.item_place(itemstack, placer, pointed_thing)
-    end,
-
-    on_construct = function(pos)
-        local meta = minetest.get_meta(pos)
-        meta:set_int("occupied", 0)
-        meta:set_string("resident_name", "")
-        meta:set_string("infotext", S("Housing Deed (Companion Deed Only)"))
-    end,
-    
-    after_place_node = function(pos, placer, itemstack, pointed_thing)
-        if placer and placer:is_player() then
-            local meta = minetest.get_meta(pos)
-            meta:set_string("owner", placer:get_player_name())
-        end
-    end,
-
-    on_destruct = function(pos)
-        local meta = minetest.get_meta(pos)
-        local sid = meta:get_string("settlement_id")
-        if sid and sid ~= "" then
-            eg_settlers.db.unregister_resident(sid, pos)
-        end
-    end,
-
-    can_dig = function(pos, player)
-        if not player or not player:is_player() then return false end
-        local meta = minetest.get_meta(pos)
-        local sid = meta:get_string("settlement_id")
-        local name = player:get_player_name()
-        
-        local authorized = false
-        local owner = meta:get_string("owner")
-        local is_node_owner = (owner == "" or owner == name or minetest.check_player_privs(name, {server=true}) or minetest.is_singleplayer())
-        if is_node_owner then
-            authorized = true
-        elseif sid and sid ~= "" then
-            authorized = eg_settlers.db.is_authorized(sid, name)
-        end
-        
-        if not authorized then
-            minetest.chat_send_player(name, S("Only authorized players can remove this Housing Deed."))
-            return false
-        end
-
-        if meta:get_int("occupied") == 1 then
-            if player:get_player_control().sneak then
-                return true
-            end
-            minetest.chat_send_player(name, S("Relocate the companion first, or hold Sneak while mining."))
-            return false
-        end
-        return true
-    end,
-
-    on_blast = function(pos, intensity)
-        return nil
-    end,
-
-    on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
-        if not clicker or not clicker:is_player() then return itemstack end
-        minetest.chat_send_player(clicker:get_player_name(),
-            S("[eg_settlers] Housing Deeds are deprecated for villagers. Use profession Workstations (Job Blocks) for villager contracts."))
-        return itemstack
-    end,
-})
-
-minetest.register_craft({
-    output = "eg_settlers:housing_deed",
-    recipe = {
-        {"default:paper", "dye:black"},
-    }
-})
 
 --------------------------------------------------
 -- Bed Management & Unassigned Scanner
@@ -239,7 +130,7 @@ function eg_settlers.get_total_settlers_count(pos, radius)
 
     -- 1. Count living active entities and track all associated identifiers
     for _, obj in pairs(minetest.luaentities) do
-        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) then
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager) then
             local epos = obj.object and obj.object:get_pos()
             if epos and vector.distance(epos, pos) <= radius then
                 count = count + 1
@@ -309,7 +200,7 @@ function eg_settlers.find_unassigned_bed(pos, radius)
     -- Collect all home_pos currently assigned to living settlers in memory
     local assigned_home_positions = {}
     for _, obj in pairs(minetest.luaentities) do
-        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
+        if obj and (obj.evergrowth_nametag_mode or obj.is_villager) and obj.home_pos then
             assigned_home_positions[minetest.pos_to_string(obj.home_pos)] = true
         end
     end
@@ -385,7 +276,7 @@ minetest.register_on_mods_loaded(function()
                 on_destruct = function(pos)
                     -- Clear home_pos from any living settler entity assigned to this bed coordinate
                     for _, obj in pairs(minetest.luaentities) do
-                        if obj and (obj.evergrowth_nametag_mode or obj.is_villager or obj.is_evergrowth_companion) and obj.home_pos then
+                        if obj and (obj.evergrowth_nametag_mode or obj.is_villager) and obj.home_pos then
                             if vector.equals(obj.home_pos, pos) or vector.distance(obj.home_pos, pos) <= 1.5 then
                                 obj.home_pos = nil
                             end

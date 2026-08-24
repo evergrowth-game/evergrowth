@@ -18,8 +18,8 @@ local chapters = {
 	},
 	{
 		id = "contracts",
-		title = "4. Hiring Contracts, Workstations & Companions",
-		text = "Settlers are recruited using the unified Hiring Contract placed directly onto a Workstation Node (Job Block). Job Blocks (18 professions) and Hiring Contracts are purchased at the Job Board using Gold Lumps directly from your inventory, featuring interactive 3D item previews.\n\nEnvironmental Requirements: Workstations must be placed near required infrastructure (e.g., wet soil for farmers, furnaces for smiths, bookshelves for librarians) before contract placement.\n\nRelocation: Relocate a settler by Sneak+Right-Clicking them, generating a Relocation Contract to place on a new Workstation.\n\nCompanions are ornamental NPCs assigned using Companion Contracts on Housing Deeds."
+		title = "4. Hiring Contracts & Workstations",
+		text = "Settlers are recruited using the unified Hiring Contract placed directly onto a Workstation Node (Job Block). Job Blocks (18 professions) and Hiring Contracts are purchased at the Job Board using Gold Lumps directly from your inventory, featuring interactive 3D item previews.\n\nEnvironmental Requirements: Workstations must be placed near required infrastructure (e.g., wet soil for farmers, furnaces for smiths, bookshelves for librarians) before contract placement.\n\nRelocation: Relocate a settler by Sneak+Right-Clicking them, generating a Relocation Contract to place on a new Workstation."
 	},
 	{
 		id = "jobs",

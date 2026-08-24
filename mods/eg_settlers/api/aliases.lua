@@ -7,7 +7,8 @@
 ]]--
 
 -- Nodes
-minetest.register_alias("evergrowth_villages:housing_deed", "eg_settlers:housing_deed")
+minetest.register_alias("eg_settlers:housing_deed", "eg_companions:companion_plaque")
+minetest.register_alias("evergrowth_villages:housing_deed", "eg_companions:companion_plaque")
 minetest.register_alias("evergrowth_villages:ward_stone", "eg_settlers:ward_stone")
 
 -- Profession Contracts (Unified to eg_settlers:hiring_contract)
@@ -49,13 +50,17 @@ minetest.register_alias("eg_settlers:spawn_mechanic", "eg_settlers:spawn_automob
 minetest.register_alias("evergrowth_villages:contract_fisher", "eg_settlers:hiring_contract")
 
 
--- Companion Contracts
-minetest.register_alias("evergrowth_villages:contract_companion_male", "eg_settlers:contract_companion_male")
-minetest.register_alias("evergrowth_villages:contract_companion_female", "eg_settlers:contract_companion_female")
-minetest.register_alias("evergrowth_villages:contract_companion_relocation", "eg_settlers:contract_companion_relocation")
+-- Companion Contracts (Redirected to eg_companions)
+minetest.register_alias("eg_settlers:contract_companion_male", "eg_companions:contract_male")
+minetest.register_alias("evergrowth_villages:contract_companion_male", "eg_companions:contract_male")
+minetest.register_alias("eg_settlers:contract_companion_female", "eg_companions:contract_female")
+minetest.register_alias("evergrowth_villages:contract_companion_female", "eg_companions:contract_female")
+minetest.register_alias("eg_settlers:contract_companion_relocation", "eg_companions:contract_relocation")
+minetest.register_alias("evergrowth_villages:contract_companion_relocation", "eg_companions:contract_relocation")
 
 -- Villager Relocation
 minetest.register_alias("evergrowth_villages:contract_villager_relocation", "eg_settlers:contract_villager_relocation")
 
--- Tools
-minetest.register_alias("evergrowth_villages:wardrobe_wand", "eg_settlers:wardrobe_wand")
+-- Tools (Redirected to eg_companions)
+minetest.register_alias("eg_settlers:wardrobe_wand", "eg_companions:wardrobe_wand")
+minetest.register_alias("evergrowth_villages:wardrobe_wand", "eg_companions:wardrobe_wand")

@@ -1,14 +1,12 @@
 --[[
     Evergrowth Villages - Spawners & Entities
     =========================================
-    This module contains the primary instantiation functions for spawning traders
-    and companions (`spawn_trader` and `spawn_companion`). It also registers the 
-    Loading Block Modifier (LBM) invisible nodes used to automatically spawn 
-    these entities during village generation.
+    This module contains the primary instantiation function for spawning traders
+    (`spawn_trader`). It also registers the Loading Block Modifier (LBM) invisible
+    nodes used to automatically spawn these entities during village generation.
     
     Depends On:
     - trades.lua (for `trades_list` and names)
-    - companions.lua (for companion skin lists)
 ]]--
 
 -- NAMES LIST
@@ -39,57 +37,6 @@ function eg_settlers.get_safe_spawn_pos(pointed_thing)
     else
         -- Side-face click: position at above.y + 1 so entity feet (pos.y - 1.0) rest on floor beneath above
         return {x = above.x, y = above.y + 1, z = above.z}
-    end
-end
-
-function eg_settlers.spawn_companion(pos, is_female, owner, override_data)
-    pos = {x=math.floor(pos.x + 0.5), y=math.floor(pos.y + 0.5), z=math.floor(pos.z + 0.5)}
-    
-    local obj = minetest.add_entity(pos, "mobs_npc:npc")
-    if obj then
-        local ent = obj:get_luaentity()
-        if ent then
-            ent.is_evergrowth_companion = true
-            ent.companion_is_female = is_female
-            ent.companion_skin_index = override_data and override_data.skin_index or 1
-            if owner then
-                ent.owner = owner
-            end
-            
-            local skins = is_female and eg_settlers.companion_female_skins or eg_settlers.companion_male_skins
-            ent.base_texture = { skins[ent.companion_skin_index] or skins[1] }
-            ent.textures = ent.base_texture
-            
-            local name_list = is_female and female_names or male_names
-            local name = name_list[math.random(#name_list)]
-            
-            local ntag
-            if override_data and override_data.nametag and override_data.nametag ~= "" then
-                ntag = override_data.nametag
-            else
-                ntag = name .. " the Companion"
-            end
-            
-            ent.nametag = ntag
-            ent.game_name = ent.nametag
-            ent.evergrowth_nametag_mode = true
-            
-            obj:set_properties({
-                textures = ent.base_texture,
-                nametag = ent.nametag,
-                nametag_color = "#FFFFFF"
-            })
-            
-            ent.walk_chance = 10 
-            ent.order = "wander"
-            
-            if override_data and override_data.health and override_data.health > 0 then
-                ent.health = override_data.health
-                obj:set_hp(ent.health)
-            end
-            
-            minetest.log("action", "[eg_settlers] SPAWNED " .. (is_female and "Female" or "Male") .. " Companion at " .. minetest.pos_to_string(pos))
-        end
     end
 end
 
