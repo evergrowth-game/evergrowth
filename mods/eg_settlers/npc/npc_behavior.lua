@@ -240,7 +240,36 @@ function eg_settlers.navigate_to(self, target_pos)
         return true
     end
 
-    -- 2. Execute C++ A* Pathfinding (emerge chunks along path first)
+    -- 2. Pre-pathing Door/Gate Check (open closed doors along direct path bounding box)
+    if rawget(_G, "doors") and doors.get then
+        local min_p = {
+            x = math.min(pos.x, goal_pos.x) - 1,
+            y = math.min(pos.y, goal_pos.y) - 1,
+            z = math.min(pos.z, goal_pos.z) - 1
+        }
+        local max_p = {
+            x = math.max(pos.x, goal_pos.x) + 1,
+            y = math.max(pos.y, goal_pos.y) + 2,
+            z = math.max(pos.z, goal_pos.z) + 1
+        }
+        if (max_p.x - min_p.x) <= 40 and (max_p.z - min_p.z) <= 40 then
+            local path_doors = minetest.find_nodes_in_area(min_p, max_p, {"group:door", "group:gate"})
+            for _, dpos in ipairs(path_doors) do
+                local door = doors.get(dpos)
+                if door and not door:state() then
+                    door:open()
+                    self._nav_opened_doors = self._nav_opened_doors or {}
+                    local exists = false
+                    for _, existing_dpos in ipairs(self._nav_opened_doors) do
+                        if vector.equals(existing_dpos, dpos) then exists = true; break end
+                    end
+                    if not exists then table.insert(self._nav_opened_doors, dpos) end
+                end
+            end
+        end
+    end
+
+    -- 3. Execute C++ A* Pathfinding (emerge chunks along path first)
     local start_pos = eg_settlers.get_walkable_start(pos)
     minetest.load_area(start_pos, goal_pos)
     local path = minetest.find_path(start_pos, goal_pos, 80, 1, 3, "A*_noprefetch")
@@ -254,10 +283,15 @@ function eg_settlers.navigate_to(self, target_pos)
         self:set_animation("walk")
         return true
     else
-        -- Fallback: wander safely on current landmass; do not march blindly into water/fences
-        self._nav_waypoints = nil
-        self._nav_state = nil
-        self.order = "wander"
+        -- Fallback: move towards target directly with stuck timer and safe_teleport fallback
+        self._nav_waypoints = {goal_pos}
+        self._nav_state = "walking"
+        self._nav_stuck_timer = 0
+        self._nav_last_pos = {x = pos.x, y = pos.y, z = pos.z}
+        self.order = "walk"
+        self:yaw_to_pos(goal_pos)
+        self:set_velocity(self.walk_velocity or 2)
+        self:set_animation("walk")
         return false
     end
 end
@@ -267,6 +301,7 @@ for _, entity_name in ipairs(target_entities) do
     local base_entity = minetest.registered_entities[entity_name]
     if base_entity then
         base_entity.water_damage = 0.001
+        base_entity.suffocation = 0
         base_entity.stepheight = 1.1
         if base_entity.initial_properties then
             base_entity.initial_properties.stepheight = 1.1
@@ -441,12 +476,57 @@ for _, entity_name in ipairs(target_entities) do
         
         local old_on_step = base_entity.on_step
         base_entity.on_step = function(self, dtime)
-            -- Clear any legacy sleep posture if left on active entity
+            -- If sleeping, lock position and rotation and bypass mobs_redo idle routines
             if self._sleeping then
-                self._sleeping = nil
-                self._sleep_pos = nil
-                self._sleep_yaw = nil
-                self.object:set_rotation({x = 0, y = self.object:get_yaw() or 0, z = 0})
+                if self._sleep_pos then
+                    self.object:set_pos(self._sleep_pos)
+                end
+                if self._sleep_yaw then
+                    self.object:set_rotation({x = math.pi / 2, y = self._sleep_yaw, z = 0})
+                end
+                self.object:set_velocity({x = 0, y = 0, z = 0})
+                self.object:set_acceleration({x = 0, y = 0, z = 0})
+                self.order = "stand"
+                self:set_animation("stand")
+                
+                -- Check for schedule wake-up
+                self._schedule_timer = (self._schedule_timer or 0) + dtime
+                if self._schedule_timer >= 1.0 then
+                    self._schedule_timer = 0
+                    local current_time = (minetest.get_timeofday() * 24000 + (self._schedule_jitter or 0)) % 24000
+                    local schedule_key = "default"
+                    if self.evergrowth_profession == "guard" then
+                        schedule_key = (self.guard_shift == "night") and "guard_night" or "guard_day"
+                    end
+                    local schedule = SCHEDULES[schedule_key] or SCHEDULES.default
+                    for _, entry in ipairs(schedule) do
+                        if current_time >= entry.start and current_time < entry.stop then
+                            if entry.phase ~= "sleep" then
+                                self._sleeping = nil
+                                self._sleep_pos = nil
+                                self._sleep_yaw = nil
+                                self.object:set_properties({
+                                    collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                                    physical = true,
+                                })
+                                local cur_y = self.object:get_yaw() or 0
+                                self.object:set_rotation({x = 0, y = cur_y, z = 0})
+                                local cur_p = self.object:get_pos()
+                                if cur_p then
+                                    self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
+                                end
+                                self.object:set_acceleration({x = 0, y = -9.81, z = 0})
+                                self._current_phase = entry.phase
+                                local target_pos = entry.target and self[entry.target]
+                                if target_pos then
+                                    eg_settlers.navigate_to(self, target_pos)
+                                end
+                            end
+                            break
+                        end
+                    end
+                end
+                return
             end
 
             -- Call original logic
@@ -700,12 +780,17 @@ for _, entity_name in ipairs(target_entities) do
                                         self._sleeping = nil
                                         self._sleep_pos = nil
                                         self._sleep_yaw = nil
+                                        self.object:set_properties({
+                                            collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                                            physical = true,
+                                        })
                                         local cur_y = self.object:get_yaw() or 0
                                         self.object:set_rotation({x = 0, y = cur_y, z = 0})
                                         local cur_p = self.object:get_pos()
                                         if cur_p then
                                             self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
                                         end
+                                        self.object:set_acceleration({x = 0, y = -9.81, z = 0})
                                     end
 
                                     self._current_phase = new_entry.phase
@@ -741,14 +826,62 @@ for _, entity_name in ipairs(target_entities) do
                                     if self._current_phase == "sleep" then
                                         local bed_pos = self.home_pos or self.job_pos
                                         if bed_pos then
-                                            local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
-                                            if goal and vector.distance(pos, goal) > 2.0 then
-                                                eg_settlers.navigate_to(self, bed_pos)
+                                            local bed_node = minetest.get_node(bed_pos)
+                                            local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
+                                            if is_bed then
+                                                local is_top = bed_node.name:find("_top") ~= nil
+                                                local param2 = (bed_node.param2 or 0) % 4
+                                                local yaw = 0
+                                                if param2 == 1 then
+                                                    yaw = math.pi / 2
+                                                elseif param2 == 3 then
+                                                    yaw = -math.pi / 2
+                                                elseif param2 == 0 then
+                                                    yaw = math.pi
+                                                else
+                                                    yaw = 0
+                                                end
+                                                local dir = minetest.facedir_to_dir(param2)
+                                                local offset_mult = is_top and -0.4 or 0.4
+                                                local sleep_pos = {
+                                                    x = bed_pos.x + dir.x * offset_mult,
+                                                    y = bed_pos.y + 0.12,
+                                                    z = bed_pos.z + dir.z * offset_mult
+                                                }
+
+                                                if vector.distance(pos, sleep_pos) > 1.8 then
+                                                    if not self._nav_waypoints then
+                                                        eg_settlers.navigate_to(self, bed_pos)
+                                                    end
+                                                else
+                                                    -- Assume sleep posture identical to eg_companions
+                                                    if not self._sleeping then
+                                                        self._sleeping = true
+                                                        self.object:set_properties({
+                                                            collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                                                            physical = false,
+                                                        })
+                                                    end
+                                                    self._sleep_pos = sleep_pos
+                                                    self._sleep_yaw = yaw
+                                                    self.object:set_pos(sleep_pos)
+                                                    self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                                                    self.object:set_velocity({x = 0, y = 0, z = 0})
+                                                    self.object:set_acceleration({x = 0, y = 0, z = 0})
+                                                    self.order = "stand"
+                                                    if self.stop_attack then self:stop_attack() end
+                                                    self:set_animation("stand")
+                                                end
                                             else
-                                                self.order = "stand"
-                                                if self.stop_attack then self:stop_attack() end
-                                                self:set_animation("stand")
-                                                self:set_velocity(0)
+                                                local goal = eg_settlers.get_walkable_goal(bed_pos, self.object)
+                                                if goal and vector.distance(pos, goal) > 2.0 then
+                                                    eg_settlers.navigate_to(self, bed_pos)
+                                                else
+                                                    self.order = "stand"
+                                                    if self.stop_attack then self:stop_attack() end
+                                                    self:set_animation("stand")
+                                                    self:set_velocity(0)
+                                                end
                                             end
                                         end
                                     elseif self._current_phase == "work" or self._current_phase == "commute" then
@@ -869,14 +1002,20 @@ for _, entity_name in ipairs(target_entities) do
                                         local offset_mult = is_top and -0.4 or 0.4
                                         local sleep_pos = {
                                             x = target_pos.x + dir.x * offset_mult,
-                                            y = target_pos.y - 0.15,
+                                            y = target_pos.y + 0.12,
                                             z = target_pos.z + dir.z * offset_mult
                                         }
                                         self._sleeping = true
                                         self._sleep_pos = sleep_pos
                                         self._sleep_yaw = yaw
+                                        self.object:set_properties({
+                                            collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                                            physical = false,
+                                        })
                                         self.object:set_pos(sleep_pos)
                                         self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                                        self.object:set_velocity({x = 0, y = 0, z = 0})
+                                        self.object:set_acceleration({x = 0, y = 0, z = 0})
                                         self.order = "stand"
                                     else
                                         eg_settlers.safe_teleport(self, target_pos)
