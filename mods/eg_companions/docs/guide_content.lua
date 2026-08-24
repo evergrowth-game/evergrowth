@@ -4,17 +4,17 @@
 local chapters = {
 	{
 		id = "plaque_and_hiring",
-		title = "Companion Plaques & Recruitment",
-		text = "Companions are domestic NPCs residing in your home. They require a wallmounted Companion Plaque and an assigned Player Bed within 50 blocks.\n\nPlacement & Hiring:\n1. Place a Companion Plaque on a wall inside your house.\n2. Claim a bed by sleeping in it to designate it as your Player Bed.\n3. Place a Hiring Contract onto the Plaque to assign a companion."
+		title = "1. Companion Plaques & Recruitment",
+		text = "Companions are domestic NPCs residing in your home. They require a wallmounted Companion Plaque and an assigned Player Bed within 50 blocks.\n\nPlacement & Hiring:\n1. Place a Companion Plaque (eg_companions:companion_plaque) on an interior wall.\n2. Claim a bed by sleeping in it to designate it as your Player Bed.\n3. Place a Male Companion's Contract (craft: Paper + Stick) or Female Companion's Contract (craft: Paper + Apple) onto the Plaque to assign a companion."
 	},
 	{
 		id = "daily_routine",
-		title = "Daily Routine & Sleep",
+		title = "2. Daily Routine & Sleep",
 		text = "Companions follow a household routine:\n\n• Daytime (06:00–19:00):\nCompanions wander within a 16-block radius of their Companion Plaque.\n\n• Nighttime (19:00–06:00):\nCompanions sleep in their assigned bed. While sleeping, they lie down and refuse conversation until morning."
 	},
 	{
 		id = "care_and_customization",
-		title = "Care, Outfits & Relocation",
+		title = "3. Care, Outfits & Relocation",
 		text = "• Conversation & Healing:\nRight-click your companion to talk. Right-click with food items to heal them.\n\n• Outfits:\nHit your companion with a Wardrobe Wand (eg_companions:wardrobe_wand) to cycle through clothing styles.\n\n• Relocation:\nSneak+Right-Click an owned companion with an empty hand to package them into a Relocation Contract, allowing them to be moved to a new Plaque."
 	},
 }
