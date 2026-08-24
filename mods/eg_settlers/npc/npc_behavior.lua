@@ -669,7 +669,11 @@ for _, entity_name in ipairs(target_entities) do
                                                 self.object:set_acceleration({x = 0, y = 0, z = 0})
                                                 self.order = "stand"
                                                 if self.stop_attack then self:stop_attack() end
-                                                self:set_animation("stand")
+                                                local anim = self.animation or {}
+                                                self.object:set_animation({
+                                                    x = anim.stand_start or 0,
+                                                    y = anim.stand_end or 79
+                                                }, 6, 0, true)
                                             else
                                                 eg_settlers.safe_teleport(self, bed_pos)
                                                 self.order = "stand"
@@ -721,7 +725,11 @@ for _, entity_name in ipairs(target_entities) do
                                                     self.object:set_acceleration({x = 0, y = 0, z = 0})
                                                     self.order = "stand"
                                                     if self.stop_attack then self:stop_attack() end
-                                                    self:set_animation("stand")
+                                                    local anim = self.animation or {}
+                                                    self.object:set_animation({
+                                                        x = anim.stand_start or 0,
+                                                        y = anim.stand_end or 79
+                                                    }, 6, 0, true)
                                                 end
                                             end
                                         end
@@ -865,6 +873,11 @@ for _, entity_name in ipairs(target_entities) do
                                         self.object:set_velocity({x = 0, y = 0, z = 0})
                                         self.object:set_acceleration({x = 0, y = 0, z = 0})
                                         self.order = "stand"
+                                        local anim = self.animation or {}
+                                        self.object:set_animation({
+                                            x = anim.stand_start or 0,
+                                            y = anim.stand_end or 79
+                                        }, 6, 0, true)
                                     else
                                         eg_settlers.safe_teleport(self, target_pos)
                                     end
