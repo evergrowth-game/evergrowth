@@ -14,20 +14,20 @@ local S = minetest.get_translator("eg_settlers")
 
 local SCHEDULES = {
     default = {
-        {start = 0,     stop = 4500,  phase = "sleep",  target = "home_pos"},
-        {start = 4500,  stop = 17000, phase = "work",   target = "job_pos"},
-        {start = 17000, stop = 18500, phase = "social", target = "job_board"},
-        {start = 18500, stop = 24000, phase = "sleep",  target = "home_pos"},
+        {start = 0,     stop = 6000,  phase = "sleep",  target = "home_pos"},
+        {start = 6000,  stop = 17500, phase = "work",   target = "job_pos"},
+        {start = 17500, stop = 19000, phase = "social", target = "job_board"},
+        {start = 19000, stop = 24000, phase = "sleep",  target = "home_pos"},
     },
     guard_day = {
-        {start = 0,     stop = 4500,  phase = "sleep",  target = "home_pos"},
-        {start = 4500,  stop = 18500, phase = "patrol", target = "job_pos"},
-        {start = 18500, stop = 24000, phase = "sleep",  target = "home_pos"},
+        {start = 0,     stop = 6000,  phase = "sleep",  target = "home_pos"},
+        {start = 6000,  stop = 19000, phase = "patrol", target = "job_pos"},
+        {start = 19000, stop = 24000, phase = "sleep",  target = "home_pos"},
     },
     guard_night = {
         {start = 0,     stop = 6500,  phase = "patrol", target = "job_pos"},
-        {start = 6500,  stop = 16500, phase = "sleep",  target = "home_pos"},
-        {start = 16500, stop = 24000, phase = "patrol", target = "job_pos"},
+        {start = 6500,  stop = 17500, phase = "sleep",  target = "home_pos"},
+        {start = 17500, stop = 24000, phase = "patrol", target = "job_pos"},
     },
 }
 
