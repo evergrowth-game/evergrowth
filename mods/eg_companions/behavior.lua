@@ -351,7 +351,11 @@ function eg_companions.on_step(self, dtime)
                     self.object:set_velocity({x = 0, y = 0, z = 0})
                     self.object:set_acceleration({x = 0, y = 0, z = 0})
                     self.order = "stand"
-                    self:set_animation("stand")
+                    local anim = self.animation or {}
+                    self.object:set_animation({
+                        x = anim.stand_start or 0,
+                        y = anim.stand_end or 79
+                    }, 6, 0, true)
                     return true
                 end
             end
@@ -369,6 +373,7 @@ function eg_companions.on_step(self, dtime)
             self.object:set_pos({x = pos.x, y = pos.y + 0.6, z = pos.z})
             self.object:set_acceleration({x = 0, y = -9.81, z = 0})
             self.order = "wander"
+            self:set_animation("stand")
         end
 
         -- Tether check to Companion Plaque
