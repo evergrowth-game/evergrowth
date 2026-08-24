@@ -14,39 +14,21 @@ local S = minetest.get_translator("eg_settlers")
 
 local SCHEDULES = {
     default = {
-        {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
-        {start = 4500,  stop = 5500,  phase = "commute", target = "job_pos"},
-        {start = 5500,  stop = 11000, phase = "work",    target = "job_pos"},
-        {start = 11000, stop = 12500, phase = "wander",  target = "supply_chain"},
-        {start = 12500, stop = 17000, phase = "work",    target = "job_pos"},
-        {start = 17000, stop = 18500, phase = "social",  target = "social_hub"},
-        {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
+        {start = 0,     stop = 4500,  phase = "sleep",  target = "home_pos"},
+        {start = 4500,  stop = 17000, phase = "work",   target = "job_pos"},
+        {start = 17000, stop = 18500, phase = "social", target = "job_board"},
+        {start = 18500, stop = 24000, phase = "sleep",  target = "home_pos"},
     },
     guard_day = {
-        {start = 0,     stop = 4500,  phase = "sleep",   target = "home_pos"},
-        {start = 4500,  stop = 18500, phase = "patrol",  target = "job_pos"},
-        {start = 18500, stop = 24000, phase = "sleep",   target = "home_pos"},
+        {start = 0,     stop = 4500,  phase = "sleep",  target = "home_pos"},
+        {start = 4500,  stop = 18500, phase = "patrol", target = "job_pos"},
+        {start = 18500, stop = 24000, phase = "sleep",  target = "home_pos"},
     },
     guard_night = {
-        {start = 0,     stop = 6500,  phase = "patrol",  target = "job_pos"},
-        {start = 6500,  stop = 16500, phase = "sleep",   target = "home_pos"},
-        {start = 16500, stop = 24000, phase = "patrol",  target = "job_pos"},
+        {start = 0,     stop = 6500,  phase = "patrol", target = "job_pos"},
+        {start = 6500,  stop = 16500, phase = "sleep",  target = "home_pos"},
+        {start = 16500, stop = 24000, phase = "patrol", target = "job_pos"},
     },
-}
-
-local SUPPLY_CHAIN_MAP = {
-    miner = "smith",
-    lumberjack = "carpenter",
-    farmer = "brewer",
-    gunsmith = "smith",
-    technologist = "roboticist",
-    fisher = "brewer",
-}
-
-local LIBRARY_VISITORS = {
-    mage = true,
-    technologist = true,
-    roboticist = true,
 }
 
 function eg_settlers.is_valid_floor(node_name)
@@ -158,73 +140,18 @@ function eg_settlers.safe_teleport(self, target_pos)
     return false
 end
 
-function eg_settlers.find_profession_job_block(self, target_profession)
-    local pos = self.object:get_pos()
+function eg_settlers.get_town_square_target(self)
+    local pos = (self.object and self.object:get_pos()) or self.job_pos or self.home_pos
     if not pos then return nil end
 
     local sid = eg_settlers.db and eg_settlers.db.find_nearest_settlement(pos, 200)
     if sid then
-        local residents = eg_settlers.db.get_residents(sid)
-        if residents then
-            local candidates = {}
-            for pos_str, res in pairs(residents) do
-                if res.profession == target_profession then
-                    local x, y, z = pos_str:match("^(%-?%d+%.?%d*),(%-?%d+%.?%d*),(%-?%d+%.?%d*)$")
-                    local bpos = (x and y and z) and {x = tonumber(x), y = tonumber(y), z = tonumber(z)} or minetest.string_to_pos(pos_str)
-                    if bpos then
-                        table.insert(candidates, bpos)
-                    end
-                end
-            end
-            if #candidates > 0 then
-                return candidates[math.random(#candidates)]
-            end
+        local settlement = eg_settlers.db.get_settlement(sid)
+        if settlement then
+            return settlement.job_board_pos or settlement.ledger_pos
         end
     end
     return nil
-end
-
-function eg_settlers.get_tavern_target(self)
-    if math.random(100) > 50 then return nil end
-    local base = eg_settlers.find_profession_job_block(self, "brewer")
-    if base then
-        return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
-    end
-    return nil
-end
-
-function eg_settlers.get_supply_chain_target(self)
-    if math.random(100) > 50 then return nil end
-    local target_prof = SUPPLY_CHAIN_MAP[self.evergrowth_profession]
-    if not target_prof then return nil end
-
-    local base = eg_settlers.find_profession_job_block(self, target_prof)
-    if base then
-        return {x = base.x + math.random(-1, 1), y = base.y, z = base.z + math.random(-1, 1)}
-    end
-    return nil
-end
-
-function eg_settlers.get_social_target(self)
-    local prof = self.evergrowth_profession
-    local roll = math.random(100)
-
-    if LIBRARY_VISITORS[prof] then
-        if roll <= 40 then
-            local base = eg_settlers.find_profession_job_block(self, "librarian")
-            if base then
-                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
-            end
-        elseif roll <= 75 then
-            local base = eg_settlers.find_profession_job_block(self, "brewer")
-            if base then
-                return {x = base.x + math.random(-2, 2), y = base.y, z = base.z + math.random(-2, 2)}
-            end
-        end
-        return nil
-    end
-
-    return eg_settlers.get_tavern_target(self)
 end
 
 function eg_settlers.navigate_to(self, target_pos)
@@ -456,10 +383,8 @@ for _, entity_name in ipairs(target_entities) do
                                 local target_pos = nil
                                 if entry.phase == "patrol" then
                                     target_pos = self.job_pos or self.home_pos
-                                elseif entry.phase == "wander" then
-                                    target_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
                                 elseif entry.phase == "social" then
-                                    target_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                    target_pos = eg_settlers.get_town_square_target(self) or self.job_pos or self.home_pos
                                 elseif entry.target then
                                     target_pos = self[entry.target]
                                 end
@@ -608,15 +533,8 @@ for _, entity_name in ipairs(target_entities) do
 
                                     self._current_phase = new_entry.phase
                                     
-                                    if new_entry.phase == "wander" then
-                                        local visit_pos = eg_settlers.get_supply_chain_target(self) or self.job_pos or self.home_pos
-                                        self._phase_target = visit_pos
-                                        if visit_pos then
-                                            eg_settlers.safe_teleport(self, visit_pos)
-                                        end
-                                        self.order = "wander"
-                                    elseif new_entry.phase == "social" then
-                                        local visit_pos = eg_settlers.get_social_target(self) or self.job_pos or self.home_pos
+                                    if new_entry.phase == "social" then
+                                        local visit_pos = eg_settlers.get_town_square_target(self) or self.job_pos or self.home_pos
                                         self._phase_target = visit_pos
                                         if visit_pos then
                                             eg_settlers.safe_teleport(self, visit_pos)
@@ -752,17 +670,9 @@ for _, entity_name in ipairs(target_entities) do
                                             self:set_velocity(self.walk_velocity or 2)
                                             self:set_animation("walk")
                                         end
-                                    elseif self._current_phase == "wander" then
-                                        local visit_pos = self._phase_target or self.job_pos or self.home_pos
-                                        local max_dist = (self._phase_target and self.job_pos and not vector.equals(self._phase_target, self.job_pos)) and 16 or 40
-                                        if visit_pos and vector.distance(pos, visit_pos) > max_dist then
-                                            self:yaw_to_pos(visit_pos)
-                                            self:set_velocity(self.walk_velocity or 2)
-                                            self:set_animation("walk")
-                                        end
                                     elseif self._current_phase == "social" then
                                         local visit_pos = self._phase_target or self.job_pos or self.home_pos
-                                        if visit_pos and vector.distance(pos, visit_pos) > 20 then
+                                        if visit_pos and vector.distance(pos, visit_pos) > 25 then
                                             self:yaw_to_pos(visit_pos)
                                             self:set_velocity(self.walk_velocity or 2)
                                             self:set_animation("walk")

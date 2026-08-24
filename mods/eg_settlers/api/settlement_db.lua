@@ -51,6 +51,13 @@ function eg_settlers.db.load()
                     s.criminal_records = {}
                     updated = true
                 end
+                if not s.job_board_pos and s.ledger_pos then
+                    local boards = minetest.find_nodes_in_area(vector.subtract(s.ledger_pos, 80), vector.add(s.ledger_pos, 80), {"eg_settlers:job_board"})
+                    if boards and #boards > 0 then
+                        s.job_board_pos = boards[1]
+                        updated = true
+                    end
+                end
                 if updated then
                     eg_settlers.db.mark_dirty()
                 end

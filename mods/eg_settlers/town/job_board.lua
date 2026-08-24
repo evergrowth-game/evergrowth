@@ -234,9 +234,26 @@ minetest.register_node("eg_settlers:job_board", {
         if sid then
             meta:set_string("settlement_id", sid)
             meta:set_string("infotext", S("Job Board: Connected to town"))
+            local s = eg_settlers.db.get_settlement(sid)
+            if s then
+                s.job_board_pos = pos
+                eg_settlers.db.mark_dirty()
+            end
         end
         
         minetest.get_node_timer(pos):start(10.0)
+    end,
+    
+    on_destruct = function(pos)
+        local meta = minetest.get_meta(pos)
+        local sid = meta:get_string("settlement_id")
+        if sid and sid ~= "" then
+            local s = eg_settlers.db.get_settlement(sid)
+            if s and s.job_board_pos and vector.equals(s.job_board_pos, pos) then
+                s.job_board_pos = nil
+                eg_settlers.db.mark_dirty()
+            end
+        end
     end,
     
     on_timer = function(pos, elapsed)
@@ -257,6 +274,14 @@ minetest.register_node("eg_settlers:job_board", {
             if sid then
                 meta:set_string("settlement_id", sid)
                 meta:set_string("infotext", S("Job Board: Connected to town"))
+            end
+        end
+
+        if sid ~= "" then
+            local s = eg_settlers.db.get_settlement(sid)
+            if s and (not s.job_board_pos or not vector.equals(s.job_board_pos, pos)) then
+                s.job_board_pos = pos
+                eg_settlers.db.mark_dirty()
             end
         end
         
