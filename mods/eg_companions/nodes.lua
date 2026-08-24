@@ -8,7 +8,8 @@
 local S = minetest.get_translator("eg_companions")
 
 minetest.register_node("eg_companions:companion_plaque", {
-    description = S("Companion Plaque") .. "\n" .. S("Wallmounted plaque to anchor a domestic companion to your home."),
+    description = S("Companion Plaque"),
+    _doc_items_longdesc = S("Wallmounted plaque to anchor a domestic companion to your home."),
     groups = {choppy = 2, oddly_breakable_by_hand = 2},
     drawtype = "nodebox",
     tiles = {"default_sign_wall_steel.png^[multiply:#FFD700"},

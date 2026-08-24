@@ -87,9 +87,8 @@ end
 
 -- 1. Male Companion Contract
 minetest.register_craftitem("eg_companions:contract_male", {
-    description = S("Male Companion's Contract") .. "\n" ..
-                  S("Place on a Companion Plaque to assign a companion.") .. "\n" ..
-                  S("Requires a claimed player bed within 50 blocks."),
+    description = S("Male Companion's Contract"),
+    _doc_items_longdesc = S("Place on a Companion Plaque to assign a companion. Requires a claimed player bed within 50 blocks."),
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         return handle_contract_place(itemstack, placer, pointed_thing, false, false)
@@ -105,9 +104,8 @@ minetest.register_craft({
 
 -- 2. Female Companion Contract
 minetest.register_craftitem("eg_companions:contract_female", {
-    description = S("Female Companion's Contract") .. "\n" ..
-                  S("Place on a Companion Plaque to assign a companion.") .. "\n" ..
-                  S("Requires a claimed player bed within 50 blocks."),
+    description = S("Female Companion's Contract"),
+    _doc_items_longdesc = S("Place on a Companion Plaque to assign a companion. Requires a claimed player bed within 50 blocks."),
     inventory_image = "default_paper.png^(default_apple.png^[resize:16x16)",
     on_place = function(itemstack, placer, pointed_thing)
         return handle_contract_place(itemstack, placer, pointed_thing, true, false)
@@ -123,8 +121,8 @@ minetest.register_craft({
 
 -- 3. Companion Relocation Contract
 minetest.register_craftitem("eg_companions:contract_relocation", {
-    description = S("Companion Relocation Contract") .. "\n" ..
-                  S("Place on a vacant Companion Plaque to reassign the companion."),
+    description = S("Companion Relocation Contract"),
+    _doc_items_longdesc = S("Place on a vacant Companion Plaque to reassign the companion."),
     inventory_image = "default_paper.png^(default_stick.png^[resize:16x16)",
     groups = {not_in_creative_inventory = 1},
     on_place = function(itemstack, placer, pointed_thing)
@@ -134,7 +132,8 @@ minetest.register_craftitem("eg_companions:contract_relocation", {
 
 -- 4. Wardrobe Wand
 minetest.register_craftitem("eg_companions:wardrobe_wand", {
-    description = S("Wardrobe Wand (Punch Companion to Change Clothes)"),
+    description = S("Wardrobe Wand"),
+    _doc_items_longdesc = S("Punch a companion to cycle their clothes/outfits."),
     inventory_image = "default_stick.png^[colorize:#FF00FF:128",
 })
 
