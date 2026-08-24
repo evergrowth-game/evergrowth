@@ -205,7 +205,6 @@ function eg_companions.on_step(self, dtime)
         self.object:set_velocity({x = 0, y = 0, z = 0})
         self.object:set_acceleration({x = 0, y = 0, z = 0})
         self.order = "stand"
-        self:set_animation("stand")
 
         -- Check for morning wake-up
         local current_time = (minetest.get_timeofday() * 24000) % 24000
@@ -225,7 +224,7 @@ function eg_companions.on_step(self, dtime)
             self.order = "wander"
             self:set_animation("stand")
         end
-        return true
+        return false
     end
 
     -- 1. Nametag Distance Culling (20 blocks)
@@ -386,9 +385,13 @@ function eg_companions.on_step(self, dtime)
                         self.object:set_velocity({x = 0, y = 0, z = 0})
                         self.object:set_acceleration({x = 0, y = 0, z = 0})
                         self.order = "stand"
-                        self:set_animation("stand")
+                        local anim = self.animation or {}
+                        self.object:set_animation({
+                            x = anim.stand_start or 0,
+                            y = anim.stand_end or 79
+                        }, 6, 0, true)
                     end
-                    return true
+                    return false
                 end
             end
         end
