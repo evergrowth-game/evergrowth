@@ -24,7 +24,7 @@ for _, def in ipairs(raider_types) do
 			active_object_count = def.count,
 			chance = def.chance,
 			min_height = -31000,
-			max_height = 1000,
+			max_height = def.name == "raiders:pirate" and -26 or 1000,
 		})
 	end
 end
