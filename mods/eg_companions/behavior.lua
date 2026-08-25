@@ -218,9 +218,32 @@ function eg_companions.on_step(self, dtime)
                     break
                 end
             end
-            local current_nametag = self.object:get_properties().nametag
-            if visible and current_nametag == "" then
-                self.object:set_properties({nametag = game_name, nametag_color = "#FFFFFF"})
+
+            local props = self.object:get_properties()
+            local current_nametag = props.nametag or ""
+            local current_color = props.nametag_color or "#FFFFFF"
+
+            if visible then
+                local hp = self.health or self.object:get_hp() or 20
+                local max_hp = self.hp_max or 20
+                local ratio = math.min(1.0, math.max(0.0, hp / max_hp))
+
+                local target_color
+                if ratio >= 1.0 then
+                    target_color = "#FFFFFF"
+                elseif ratio >= 0.75 then
+                    target_color = "#B4FF00"
+                elseif ratio >= 0.50 then
+                    target_color = "#FFFF00"
+                elseif ratio >= 0.25 then
+                    target_color = "#FF7A00"
+                else
+                    target_color = "#FF0000"
+                end
+
+                if current_nametag ~= game_name or current_color ~= target_color then
+                    self.object:set_properties({nametag = game_name, nametag_color = target_color})
+                end
             elseif not visible and current_nametag ~= "" then
                 self.object:set_properties({nametag = ""})
             end
