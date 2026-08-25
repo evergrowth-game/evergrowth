@@ -428,6 +428,39 @@ minetest.register_craft({
     }
 })
 
+function eg_settlers.pacify_guards(settlement_id, player_name)
+    if not player_name or player_name == "" then return end
+    local s = settlement_id and eg_settlers.db.get_settlement(settlement_id)
+    local center = s and s.ledger_pos
+    local player = minetest.get_player_by_name(player_name)
+    local ppos = player and player:get_pos()
+    local check_positions = {}
+
+    if center and ppos and vector.distance(center, ppos) < 50 then
+        check_positions = { ppos }
+    else
+        if center then table.insert(check_positions, center) end
+        if ppos then table.insert(check_positions, ppos) end
+    end
+
+    for _, cpos in ipairs(check_positions) do
+        local objs = minetest.get_objects_inside_radius(cpos, 100)
+        for _, obj in ipairs(objs) do
+            local ent = obj:get_luaentity()
+            if ent and ent.is_villager and ent.evergrowth_profession == "guard" then
+                if ent.attack and ent.attack:get_pos() and ent.attack:is_player() and ent.attack:get_player_name() == player_name then
+                    if ent.stop_attack then
+                        ent:stop_attack()
+                    else
+                        ent.attack = nil
+                        ent.state = "stand"
+                    end
+                end
+            end
+        end
+    end
+end
+
 minetest.register_on_player_receive_fields(function(player, formname, fields)
     if formname:sub(1, 18) == "eg_settlers:ledger" then
         local parts = formname:sub(19):split("_")
@@ -559,6 +592,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                         if inv and inv:contains_item("main", fine_stack) then
                             inv:remove_item("main", fine_stack)
                             eg_settlers.db.pay_restitution(sid, name, "assault")
+                            eg_settlers.pacify_guards(sid, name)
                             minetest.chat_send_player(name, minetest.colorize("#00FF00", S("Assault fine paid! Active assault charges cleared.")))
                         else
                             minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Insufficient gold lumps! You need 50 Gold Lumps to pay the assault fine.")))
@@ -574,6 +608,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                         if inv and inv:contains_item("main", fine_stack) then
                             inv:remove_item("main", fine_stack)
                             eg_settlers.db.pay_restitution(sid, name, "murder")
+                            eg_settlers.pacify_guards(sid, name)
                             minetest.chat_send_player(name, minetest.colorize("#00FF00", S("Murder fine paid! Capital murder charges cleared.")))
                         else
                             minetest.chat_send_player(name, minetest.colorize("#FF0000", S("Insufficient gold lumps! You need 200 Gold Lumps to pay the murder fine.")))
