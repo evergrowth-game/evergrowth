@@ -97,9 +97,10 @@ end
 local storeroom_small = {
 	place_tweaked_chest,
 	place_tweaked_chest,
-	function(pos, vdata)
+	function(pos, vdata, va, pcgr)
 		-- Spawn a raider bootynode (spawner) with a 35% chance if raiders mod exists
-		if cids.bootynode and PcgRandom(pos):next(1, 100) <= 35 then
+		local roll = pcgr and pcgr:next(1, 100) or PcgRandom(pos):next(1, 100)
+		if cids.bootynode and roll <= 35 then
 			vdata[pos] = cids.bootynode
 			return true
 		end
@@ -174,7 +175,7 @@ for _, feat in ipairs(dungeonsplus.features) do
 
 					if pcgr:next(1, 100) < 18 then
 						local fn = storeroom_small[pcgr:next(1, #storeroom_small)]
-						if fn(npos, vdata, va) then
+						if fn(npos, vdata, va, pcgr) then
 							vparam2[npos] = p2
 						end
 					end
