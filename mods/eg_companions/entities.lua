@@ -170,6 +170,52 @@ mobs:register_mob("eg_companions:companion", {
     end,
 })
 
+-- Intercept entity-level on_step to lock sleep pose and completely freeze mobs_redo physics
+local base_companion = minetest.registered_entities["eg_companions:companion"]
+if base_companion then
+    local old_on_step = base_companion.on_step
+    base_companion.on_step = function(self, dtime, moveresult)
+        if self._sleeping then
+            if self._sleep_pos then
+                self.object:set_pos(self._sleep_pos)
+            end
+            if self._sleep_yaw then
+                self.object:set_rotation({x = math.pi / 2, y = self._sleep_yaw, z = 0})
+            end
+            self.object:set_velocity({x = 0, y = 0, z = 0})
+            self.object:set_acceleration({x = 0, y = 0, z = 0})
+            self.order = "stand"
+
+            -- Check for morning wake-up
+            local current_time = (minetest.get_timeofday() * 24000) % 24000
+            local is_night = (current_time >= 19000 or current_time < 6000)
+            if not is_night then
+                self._sleeping = nil
+                self._sleep_pos = nil
+                self._sleep_yaw = nil
+                self.object:set_properties({
+                    collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                    physical = true,
+                })
+                local cur_y = self.object:get_yaw() or 0
+                self.object:set_rotation({x = 0, y = cur_y, z = 0})
+                local cur_p = self.object:get_pos()
+                if cur_p then
+                    self.object:set_pos({x = cur_p.x, y = cur_p.y + 0.6, z = cur_p.z})
+                end
+                self.object:set_acceleration({x = 0, y = -9.81, z = 0})
+                self.order = "wander"
+                self:set_animation("stand")
+            end
+            return
+        end
+
+        if old_on_step then
+            old_on_step(self, dtime, moveresult)
+        end
+    end
+end
+
 function eg_companions.spawn_companion(pos, is_female, owner, plaque_pos, bed_pos, override_data)
     pos = {x = math.floor(pos.x + 0.5), y = math.floor(pos.y + 0.5), z = math.floor(pos.z + 0.5)}
     override_data = override_data or {}
