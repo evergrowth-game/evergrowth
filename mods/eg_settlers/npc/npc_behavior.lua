@@ -287,15 +287,20 @@ for _, entity_name in ipairs(target_entities) do
                 local pos = self.object:get_pos()
                 if pos then
                     local sid = eg_settlers.db.find_nearest_settlement(pos, 200)
-                    if sid then
-                        local rec = eg_settlers.db.get_criminal_record(sid, puncher:get_player_name())
-                        if not rec or not rec.assault_count or rec.assault_count <= 0 then
-                            self.attack = nil
-                            if self.evergrowth_profession ~= "guard" then
-                                self.state = "runaway"
-                                self.runaway = true
-                                self.runaway_timer = 10
+                    local is_wanted = sid and eg_settlers.db.is_criminal(sid, puncher:get_player_name())
+                    if not is_wanted then
+                        if self.evergrowth_profession == "guard" then
+                            if self.stop_attack then
+                                self:stop_attack()
+                            else
+                                self.attack = nil
+                                self.state = "stand"
                             end
+                        else
+                            self.attack = nil
+                            self.state = "runaway"
+                            self.runaway = true
+                            self.runaway_timer = 10
                         end
                     end
                 end
@@ -544,6 +549,21 @@ for _, entity_name in ipairs(target_entities) do
                                 if current_time >= entry.start and current_time < entry.stop then
                                     new_entry = entry
                                     break
+                                end
+                            end
+
+                            if self.evergrowth_profession == "guard" and self.attack and self.attack:get_pos() and self.attack:is_player() then
+                                local target_name = self.attack:get_player_name()
+                                local check_pos = pos or self.job_pos or self.home_pos
+                                local sid = check_pos and eg_settlers.db.find_nearest_settlement(check_pos, 200)
+                                local is_wanted = sid and eg_settlers.db.is_criminal(sid, target_name)
+                                if not is_wanted then
+                                    if self.stop_attack then
+                                        self:stop_attack()
+                                    else
+                                        self.attack = nil
+                                        self.state = "stand"
+                                    end
                                 end
                             end
 
