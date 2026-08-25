@@ -255,6 +255,7 @@ function eg_companions.spawn_companion(pos, is_female, owner, plaque_pos, bed_po
         textures = ent.base_texture,
         nametag = ent.nametag,
         nametag_color = "#FFFFFF",
+        nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140},
     })
 
     if override_data.health and override_data.health > 0 then
