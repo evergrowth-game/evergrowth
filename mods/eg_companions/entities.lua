@@ -63,9 +63,6 @@ mobs:register_mob("eg_companions:companion", {
         punch_start = 189, punch_end = 198,
     },
 
-    do_custom = function(self, dtime)
-        return eg_companions.on_step(self, dtime)
-    end,
 
     on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
         if puncher and puncher:is_player() then
@@ -170,12 +167,17 @@ mobs:register_mob("eg_companions:companion", {
     end,
 })
 
--- Intercept entity-level on_step to lock sleep pose and completely freeze mobs_redo physics
+-- Intercept entity-level on_step to lock sleep pose, freeze mobs_redo physics, and handle distance culling
 local base_companion = minetest.registered_entities["eg_companions:companion"]
 if base_companion then
+    -- Suppress mobs_redo health-colored nametag updates to prevent distance culling overrides
+    base_companion.update_tag = function(self, newname) end
+
     local old_on_step = base_companion.on_step
     base_companion.on_step = function(self, dtime, moveresult)
         if self._sleeping then
+            eg_companions.on_step(self, dtime)
+
             if self._sleep_pos then
                 self.object:set_pos(self._sleep_pos)
             end
@@ -213,6 +215,9 @@ if base_companion then
         if old_on_step then
             old_on_step(self, dtime, moveresult)
         end
+
+        -- Run custom companion logic after old_on_step so distance culling cannot be overwritten
+        eg_companions.on_step(self, dtime)
     end
 end
 
@@ -244,6 +249,7 @@ function eg_companions.spawn_companion(pos, is_female, owner, plaque_pos, bed_po
 
     ent.nametag = ntag
     ent.game_name = ntag
+    ent._nametag = nil
 
     obj:set_properties({
         textures = ent.base_texture,

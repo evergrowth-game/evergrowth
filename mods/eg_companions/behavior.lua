@@ -198,7 +198,18 @@ function eg_companions.on_step(self, dtime)
     self._nametag_timer = (self._nametag_timer or 0) + dtime
     if self._nametag_timer > 1.0 then
         self._nametag_timer = 0
-        local game_name = self.game_name or self.nametag
+        if not self.game_name or self.game_name == "" then
+            local props = self.object:get_properties()
+            if props.nametag and props.nametag ~= "" then
+                self.game_name = props.nametag
+            elseif self.nametag and self.nametag ~= "" then
+                self.game_name = self.nametag
+            end
+            self._nametag = nil
+            self.nametag = nil
+        end
+
+        local game_name = self.game_name
         if game_name and game_name ~= "" then
             local visible = false
             for _, player in ipairs(minetest.get_connected_players()) do
@@ -209,7 +220,7 @@ function eg_companions.on_step(self, dtime)
             end
             local current_nametag = self.object:get_properties().nametag
             if visible and current_nametag == "" then
-                self.object:set_properties({nametag = game_name})
+                self.object:set_properties({nametag = game_name, nametag_color = "#FFFFFF"})
             elseif not visible and current_nametag ~= "" then
                 self.object:set_properties({nametag = ""})
             end
