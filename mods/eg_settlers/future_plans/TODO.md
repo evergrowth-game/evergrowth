@@ -72,14 +72,13 @@ This TODO list tracks the status of all planned features from the [Master Develo
   - [x] Add valid floor destination validation (`eg_settlers.is_valid_floor` & `get_walkable_goal`) and anti-stacking.
   - [x] Add liquid hazard avoidance and safe local wander fallback when paths are blocked.
 - [x] **Daily Schedule State Machine**
-  - [x] Morning commute (04:30–05:30: Bed $\rightarrow$ Job Block).
-  - [x] Work shift active state at Job Block (05:30–11:00, 12:30–17:00).
-  - [x] Midday supply-chain gatherer/crafter visits (11:00–12:30).
-  - [x] Evening social visits to Brewer tavern / Librarian study (17:00–18:30).
-  - [x] Nighttime sleep state (18:30–04:30) at assigned Bed node (with Day/Night Guard shifts).
+  - [x] Work shift active state at assigned Workstation / Job Block (06:00–17:30).
+  - [x] Evening town square gathering around Job Board civic hub (17:30–19:00).
+  - [x] Nighttime sleep state (19:00–06:00) at assigned Bed node (with alternating Day/Night Guard shifts).
 - [x] **Bed Sleeping Posture & Physics Freeze**
-  - [x] Adjust sleeping entity position offset to mattress elevation `bed_pos.y - 0.15` and longitudinal alignment along bed `facedir`.
-  - [x] Set 90° pitch rotation (`{x = math.pi/2, y = yaw, z = 0}`) and freeze physics/wander loops during sleep.
+  - [x] Adjust sleeping entity position offset to mattress elevation `bed_pos.y + 0.12` and longitudinal alignment along bed `facedir`.
+  - [x] Set 90° pitch rotation (`{x = math.pi/2, y = yaw, z = 0}`), disable physical collisions, and freeze mob AI loops during sleep.
+  - [x] Apply slowed-down 6 FPS idle animation for calm breathing effect.
 
 ## Phase 6: Settler Death Management & Remains ([settler_death_mechanic.md](settler_death_mechanic.md))
 - [ ] **Incident Logging & Graveyard UI**
