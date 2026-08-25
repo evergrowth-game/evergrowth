@@ -194,39 +194,6 @@ function eg_companions.on_step(self, dtime)
     local pos = self.object:get_pos()
     if not pos then return end
 
-    -- If sleeping, lock position and rotation and bypass active companion routines
-    if self._sleeping then
-        if self._sleep_pos then
-            self.object:set_pos(self._sleep_pos)
-        end
-        if self._sleep_yaw then
-            self.object:set_rotation({x = math.pi / 2, y = self._sleep_yaw, z = 0})
-        end
-        self.object:set_velocity({x = 0, y = 0, z = 0})
-        self.object:set_acceleration({x = 0, y = 0, z = 0})
-        self.order = "stand"
-
-        -- Check for morning wake-up
-        local current_time = (minetest.get_timeofday() * 24000) % 24000
-        local is_night = (current_time >= 19000 or current_time < 6000)
-        if not is_night then
-            self._sleeping = nil
-            self._sleep_pos = nil
-            self._sleep_yaw = nil
-            self.object:set_properties({
-                collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
-                physical = true,
-            })
-            local cur_y = self.object:get_yaw() or 0
-            self.object:set_rotation({x = 0, y = cur_y, z = 0})
-            self.object:set_pos({x = pos.x, y = pos.y + 0.6, z = pos.z})
-            self.object:set_acceleration({x = 0, y = -9.81, z = 0})
-            self.order = "wander"
-            self:set_animation("stand")
-        end
-        return false
-    end
-
     -- 1. Nametag Distance Culling (20 blocks)
     self._nametag_timer = (self._nametag_timer or 0) + dtime
     if self._nametag_timer > 1.0 then
