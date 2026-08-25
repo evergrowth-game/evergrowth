@@ -221,7 +221,11 @@ function eg_companions.on_step(self, dtime)
 
             local current_nametag = self.object:get_properties().nametag
             if visible and current_nametag == "" then
-                self.object:set_properties({nametag = game_name})
+                self.object:set_properties({
+                    nametag = game_name,
+                    nametag_color = "#FFFFFF",
+                    nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140},
+                })
             elseif not visible and current_nametag ~= "" then
                 self.object:set_properties({nametag = ""})
             end
