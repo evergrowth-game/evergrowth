@@ -210,6 +210,9 @@ for _, entity_name in ipairs(target_entities) do
         base_entity.jump_height = 1.1
         base_entity.jump = true
         
+        -- Suppress mobs_redo health-colored nametag updates to prevent distance culling overrides
+        base_entity.update_tag = function(self, newname) end
+        
         local old_on_punch = base_entity.on_punch
         base_entity.on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
             if puncher then
@@ -461,7 +464,11 @@ for _, entity_name in ipairs(target_entities) do
                                 local props = self.object:get_properties()
                                 if props.nametag and props.nametag ~= "" then
                                     self.game_name = props.nametag
+                                elseif self.nametag and self.nametag ~= "" then
+                                    self.game_name = self.nametag
                                 end
+                                self._nametag = nil
+                                self.nametag = nil
                             end
 
                             local limit = 20
@@ -486,7 +493,11 @@ for _, entity_name in ipairs(target_entities) do
                             -- Toggle nametag
                             local current_nametag = self.object:get_properties().nametag
                             if visible and current_nametag == "" then
-                                self.object:set_properties({nametag = self.game_name})
+                                self.object:set_properties({
+                                    nametag = self.game_name,
+                                    nametag_color = "#FFFFFF",
+                                    nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140},
+                                })
                             elseif not visible and current_nametag ~= "" then
                                 self.object:set_properties({nametag = ""})
                             end
@@ -797,13 +808,15 @@ for _, entity_name in ipairs(target_entities) do
                 self.object:set_properties({stepheight = 1.1})
                 self.evergrowth_nametag_mode = true
                 if not self.game_name or self.game_name == "" then
-                    if self.nametag and self.nametag ~= "" then
+                    local props = self.object:get_properties()
+                    if props.nametag and props.nametag ~= "" then
+                        self.game_name = props.nametag
+                    elseif self.nametag and self.nametag ~= "" then
                         self.game_name = self.nametag
                     end
                 end
-                if self.game_name then
-                    self.nametag = self.game_name
-                end
+                self._nametag = nil
+                self.nametag = nil
 
                 -- Fast Catch-Up on MapBlock / Chunk Activation
                 if dtime and dtime > 0 then

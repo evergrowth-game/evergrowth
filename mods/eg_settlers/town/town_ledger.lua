@@ -538,8 +538,16 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                     ent.guard_shift = new_shift
                                     if ent.game_name then
                                         ent.game_name = ent.game_name:gsub("Day Guard", new_label):gsub("Night Guard", new_label)
-                                        ent.nametag = ent.game_name
-                                        ent.object:set_properties({nametag = ent.nametag})
+                                        ent.nametag = nil
+                                        ent._nametag = nil
+                                        local cur = ent.object:get_properties().nametag
+                                        if cur and cur ~= "" then
+                                            ent.object:set_properties({
+                                                nametag = ent.game_name,
+                                                nametag_color = "#FFFFFF",
+                                                nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140},
+                                            })
+                                        end
                                     end
                                     ent._was_off_duty = nil -- trigger immediate schedule tick
                                 end
