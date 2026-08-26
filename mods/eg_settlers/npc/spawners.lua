@@ -100,7 +100,10 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
                     ent.nametag = name .. " the " .. display_prof
                 end
             end
-            ent.game_name = ent.nametag
+            local spawned_name = ent.nametag
+            ent.game_name = spawned_name
+            ent.nametag = nil
+            ent._nametag = nil
             
             -- Texture selection (allow override)
             if override_data.texture and override_data.texture ~= "" then
@@ -194,8 +197,9 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
             ent.textures = ent.base_texture
             obj:set_properties({
                 textures = ent.textures,
-                nametag = ent.nametag,
-                nametag_color = "#FFFFFF" 
+                nametag = "",
+                nametag_color = "#FFFFFF",
+                nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140}
             })
             
             ent.walk_chance = 10 
@@ -211,7 +215,7 @@ function eg_settlers.spawn_trader(pos, profession, is_villager, override_data)
             
             minetest.log("action", "[eg_settlers] SPAWNED " .. profession .. " at " .. minetest.pos_to_string(pos))
             
-            return ent.nametag
+            return spawned_name
         end
     end
 end
