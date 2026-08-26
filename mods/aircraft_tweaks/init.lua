@@ -1,25 +1,159 @@
--- Aircraft Tweaks
--- Dynamically adjusts lateral drag to fix slipping on ice feeling when taxiing.
+local function is_valid_coord(val)
+    return type(val) == "number" and val == val and math.abs(val) ~= math.huge
+end
 
-local function apply_lateral_drag_fix(entity_name)
-    local def = minetest.registered_entities[entity_name]
-    if def then
-        local old_on_step = def.on_step
-        def.on_step = function(self, dtime, moveresult)
-            -- Apply dynamic lateral drag on ground vs in air
-            if self.isonground then
-                self._later_drag_factor = 15.0
-            else
-                self._later_drag_factor = 2.0 -- restore to default for aerodynamics
+local function is_valid_vector(v)
+    return v and is_valid_coord(v.x) and is_valid_coord(v.y) and is_valid_coord(v.z)
+end
+
+-- Override airutils.physics to prevent engine crashes from invalid float / NaN / inf vectors
+if airutils and airutils.physics then
+    airutils.physics = function(self)
+        if not self.object or not self.object:get_pos() then return end
+
+        local vel = self.object:get_velocity()
+        if not vel then return end
+
+        -- Sanitize _last_accel if corrupt
+        if self._last_accel and not is_valid_vector(self._last_accel) then
+            self._last_accel = vector.new(0, 0, 0)
+        end
+
+        local friction = self._ground_friction or 0.99
+        local new_velocity = vector.new()
+
+        -- Buoyancy
+        local surface = nil
+        local surfnodename = nil
+        local spos = airutils.get_stand_pos(self)
+        if not spos then return end
+        spos.y = spos.y + 0.01
+
+        local snodepos = airutils.get_node_pos(spos)
+        local surfnode = airutils.nodeatpos(spos)
+        while surfnode and (surfnode.drawtype == 'liquid' or surfnode.drawtype == 'flowingliquid') do
+            surfnodename = surfnode.name
+            surface = snodepos.y + 0.5
+            if surface > spos.y + (self.height or 1) then break end
+            snodepos.y = snodepos.y + 1
+            surfnode = airutils.nodeatpos(snodepos)
+        end
+
+        self.isinliquid = surfnodename
+        if surface then
+            self.isinliquid = true
+        end
+
+        local last_accel = vector.new()
+        if self._last_accel and is_valid_vector(self._last_accel) then
+            last_accel = vector.new(self._last_accel)
+        end
+
+        if self.isinliquid then
+            self.water_drag = 0.2
+            local height = (self.height and self.height > 0) and self.height or 1
+            local submergence = math.min(surface - spos.y, height) / height
+            local buoyacc = (airutils.gravity or -9.81) * ((self.buoyancy or 0) - submergence)
+            local accell = {
+                x = -vel.x * self.water_drag,
+                y = buoyacc - (vel.y * math.abs(vel.y) * 0.4),
+                z = -vel.z * self.water_drag
+            }
+            if (self.buoyancy or 0) >= 1 then self._engine_running = false end
+            if last_accel then
+                accell = vector.add(accell, last_accel)
             end
-            
-            -- Call the original step function
-            if old_on_step then
-                old_on_step(self, dtime, moveresult)
+            new_velocity = vector.multiply(accell, self.dtime)
+        else
+            self.isinliquid = false
+            if last_accel then
+                last_accel.y = last_accel.y + (airutils.gravity or -9.81)
+                new_velocity = vector.multiply(last_accel, self.dtime)
             end
         end
-        minetest.log("action", "[aircraft_tweaks] Applied lateral drag fix to " .. entity_name)
+
+        if self.isonground and not self.isinliquid then
+            new_velocity = {
+                x = new_velocity.x * friction,
+                y = new_velocity.y,
+                z = new_velocity.z * friction
+            }
+
+            if self.springiness and self.springiness > 0 and (self.buoyancy or 0) >= 1 then
+                local vnew = vector.new(new_velocity)
+                if not self.collided and self.lastvelocity then
+                    for _, k in ipairs({'y', 'z', 'x'}) do
+                        if new_velocity[k] == 0 and math.abs(self.lastvelocity[k] or 0) > 0.1 then
+                            vnew[k] = -(self.lastvelocity[k] or 0) * self.springiness
+                        end
+                    end
+                end
+
+                if not vector.equals(new_velocity, vnew) then
+                    self.collided = true
+                else
+                    if self.collided and self.lastvelocity then
+                        vnew = vector.new(self.lastvelocity)
+                    end
+                    self.collided = false
+                end
+                new_velocity = vnew
+            end
+
+            if self._last_longit_speed and friction <= 0.97 and self._last_longit_speed > 0 then
+                self.hp_max = (self.hp_max or 10) - 0.001
+                airutils.setText(self, self._vehicle_name)
+            end
+
+            if not self.driver_name and math.abs(vel.x) < 0.2 and math.abs(vel.z) < 0.2 then
+                if self.object and self.object:get_pos() then
+                    self.object:set_velocity({x = 0, y = (airutils.gravity or -9.81) * self.dtime, z = 0})
+                    if self.wheels then self.wheels:set_animation_frame_speed(0) end
+                end
+                return
+            end
+        end
+
+        if is_valid_vector(new_velocity) and self.object and self.object:get_pos() then
+            self.object:add_velocity(new_velocity)
+        end
     end
+end
+
+local function wrap_aircraft_on_step(entity_name, extra_step_fn)
+    local def = minetest.registered_entities[entity_name]
+    if not def then return end
+
+    local old_on_step = def.on_step
+    def.on_step = function(self, dtime, moveresult)
+        -- Terminate step immediately if vehicle is marked for destruction or destroyed
+        if self.hp_max and self.hp_max <= 0 then
+            airutils.destroy(self)
+            return
+        end
+
+        if not self.object or not self.object:get_pos() then return end
+
+        if extra_step_fn then
+            extra_step_fn(self, dtime, moveresult)
+        end
+
+        if old_on_step then
+            old_on_step(self, dtime, moveresult)
+        end
+    end
+end
+
+local function apply_lateral_drag_fix(entity_name)
+    wrap_aircraft_on_step(entity_name, function(self)
+        -- Apply dynamic lateral drag on ground vs in air
+        if self.isonground then
+            self._later_drag_factor = 15.0
+        else
+            self._later_drag_factor = 2.0 -- restore to default for aerodynamics
+        end
+    end)
+    minetest.log("action", "[aircraft_tweaks] Applied lateral drag fix and lifecycle safety to " .. entity_name)
 end
 
 local function engineSoundPlay(self, increment, base)
@@ -340,6 +474,7 @@ minetest.register_on_mods_loaded(function()
             minetest.register_craftitem(":heli:heli", craft_def)
             minetest.log("action", "[aircraft_tweaks] Re-registered heli:heli as craftitem")
         end
+        wrap_aircraft_on_step("heli:heli")
         apply_helicopter_tweaks("heli:heli")
     end
 end)
