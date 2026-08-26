@@ -219,6 +219,14 @@ if base_companion then
         -- Run custom companion logic after old_on_step so distance culling cannot be overwritten
         eg_companions.on_step(self, dtime)
     end
+
+    local old_on_activate = base_companion.on_activate
+    base_companion.on_activate = function(self, staticdata, dtime)
+        if old_on_activate then
+            old_on_activate(self, staticdata, dtime)
+        end
+        eg_companions.catchup(self, dtime or 0)
+    end
 end
 
 function eg_companions.spawn_companion(pos, is_female, owner, plaque_pos, bed_pos, override_data)

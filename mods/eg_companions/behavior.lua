@@ -85,17 +85,18 @@ end
 function eg_companions.safe_teleport(self, target_pos)
     if not target_pos or not self.object then return false end
     local goal = eg_companions.get_walkable_goal(target_pos, self.object)
-    if goal then
-        self.object:set_pos({x = goal.x, y = goal.y + 0.5, z = goal.z})
-        self._nav_waypoints = nil
-        self._nav_target_pos = nil
-        self._nav_stuck_timer = 0
-        return true
-    end
-    return false
+    local dest = goal or {x = target_pos.x, y = target_pos.y + 0.5, z = target_pos.z}
+    self.object:set_pos({x = dest.x, y = dest.y + (goal and 0.5 or 0), z = dest.z})
+    self._nav_waypoints = nil
+    self._nav_target_pos = nil
+    self._nav_target_phase = nil
+    self._nav_stuck_timer = 0
+    self.order = "stand"
+    self:set_velocity(0)
+    return true
 end
 
-function eg_companions.navigate_to(self, target_pos)
+function eg_companions.navigate_to(self, target_pos, phase)
     if not target_pos or not self.object then return false end
     local current_pos = self.object:get_pos()
     if not current_pos then return false end
@@ -106,6 +107,7 @@ function eg_companions.navigate_to(self, target_pos)
     if vector.distance(current_pos, goal) <= 1.5 then
         self._nav_waypoints = nil
         self._nav_target_pos = nil
+        self._nav_target_phase = nil
         self.order = "stand"
         self:set_velocity(0)
         return true
@@ -134,6 +136,7 @@ function eg_companions.navigate_to(self, target_pos)
         table.remove(path, 1) -- Remove current pos
         self._nav_waypoints = path
         self._nav_target_pos = goal
+        self._nav_target_phase = phase or self._current_phase
         self._nav_stuck_timer = 0
         self._nav_last_pos = current_pos
         self.order = "follow"
@@ -142,6 +145,7 @@ function eg_companions.navigate_to(self, target_pos)
         -- Fallback: move towards target directly with stuck timer fallback
         self._nav_waypoints = {goal}
         self._nav_target_pos = goal
+        self._nav_target_phase = phase or self._current_phase
         self._nav_stuck_timer = 0
         self._nav_last_pos = current_pos
         return false
@@ -187,6 +191,82 @@ function eg_companions.find_player_bed(pos, radius, player_name)
     end
 
     return best_bed
+end
+
+-- Catch-Up on MapBlock / Chunk Activation
+function eg_companions.catchup(self, dtime)
+    if not self.object then return end
+    local pos = self.object:get_pos()
+    if not pos then return end
+
+    local current_time = (minetest.get_timeofday() * 24000) % 24000
+    local is_night = (current_time >= 19000 or current_time < 6000)
+    self._current_phase = is_night and "night" or "day"
+    self._nav_waypoints = nil
+    self._nav_target_pos = nil
+    self._nav_target_phase = nil
+    self._nav_stuck_timer = 0
+
+    if is_night then
+        if self.bed_pos then
+            local bed_node = minetest.get_node(self.bed_pos)
+            local is_bed = (minetest.get_item_group(bed_node.name, "bed") > 0) or bed_node.name:find("bed") ~= nil
+            if is_bed then
+                local is_top = bed_node.name:find("_top") ~= nil
+                local param2 = (bed_node.param2 or 0) % 4
+                local yaw = 0
+                if param2 == 1 then yaw = math.pi / 2
+                elseif param2 == 3 then yaw = -math.pi / 2
+                elseif param2 == 0 then yaw = math.pi
+                else yaw = 0 end
+                local dir = minetest.facedir_to_dir(param2)
+                local offset_mult = is_top and -0.4 or 0.4
+                local sleep_pos = {
+                    x = self.bed_pos.x + dir.x * offset_mult,
+                    y = self.bed_pos.y + 0.12,
+                    z = self.bed_pos.z + dir.z * offset_mult
+                }
+
+                self._sleeping = true
+                self._sleep_pos = sleep_pos
+                self._sleep_yaw = yaw
+                self.object:set_properties({
+                    collisionbox = {-0.4, -0.05, -0.4, 0.4, 0.2, 0.4},
+                    physical = false,
+                })
+                self.object:set_pos(sleep_pos)
+                self.object:set_rotation({x = math.pi / 2, y = yaw, z = 0})
+                self.object:set_velocity({x = 0, y = 0, z = 0})
+                self.object:set_acceleration({x = 0, y = 0, z = 0})
+                self.order = "stand"
+                local anim = self.animation or {}
+                self.object:set_animation({
+                    x = anim.stand_start or 0,
+                    y = anim.stand_end or 79
+                }, 6, 0, true)
+                return
+            end
+        end
+    else
+        -- Day
+        if self._sleeping then
+            self._sleeping = nil
+            self._sleep_pos = nil
+            self._sleep_yaw = nil
+            self.object:set_properties({
+                collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                physical = true,
+            })
+            local cur_y = self.object:get_yaw() or 0
+            self.object:set_rotation({x = 0, y = cur_y, z = 0})
+            self.object:set_acceleration({x = 0, y = -9.81, z = 0})
+            self.order = "wander"
+            self:set_animation("stand")
+        end
+        if self.plaque_pos and vector.distance(pos, self.plaque_pos) > 16 then
+            eg_companions.safe_teleport(self, self.plaque_pos)
+        end
+    end
 end
 
 -- Companion Entity on_step state machine
@@ -269,7 +349,43 @@ function eg_companions.on_step(self, dtime)
         end
     end
 
-    -- 3. Waypoint Navigation Step Logic
+    -- 3. Day / Night Schedule State Machine & Phase Sync
+    local current_time = (minetest.get_timeofday() * 24000) % 24000
+    local is_night = (current_time >= 19000 or current_time < 6000)
+    local desired_phase = is_night and "night" or "day"
+
+    if self._current_phase ~= desired_phase then
+        self._current_phase = desired_phase
+        self._nav_waypoints = nil
+        self._nav_target_pos = nil
+        self._nav_target_phase = nil
+        self._nav_stuck_timer = 0
+        if desired_phase == "day" and self._sleeping then
+            self._sleeping = nil
+            self._sleep_pos = nil
+            self._sleep_yaw = nil
+            self.object:set_properties({
+                collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
+                physical = true,
+            })
+            local cur_y = self.object:get_yaw() or 0
+            self.object:set_rotation({x = 0, y = cur_y, z = 0})
+            self.object:set_pos({x = pos.x, y = pos.y + 0.6, z = pos.z})
+            self.object:set_acceleration({x = 0, y = -9.81, z = 0})
+            self.order = "wander"
+            self:set_animation("stand")
+        end
+    end
+
+    -- Invalidate stale waypoints if belonging to a different phase
+    if self._nav_target_phase and self._nav_target_phase ~= desired_phase then
+        self._nav_waypoints = nil
+        self._nav_target_pos = nil
+        self._nav_target_phase = nil
+        self._nav_stuck_timer = 0
+    end
+
+    -- 4. Waypoint Navigation Step Logic
     if self._nav_waypoints and #self._nav_waypoints > 0 then
         self._door_timer = (self._door_timer or 0) + dtime
         if self._door_timer >= 0.5 then
@@ -298,6 +414,7 @@ function eg_companions.on_step(self, dtime)
             if #self._nav_waypoints == 0 then
                 self._nav_waypoints = nil
                 self._nav_target_pos = nil
+                self._nav_target_phase = nil
                 self.order = "stand"
                 self:set_velocity(0)
             end
@@ -319,10 +436,7 @@ function eg_companions.on_step(self, dtime)
         return true
     end
 
-    -- 4. Day / Night Schedule State Machine
-    local current_time = (minetest.get_timeofday() * 24000) % 24000
-    local is_night = (current_time >= 19000 or current_time < 6000)
-
+    -- 5. Phase Goal Execution
     if is_night then
         -- Night Phase: Sleep in player bed
         if self.bed_pos then
@@ -351,7 +465,7 @@ function eg_companions.on_step(self, dtime)
 
                 if vector.distance(pos, sleep_pos) > 1.8 then
                     if not self._nav_waypoints then
-                        eg_companions.navigate_to(self, self.bed_pos)
+                        eg_companions.navigate_to(self, self.bed_pos, "night")
                     end
                 else
                     -- Assume sleep posture
@@ -382,6 +496,8 @@ function eg_companions.on_step(self, dtime)
         -- Day Phase: Wake up & wander near Companion Plaque
         if self._sleeping then
             self._sleeping = nil
+            self._sleep_pos = nil
+            self._sleep_yaw = nil
             self.object:set_properties({
                 collisionbox = {-0.35, -1.0, -0.35, 0.35, 0.8, 0.35},
                 physical = true,
@@ -399,7 +515,7 @@ function eg_companions.on_step(self, dtime)
             local dist_to_plaque = vector.distance(pos, self.plaque_pos)
             if dist_to_plaque > 16 then
                 if not self._nav_waypoints then
-                    eg_companions.navigate_to(self, self.plaque_pos)
+                    eg_companions.navigate_to(self, self.plaque_pos, "day")
                 end
             else
                 self.order = "wander"
