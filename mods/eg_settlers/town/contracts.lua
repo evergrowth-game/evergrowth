@@ -171,25 +171,30 @@ minetest.register_craftitem("eg_settlers:contract_villager_relocation", {
 
         local guard_shift = nil
         if profession == "guard" then
-            local sid_check = eg_settlers.db.find_nearest_settlement(under_pos, 200)
-            local guard_count = 0
-            if sid_check then
-                local residents = eg_settlers.db.get_residents(sid_check)
-                for _, res in pairs(residents) do
-                    if res.profession == "guard" then guard_count = guard_count + 1 end
-                end
+            local saved_shift = meta:get_string("guard_shift")
+            if saved_shift == "day" or saved_shift == "night" then
+                guard_shift = saved_shift
             else
-                local p1 = vector.subtract(under_pos, 200)
-                local p2 = vector.add(under_pos, 200)
-                local nodes = minetest.find_nodes_in_area(p1, p2, {"eg_settlers:job_block_guard"})
-                for _, npos in ipairs(nodes) do
-                    local nmeta = minetest.get_meta(npos)
-                    if nmeta:get_int("occupied") == 1 then
-                        guard_count = guard_count + 1
+                local sid_check = eg_settlers.db.find_nearest_settlement(under_pos, 200)
+                local guard_count = 0
+                if sid_check then
+                    local residents = eg_settlers.db.get_residents(sid_check)
+                    for _, res in pairs(residents) do
+                        if res.profession == "guard" then guard_count = guard_count + 1 end
+                    end
+                else
+                    local p1 = vector.subtract(under_pos, 200)
+                    local p2 = vector.add(under_pos, 200)
+                    local nodes = minetest.find_nodes_in_area(p1, p2, {"eg_settlers:job_block_guard"})
+                    for _, npos in ipairs(nodes) do
+                        local nmeta = minetest.get_meta(npos)
+                        if nmeta:get_int("occupied") == 1 then
+                            guard_count = guard_count + 1
+                        end
                     end
                 end
+                guard_shift = (guard_count % 2 == 0) and "day" or "night"
             end
-            guard_shift = (guard_count % 2 == 0) and "day" or "night"
         end
 
         local rname = meta:get_string("resident_name")

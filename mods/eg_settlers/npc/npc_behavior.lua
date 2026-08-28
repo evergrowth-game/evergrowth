@@ -510,6 +510,29 @@ for _, entity_name in ipairs(target_entities) do
                                 end
                             end
 
+                            -- Guard shift runtime synchronization with workstation
+                            if self.evergrowth_profession == "guard" and self.job_pos then
+                                local jnode = minetest.get_node(self.job_pos)
+                                local jmeta = (jnode and jnode.name ~= "ignore") and minetest.get_meta(self.job_pos) or nil
+                                local s = jmeta and jmeta:get_string("guard_shift") or ""
+                                if s ~= "" and (s == "day" or s == "night") and s ~= self.guard_shift then
+                                    self.guard_shift = s
+                                    local shift_label = (s == "night") and "Night Guard" or "Day Guard"
+                                    if self.game_name and (self.game_name:find("Day Guard") or self.game_name:find("Night Guard")) then
+                                        self.game_name = self.game_name:gsub("Day Guard", shift_label):gsub("Night Guard", shift_label)
+                                    end
+                                    local cur_tag = self.object:get_properties().nametag
+                                    if cur_tag and cur_tag ~= "" then
+                                        self.object:set_properties({
+                                            nametag = self.game_name,
+                                            nametag_color = "#FFFFFF",
+                                            nametag_bgcolor = {r = 0, g = 0, b = 0, a = 140},
+                                        })
+                                    end
+                                    self._current_phase = nil -- force schedule re-evaluation
+                                end
+                            end
+
                             if self.home_pos then
                                 local hnode = minetest.get_node(self.home_pos)
                                 local hmeta = minetest.get_meta(self.home_pos)
@@ -818,6 +841,49 @@ for _, entity_name in ipairs(target_entities) do
                 self._nametag = nil
                 self.nametag = nil
 
+                if self.evergrowth_profession == "guard" then
+                    self.hp_max = 50
+                    self.object:set_properties({hp_max = 50})
+
+                    if not self.health or self.health <= 0 or self.health == 20 or self.health > 50 then
+                        self.health = 50
+                    end
+                    self.object:set_hp(self.health)
+                    self.old_health = self.health
+
+                    local jnode = self.job_pos and minetest.get_node(self.job_pos)
+                    local jmeta = (jnode and jnode.name ~= "ignore") and minetest.get_meta(self.job_pos) or nil
+                    local s = jmeta and jmeta:get_string("guard_shift")
+                    if s and (s == "day" or s == "night") then
+                        self.guard_shift = s
+                    else
+                        local ntag = self.game_name or self.nametag or ""
+                        if ntag:find("Day Guard") then
+                            self.guard_shift = "day"
+                        elseif ntag:find("Night Guard") then
+                            self.guard_shift = "night"
+                        else
+                            self.guard_shift = self.guard_shift or "day"
+                        end
+                        if jmeta then
+                            jmeta:set_string("guard_shift", self.guard_shift)
+                        end
+                    end
+
+                    -- Synchronize self.game_name with resolved guard_shift
+                    local shift_label = self.guard_shift == "night" and "Night Guard" or "Day Guard"
+                    if self.game_name and (self.game_name:find("Day Guard") or self.game_name:find("Night Guard")) then
+                        self.game_name = self.game_name:gsub("Day Guard", shift_label):gsub("Night Guard", shift_label)
+                    end
+
+                    if jmeta then
+                        local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
+                        local rname = self.game_name or self.nametag or "Guard"
+                        jmeta:set_string("resident_name", rname)
+                        jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
+                    end
+                end
+
                 -- Fast Catch-Up on MapBlock / Chunk Activation
                 if dtime and dtime > 0 then
                     self._schedule_jitter = self._schedule_jitter or math.random(-200, 200)
@@ -893,40 +959,6 @@ for _, entity_name in ipairs(target_entities) do
                 self.object:set_properties({textures = self.base_texture, stepheight = 1.1})
             else
                 self.object:set_properties({stepheight = 1.1})
-            end
-
-            if self.evergrowth_profession == "guard" then
-                self.hp_max = 50
-                self.object:set_properties({hp_max = 50})
-
-                if not self.health or self.health <= 0 or self.health == 20 or self.health > 50 then
-                    self.health = 50
-                end
-                self.object:set_hp(self.health)
-                self.old_health = self.health
-
-                local ntag = self.game_name or self.nametag or ""
-                if ntag:find("Day Guard") then
-                    self.guard_shift = "day"
-                elseif ntag:find("Night Guard") then
-                    self.guard_shift = "night"
-                else
-                    local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
-                    local s = jmeta and jmeta:get_string("guard_shift")
-                    if s and s ~= "" then
-                        self.guard_shift = s
-                    else
-                        self.guard_shift = "day"
-                    end
-                end
-
-                local jmeta = self.job_pos and minetest.get_meta(self.job_pos)
-                if jmeta then
-                    jmeta:set_string("guard_shift", self.guard_shift)
-                    local shift_title = self.guard_shift == "night" and S("Night Shift") or S("Day Shift")
-                    local rname = self.nametag or self.game_name or "Guard"
-                    jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
-                end
             end
         end
 
