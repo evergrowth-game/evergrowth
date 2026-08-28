@@ -535,15 +535,33 @@ for _, entity_name in ipairs(target_entities) do
 
                             if self.home_pos then
                                 local hnode = minetest.get_node(self.home_pos)
-                                local hmeta = minetest.get_meta(self.home_pos)
-                                local is_bed = hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0
-                                local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
-                                
-                                if (hnode.name ~= "ignore" and not is_bed) or is_reserved then
-                                    if is_bed and is_reserved then
-                                        eg_settlers.clear_bed_assignment(self.home_pos)
+                                if hnode.name ~= "ignore" then
+                                    local is_bed = minetest.get_item_group(hnode.name, "bed") > 0
+                                    local hmeta = minetest.get_meta(self.home_pos)
+                                    local is_reserved = hmeta and hmeta:get_string("player_reserved") == "true"
+                                    
+                                    if not is_bed or is_reserved then
+                                        if is_bed and is_reserved then
+                                            eg_settlers.clear_bed_assignment(self.home_pos)
+                                        end
+                                        self.home_pos = nil
+                                    else
+                                        local assigned = hmeta and hmeta:get_string("assigned_settler")
+                                        local target_name = self.game_name or self.nametag or "Settler"
+                                        if assigned ~= target_name then
+                                            eg_settlers.assign_bed(self.home_pos, target_name)
+                                        end
+                                        if self.job_pos then
+                                            local jnode = minetest.get_node(self.job_pos)
+                                            if jnode.name ~= "ignore" then
+                                                local jmeta = minetest.get_meta(self.job_pos)
+                                                local current_hpos_str = minetest.pos_to_string(self.home_pos)
+                                                if jmeta:get_string("home_pos") ~= current_hpos_str then
+                                                    jmeta:set_string("home_pos", current_hpos_str)
+                                                end
+                                            end
+                                        end
                                     end
-                                    self.home_pos = nil
                                 end
                             end
                             
@@ -881,6 +899,19 @@ for _, entity_name in ipairs(target_entities) do
                         local rname = self.game_name or self.nametag or "Guard"
                         jmeta:set_string("resident_name", rname)
                         jmeta:set_string("infotext", S("Workstation: Guard") .. " (" .. shift_title .. ")\n" .. S("Resident: ") .. rname)
+                    end
+                end
+
+                -- Reconcile assigned bed metadata on entity activation
+                if self.home_pos then
+                    local hnode = minetest.get_node(self.home_pos)
+                    if hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0 then
+                        local hmeta = minetest.get_meta(self.home_pos)
+                        local assigned = hmeta and hmeta:get_string("assigned_settler")
+                        local target_name = self.game_name or self.nametag or "Settler"
+                        if assigned ~= target_name and hmeta:get_string("player_reserved") ~= "true" then
+                            eg_settlers.assign_bed(self.home_pos, target_name)
+                        end
                     end
                 end
 
