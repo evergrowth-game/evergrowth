@@ -535,6 +535,10 @@ for _, entity_name in ipairs(target_entities) do
 
                             if self.home_pos then
                                 local hnode = minetest.get_node(self.home_pos)
+                                if hnode.name == "ignore" then
+                                    minetest.load_area(self.home_pos, self.home_pos)
+                                    hnode = minetest.get_node(self.home_pos)
+                                end
                                 if hnode.name ~= "ignore" then
                                     local is_bed = minetest.get_item_group(hnode.name, "bed") > 0
                                     local hmeta = minetest.get_meta(self.home_pos)
@@ -905,6 +909,10 @@ for _, entity_name in ipairs(target_entities) do
                 -- Reconcile assigned bed metadata on entity activation
                 if self.home_pos then
                     local hnode = minetest.get_node(self.home_pos)
+                    if hnode.name == "ignore" then
+                        minetest.load_area(self.home_pos, self.home_pos)
+                        hnode = minetest.get_node(self.home_pos)
+                    end
                     if hnode.name ~= "ignore" and minetest.get_item_group(hnode.name, "bed") > 0 then
                         local hmeta = minetest.get_meta(self.home_pos)
                         local assigned = hmeta and hmeta:get_string("assigned_settler")
