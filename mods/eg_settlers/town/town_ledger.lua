@@ -523,15 +523,8 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                             eg_settlers.db.mark_dirty()
                         end
 
-                        -- Synchronize assigned bed metadata and infotext
-                        local home_pos_str = rmeta:get_string("home_pos")
-                        local home_pos = parse_pos(home_pos_str)
-                        if home_pos then
-                            minetest.load_area(home_pos, home_pos)
-                            eg_settlers.assign_bed(home_pos, rname)
-                        end
-                        
                         -- Find and update active live guard entity across settlement area (150m radius)
+                        local live_home_pos = nil
                         local objs = minetest.get_objects_inside_radius(selected_res.rpos, 150)
                         for _, obj in ipairs(objs) do
                             local ent = obj:get_luaentity()
@@ -544,6 +537,9 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                 end
                                 if is_target then
                                     ent.guard_shift = new_shift
+                                    if ent.home_pos then
+                                        live_home_pos = ent.home_pos
+                                    end
                                     if ent.game_name then
                                         ent.game_name = ent.game_name:gsub("Day Guard", new_label):gsub("Night Guard", new_label)
                                         ent.nametag = nil
@@ -560,6 +556,15 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                     ent._current_phase = nil -- force schedule re-evaluation
                                 end
                             end
+                        end
+
+                        -- Synchronize assigned bed metadata and infotext
+                        local home_pos_str = rmeta:get_string("home_pos")
+                        local home_pos = live_home_pos or parse_pos(home_pos_str)
+                        if home_pos then
+                            rmeta:set_string("home_pos", minetest.pos_to_string(home_pos))
+                            minetest.load_area(home_pos, home_pos)
+                            eg_settlers.assign_bed(home_pos, rname)
                         end
                         minetest.chat_send_player(name, minetest.colorize("#00FF00", S("[eg_settlers] Reassigned ") .. rname .. S(" to ") .. shift_title .. "."))
                     end
