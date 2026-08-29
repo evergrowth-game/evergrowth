@@ -14,30 +14,48 @@ Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foun
 
 ## Repository Structure
 
-- `mods/` - Integrated mod ecosystem containing community packs and custom-developed mods.
-  - `eg_settlers/` - The core settlement generation mod (formerly `evergrowth_villages`), fully merged with historical commits preserved.
-  - `eg_third_party_docs/` - Modular encyclopedia and help entries for existing third-party systems.
-  - `*_tweaks/` - Core overrides and custom behaviors for community mods (e.g., `aircraft_tweaks`, `automobiles_tweaks`, `mobs_animal_tweaks`, `techage_tweaks`, etc.).
+- `mods/` - Integrated mod ecosystem containing community packs, MTG foundation mods, and custom-developed game modules:
+  - `eg_settlers/` - Village generation, NPC hiring, trade economy, settlement census, and civic schedules.
+  - `eg_companions/` - Domestic companion NPCs, plaque/bed dual-tethering, and relocation contracts.
+  - `eg_constructs/` - Clay Golem and Combat Drone allies for expeditions, raiding, and hauling.
+  - `eg_third_party_docs/` - Centralized in-game documentation and encyclopedia entries for third-party systems.
+  - `*_tweaks/` - Engine overrides and custom integration layers for community mods (e.g., `aircraft_tweaks`, `automobiles_tweaks`, `bweapons_tweaks`, `climate_tweaks`, `dungeon_tweaks`, `mobs_animal_tweaks`, `techage_tweaks`, `walls_tweaks`, etc.).
+- `evergrowth.sh` - Management and deployment script for quick deployment, launching, and map rendering.
 - `menu/` - Main menu assets and configuration.
-- `research/` - Prototyping and reference designs for sub-systems.
-- `utils/` - Administrative and maintenance tools (using `venv/` for python dependencies).
+- `research/` - Prototyping and reference designs for game sub-systems.
+- `utils/` - Maintenance tools, texture generators (`generate_human_texture.py`, `generate_automaton_texture.py`, `recolor.py`), mod updater (`sync_external_mods.sh`), texture optimizer (`optimize_textures.sh`), and automated test harness (`utils/test/run.sh`).
 
 ## Integrated Community Mods
 
-Evergrowth is built on the foundation of Minetest Game (MTG) and utilizes a carefully curated selection of 80 integrated community mods to provide its rich features (such as vehicle systems, machinery, biomes, and magic) without rebuilding those complex engines from scratch. This is not just mod soup! 
+Evergrowth is built on the foundation of Minetest Game (MTG) and utilizes a carefully curated selection of 80 integrated community mods to provide rich features (such as vehicle systems, machinery, biomes, and magic) without rebuilding those complex engines from scratch.
+
 These mods are pre-packaged directly in the `mods/` directory for three critical reasons:
 1. **Out-of-the-Box Playability**: Players and server hosts do not need to hunt down, download, or configure 80 separate external mods. The game is fully complete and playable immediately upon installation.
-2. **Stability & Version Control**: Community mods evolve independently and updates can frequently introduce breaking conflicts. Statically snapshotting these specific versions guarantees that all integrated systems remain locked at tested, compatible, and stable states.
-3. **Custom Integration & Optimization**: Many of these mods have been custom-tweaked to ensure thematic compatibility and clean performance. Unnecessary heavy dependencies have been removed, and key components have been isolated (for example, the hostile `raiders` were cleanly stripped out of a much larger community mod to keep the codebase focused and lightweight).
+2. **Stability & Version Control**: Community mods evolve independently and updates can introduce breaking conflicts. Statically snapshotting these specific versions guarantees that all integrated systems remain locked at tested, compatible, and stable states.
+3. **Custom Integration & Optimization**: Many of these mods have been custom-tweaked via `*_tweaks` layers to ensure thematic compatibility, resolved dependencies, and clean performance.
 
 The complete list of these integrated community dependencies is documented in [external_mods.md](external_mods.md).
 
+## Management CLI (`evergrowth.sh`)
+
+The included `evergrowth.sh` helper script streamlines common development and playing tasks:
+
+```bash
+# Deploy a Git ref (branch or tag) to the local Luanti game directory (default: dev)
+./evergrowth.sh deploy [REF]
+
+# Deploy main (stable) to Luanti and launch the game
+./evergrowth.sh play
+
+# Render a 2D map of a world using minetestmapper (default output: ~/Desktop)
+./evergrowth.sh map [WORLD] [OUTPUT_PATH]
+```
 
 ## Installation & Setup
 
-1. Clone or copy the `evergrowth` directory to your Minetest `games/` folder:
-   - **macOS**: `/Users/<user>/Library/Application Support/minetest/games/evergrowth`
+1. Clone or copy the `evergrowth` directory to your Minetest / Luanti `games/` folder:
+   - **macOS**: `~/Library/Application Support/minetest/games/evergrowth`
    - **Linux**: `~/.minetest/games/evergrowth`
    - **Windows**: `<minetest_install_directory>\games\evergrowth`
-2. Launch Minetest (v5.8+ recommended).
+2. Launch Minetest / Luanti (v5.8+ recommended).
 3. Create a new world, selecting **Evergrowth** as the target game.
