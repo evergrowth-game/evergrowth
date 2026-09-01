@@ -24,12 +24,13 @@ local function summon_lightning_strike(pos, user)
 			local def = minetest.registered_nodes[node_name]
 			local is_permeable = false
 			if def then
-				if not def.walkable then
+				if not def.walkable or def.buildable_to then
 					is_permeable = true
 				elseif minetest.get_item_group(node_name, "leaves") > 0
 					or minetest.get_item_group(node_name, "flora") > 0
 					or minetest.get_item_group(node_name, "plant") > 0
-					or minetest.get_item_group(node_name, "liquid") > 0 then
+					or minetest.get_item_group(node_name, "liquid") > 0
+					or minetest.get_item_group(node_name, "snowy") > 0 then
 					is_permeable = true
 				end
 			end
@@ -215,29 +216,20 @@ local function summon_lightning_strike(pos, user)
 		end
 	end
 
-	-- Temporary surface flame cluster (dying flames only, max 5 spots)
+	-- Single temporary surface flame at strike point (unless liquid)
 	if minetest.registered_nodes["lightning:dying_flame"] then
-		local flame_offsets = {
-			{x = 0, z = 0},
-			{x = 1, z = 1},
-			{x = -1, z = 1},
-			{x = 1, z = -1},
-			{x = -1, z = -1},
-		}
-		for _, offset in ipairs(flame_offsets) do
-			local check_x = pos.x + offset.x
-			local check_z = pos.z + offset.z
-			for dy = 1, -1, -1 do
-				local ground = {x = check_x, y = pos.y + dy, z = check_z}
-				local above = {x = check_x, y = pos.y + dy + 1, z = check_z}
-				local gnode = minetest.get_node(ground).name
-				local anode = minetest.get_node(above).name
-				if anode == "air" and gnode ~= "air" and gnode ~= "ignore" then
+		for dy = 1, -1, -1 do
+			local ground = {x = pos.x, y = pos.y + dy, z = pos.z}
+			local above = {x = pos.x, y = pos.y + dy + 1, z = pos.z}
+			local gnode = minetest.get_node(ground).name
+			local anode = minetest.get_node(above).name
+			if anode == "air" and gnode ~= "air" and gnode ~= "ignore" then
+				if minetest.get_item_group(gnode, "liquid") == 0 then
 					if not minetest.is_protected(above, player_name) then
 						minetest.set_node(above, {name = "lightning:dying_flame"})
 					end
-					break
 				end
+				break
 			end
 		end
 	end
@@ -250,8 +242,6 @@ gadgets.register_gadget({
 	description = "Tome of Thunder",
 	texture = "gadgets_tweaks_tome_thunder.png",
 	mana_per_use = 150,
-	use_sound = "gadgets_magic_spell_cast",
-	use_sound_gain = 1.0,
 
 	custom_wear = true,
 	custom_on_use = function(itemstack, user, pointed_thing)
@@ -266,8 +256,8 @@ gadgets.register_gadget({
 
 		local target_pos = nil
 
-		-- Raycast targeting
-		local ray = minetest.raycast(eye_pos, end_pos, true, false)
+		-- Raycast targeting (objects = true, liquids = true)
+		local ray = minetest.raycast(eye_pos, end_pos, true, true)
 		for hit in ray do
 			if hit.type == "object" and hit.ref ~= user then
 				local obj_pos = hit.ref:get_pos()
