@@ -11,18 +11,74 @@ local function summon_lightning_strike(pos, user)
 		return false
 	end
 
-	-- Check for open sky above (at least 30 nodes line of sight)
-	local sky_target = {x = pos.x, y = pos.y + 35, z = pos.z}
-	local has_sky_clearance = minetest.line_of_sight(
-		{x = pos.x, y = pos.y + 1, z = pos.z},
-		sky_target,
-		1
-	)
-	if not has_sky_clearance then
+	-- Scan vertical column above target for obstructions
+	-- Ignores soft foliage/permeable nodes (leaves, flora, liquids, non-walkable)
+	-- If exactly 1 solid block is in the path (e.g. thin roof), the lightning breaks through it.
+	-- If 2 or more solid blocks obstruct, the strike is blocked.
+	local obstructing_blocks = {}
+	for dy = 1, 35 do
+		local check_pos = {x = pos.x, y = pos.y + dy, z = pos.z}
+		local node = minetest.get_node(check_pos)
+		local node_name = node.name
+		if node_name ~= "air" and node_name ~= "ignore" then
+			local def = minetest.registered_nodes[node_name]
+			local is_permeable = false
+			if def then
+				if not def.walkable then
+					is_permeable = true
+				elseif minetest.get_item_group(node_name, "leaves") > 0
+					or minetest.get_item_group(node_name, "flora") > 0
+					or minetest.get_item_group(node_name, "plant") > 0
+					or minetest.get_item_group(node_name, "liquid") > 0 then
+					is_permeable = true
+				end
+			end
+
+			if not is_permeable then
+				table.insert(obstructing_blocks, check_pos)
+				if #obstructing_blocks > 1 then
+					break
+				end
+			end
+		end
+	end
+
+	if #obstructing_blocks > 1 then
 		if player_name ~= "" then
 			minetest.chat_send_player(player_name, "The lightning strike cannot penetrate solid cover above.")
 		end
 		return false
+	elseif #obstructing_blocks == 1 then
+		local roof_pos = obstructing_blocks[1]
+		if minetest.is_protected(roof_pos, player_name) then
+			if player_name ~= "" then
+				minetest.record_protection_violation(roof_pos, player_name)
+				minetest.chat_send_player(player_name, "The lightning strike is blocked by protected cover above.")
+			end
+			return false
+		end
+		-- Break through the single thin roof block
+		local broken_node = minetest.get_node(roof_pos)
+		minetest.dig_node(roof_pos)
+		if minetest.registered_nodes[broken_node.name] then
+			local tiles = minetest.registered_nodes[broken_node.name].tiles
+			local tile = tiles and tiles[1] or "tnt_smoke.png"
+			minetest.add_particlespawner({
+				amount = 20,
+				time = 0.1,
+				minpos = {x = roof_pos.x - 0.4, y = roof_pos.y - 0.4, z = roof_pos.z - 0.4},
+				maxpos = {x = roof_pos.x + 0.4, y = roof_pos.y + 0.4, z = roof_pos.z + 0.4},
+				minvel = {x = -3, y = 1, z = -3},
+				maxvel = {x = 3, y = 4, z = 3},
+				minacc = {x = 0, y = -9.81, z = 0},
+				maxacc = {x = 0, y = -9.81, z = 0},
+				minexptime = 0.4,
+				maxexptime = 0.8,
+				minsize = 1,
+				maxsize = 3,
+				texture = tile,
+			})
+		end
 	end
 
 	local lightning_size = 110
@@ -122,18 +178,38 @@ local function summon_lightning_strike(pos, user)
 					damage_groups = {fleshy = damage},
 				}, nil)
 
-				-- Radial knockback with vertical pop
-				local dir = vector.direction(pos, obj_pos)
-				dir.y = 0.5
-				dir = vector.normalize(dir)
-				local push_speed = math.floor(12 * (1 - (dist / (blast_radius + 1))))
-				if push_speed < 4 then push_speed = 4 end
+				-- Radial knockback with low vertical stagger
+				local dx = obj_pos.x - pos.x
+				local dz = obj_pos.z - pos.z
+				local h_dist = math.sqrt(dx * dx + dz * dz)
+
+				local dir_x, dir_z
+				if h_dist < 0.1 then
+					local angle = math.random() * 2 * math.pi
+					dir_x = math.cos(angle)
+					dir_z = math.sin(angle)
+				else
+					dir_x = dx / h_dist
+					dir_z = dz / h_dist
+				end
+
+				local push_speed = math.floor(10 * (1 - (dist / (blast_radius + 1))))
+				if push_speed < 3 then push_speed = 3 end
+
+				-- Low vertical hop (1.5 - 2.0 nodes), heavy horizontal push
+				local vel_x = dir_x * push_speed
+				local vel_z = dir_z * push_speed
+				local vel_y = 2.0
 
 				if obj.add_velocity then
-					obj:add_velocity(vector.multiply(dir, push_speed))
+					obj:add_velocity({x = vel_x, y = vel_y, z = vel_z})
 				elseif obj.set_velocity then
 					local cur_vel = obj:get_velocity() or {x = 0, y = 0, z = 0}
-					obj:set_velocity(vector.add(cur_vel, vector.multiply(dir, push_speed)))
+					obj:set_velocity({
+						x = cur_vel.x + vel_x,
+						y = math.max(cur_vel.y, vel_y),
+						z = cur_vel.z + vel_z,
+					})
 				end
 			end
 		end
