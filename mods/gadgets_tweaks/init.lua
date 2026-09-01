@@ -61,3 +61,6 @@ minetest.register_on_mods_loaded(function()
         end
     end
 end)
+
+local modpath = minetest.get_modpath("gadgets_tweaks")
+dofile(modpath .. "/lightning_item.lua")

@@ -23,7 +23,7 @@ Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foun
 - `evergrowth.sh` - Management and deployment script for quick deployment, launching, and map rendering.
 - `menu/` - Main menu assets and configuration.
 - `research/` - Prototyping and reference designs for game sub-systems.
-- `utils/` - Maintenance tools, texture generators (`generate_human_texture.py`, `generate_automaton_texture.py`, `recolor.py`), mod updater (`sync_external_mods.sh`), texture optimizer (`optimize_textures.sh`), and automated test harness (`utils/test/run.sh`).
+- `utils/` - Maintenance tools, texture generators (`generate_human_texture.py`, `generate_automaton_texture.py`, `recolor.py`), mod upstream inspector/updater (`update_external_mods.sh`), texture optimizer (`optimize_textures.sh`), and automated test harness (`utils/test/run.sh`).
 
 ## Integrated Community Mods
 
@@ -38,7 +38,7 @@ The complete list of these integrated community dependencies is documented in [e
 
 ## Management CLI (`evergrowth.sh`)
 
-The included `evergrowth.sh` helper script streamlines common development and playing tasks:
+The included `evergrowth.sh` helper script streamlines common development, playing, and mod inspection tasks:
 
 ```bash
 # Deploy a Git ref (branch or tag) to the local Luanti game directory (default: dev)
@@ -49,6 +49,18 @@ The included `evergrowth.sh` helper script streamlines common development and pl
 
 # Render a 2D map of a world using minetestmapper (default output: ~/Desktop)
 ./evergrowth.sh map [WORLD] [OUTPUT_PATH]
+
+# List all tracked external community mods and divergence status
+./evergrowth.sh mod list
+
+# Inspect high-level feature change summary (commits & file stats) against upstream
+./evergrowth.sh mod diff <mod_name>
+
+# Inspect full line-by-line diff against upstream
+./evergrowth.sh mod diff <mod_name> --detailed
+
+# Sync a non-diverged external mod from upstream HEAD
+./evergrowth.sh mod sync <mod_name>
 ```
 
 ## Installation & Setup
