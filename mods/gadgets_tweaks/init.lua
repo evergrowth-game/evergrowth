@@ -63,4 +63,6 @@ minetest.register_on_mods_loaded(function()
 end)
 
 local modpath = minetest.get_modpath("gadgets_tweaks")
-dofile(modpath .. "/lightning_item.lua")
+if minetest.get_modpath("lightning") and minetest.get_modpath("magic_materials") then
+    dofile(modpath .. "/lightning_item.lua")
+end
