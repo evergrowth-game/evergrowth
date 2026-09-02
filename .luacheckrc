@@ -31,5 +31,8 @@ files["mods/creative/init.lua"].globals = { "minetest" }
 -- Overwrites minetest.calculate_knockback
 files["mods/player_api/api.lua"].globals = { "minetest" }
 
+-- Overwrites minetest.request_shutdown
+files["mods/default_tweaks/init.lua"].globals = { "minetest" }
+
 -- Don't report on legacy definitions of globals.
 files["mods/default/legacy.lua"].global = false
