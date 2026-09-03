@@ -69,6 +69,8 @@ if ENABLE_LARGE then
 		view_range = 10,
 		water_damage = 0,
 		lava_damage = 10,
+		fire_damage = 5,
+		air_damage = 0.25,
 		light_damage = 0,
 		animation = {
 			speed_normal = 24, speed_run = 24,
@@ -117,6 +119,8 @@ if ENABLE_MEDIUM then
 		view_range = 10,
 		water_damage = 0,
 		lava_damage = 10,
+		fire_damage = 5,
+		air_damage = 0.25,
 		light_damage = 0,
 		animation = {
 			speed_normal = 24, speed_run = 24,
@@ -164,6 +168,8 @@ if ENABLE_SMALL then
 		view_range = 10,
 		water_damage = 0,
 		lava_damage = 10,
+		fire_damage = 5,
+		air_damage = 0.25,
 		light_damage = 0,
 		animation = {
 			speed_normal = 24, speed_run = 24,

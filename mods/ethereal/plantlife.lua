@@ -7,6 +7,8 @@ minetest.register_node("ethereal:magical_grass", {
 	description = S("Magical Grass"),
 	drawtype = "plantlike",
 	waving = 1,
+	paramtype2 ="meshoptions",
+place_param2 = 3,
 	tiles = {"ethereal_magical_grass.png"},
 	inventory_image = "ethereal_magical_grass.png",
 	wield_image = "ethereal_magical_grass.png",

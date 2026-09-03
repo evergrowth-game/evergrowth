@@ -44,5 +44,6 @@ lucky_block:add_blocks({
 		{name = "wine:bottle_sparkling_carrot_juice", max = 1},
 		{name = "wine:bottle_sparkling_blackberry_juice", max = 1},
 		{name = "wine:blue_agave", max = 4}
-	}}
+	}},
+	{"dro", {"wine:glass_lambanog"}, 5},
 })

@@ -37,7 +37,7 @@ if minetest.registered_nodes["dg_mapgen:stone"] then
     automobiles_lib.extra_drift = true
 end
 
-local load_noob_mode = minetest.settings:get_bool("noob_mode", false) -- or storage:get_int("noob_mode")
+local load_noob_mode = core.settings:get_bool("noob_mode", false) -- or storage:get_int("noob_mode")
 automobiles_lib.noob_mode = false
 automobiles_lib.extra_stepheight = 0
 -- 1 == true ---- 2 == false
@@ -45,6 +45,10 @@ if load_noob_mode == true then
     automobiles_lib.load_noob_mode = true
     automobiles_lib.extra_stepheight = 1
 end
+
+local new_speed_limit = core.settings:get("speed_limit")
+automobiles_lib.speed_limit = tonumber(new_speed_limit) or 500
+automobiles_lib.speed_limit = math.floor(automobiles_lib.speed_limit)
 
 local motorcycle_anim_mode = minetest.settings:get_bool("motorcycle_anim_mode", true)
 automobiles_lib.mot_anim_mode = true
@@ -70,6 +74,11 @@ automobiles_lib.colors ={
     violet='#a437ff',
     white='#FFFFFF',
     yellow='#ffe400',
+    -- NEW: Mineclonia colors that were missing (thanks PsyMops)
+    light_blue = "#258ec9",    -- Light blue dye
+    lime = "#60ac19",          -- Lime dye (bright green)
+    purple = "#6821a0",        -- Purple dye (similar to violet)
+    silver = "#818177",        -- Silver/light grey dye
 }
 
 local eye_height_plus_value = 6.5
@@ -149,7 +158,7 @@ function automobiles_lib.detect_player_api(player)
         local models = player_api.registered_models
         local character = models[player_proterties.mesh]
         --core.chat_send_all(dump(character));
-        if character then
+        if character and character.animations and character.animations.sit then
             if character.animations.sit.eye_height then
                 --core.chat_send_all(dump(character.animations.sit.eye_height));
                 if character.animations.sit.eye_height == 0.8 then
@@ -164,6 +173,8 @@ function automobiles_lib.detect_player_api(player)
                 return 0
             end
         end
+    elseif core.get_modpath("mcl_player") then
+        return 1
     end
 
     return 0
@@ -218,7 +229,7 @@ function automobiles_lib.attach_driver(self, player)
     if automobiles_lib.is_minetest then
         player_api.player_attached[name] = true
         player_api.set_animation(player, "sit")
-    elseif airutils.is_mcl then
+    elseif automobiles_lib.is_mcl then
 		mcl_player.player_attached[name] = true
         mcl_player.player_set_animation(player, "sit" , 30)
         automobiles_lib.sit(player)
@@ -295,7 +306,7 @@ function automobiles_lib.attach_pax(self, player, onside)
         if automobiles_lib.is_minetest then
             player_api.player_attached[name] = true
             player_api.set_animation(player, "sit")
-        elseif airutils.is_mcl then
+        elseif automobiles_lib.is_mcl then
 		    mcl_player.player_attached[name] = true
             mcl_player.player_set_animation(player, "sit" , 30)
             automobiles_lib.sit(player)
@@ -334,7 +345,7 @@ function automobiles_lib.attach_pax(self, player, onside)
                 if automobiles_lib.is_minetest then
                     player_api.player_attached[name] = true
                     player_api.set_animation(player, "sit")
-                elseif airutils.is_mcl then
+                elseif automobiles_lib.is_mcl then
 		            mcl_player.player_attached[name] = true
                     mcl_player.player_set_animation(player, "sit" , 30)
                     automobiles_lib.sit(player)
@@ -664,7 +675,7 @@ function automobiles_lib.set_paint(self, puncher, itmstck)
     local is_admin = false
     is_admin = minetest.check_player_privs(puncher, {server=true})
     if not (self.owner == puncher:get_player_name() or is_admin == true) then
-        return
+        return false
     end
 
     local item_name = ""
@@ -681,13 +692,14 @@ function automobiles_lib.set_paint(self, puncher, itmstck)
         local split = string.split(item_name, ":")
         local color, indx, _
         if split[1] then _,indx = split[1]:find('dye') end
+        --minetest.chat_send_all("item " .. dump(item_name))
         if indx then
             --[[for clr,_ in pairs(automobiles_lib.colors) do
                 local _,x = split[2]:find(clr)
                 if x then color = clr end
             end]]--
             --lets paint!!!!
-	        local color = (item_name:sub(indx+1)):gsub(":", "")
+	        local color = split[2] --(item_name:sub(indx+1)):gsub(":", "")
 	        local colstr = automobiles_lib.colors[color]
             --minetest.chat_send_all(color ..' '.. dump(colstr))
 	        if colstr then

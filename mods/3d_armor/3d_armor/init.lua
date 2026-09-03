@@ -76,17 +76,6 @@ end
 local t_set_elements = armor.config.set_elements
 armor.config.set_elements = string.split(t_set_elements, " ")
 
--- Remove torch damage if fire_protect_torch == false
-if armor.config.fire_protect_torch == false and armor.config.fire_protect == true then
-	for k,v in pairs(armor.fire_nodes) do
-		for k2,v2 in pairs(v) do
-			if string.find (v2,"torch") then
-				armor.fire_nodes[k] = nil
-			end
-		end
-	end
-end
-
 -- Mod Compatibility
 
 if minetest.get_modpath("technic") then
@@ -117,12 +106,18 @@ armor.formspec = armor.formspec..
 if armor.config.fire_protect then
 	armor.formspec = armor.formspec.."label[5,2;"..F(S("Fire"))..": armor_attr_fire]"
 end
+local players_warned = {}
 armor:register_on_damage(function(player, index, stack)
 	local name = player:get_player_name()
 	local def = stack:get_definition()
 	if name and def and def.description and stack:get_wear() > 60100 then
-		minetest.chat_send_player(name, S("Your @1 is almost broken!", def.description))
-		minetest.sound_play("default_tool_breaks", {to_player = name, gain = 2.0})
+		local tname = name .. " " .. stack:get_name()
+		if not players_warned[tname] then
+			players_warned[tname] = true
+			minetest.chat_send_player(name, S("Your @1 is almost broken!", def.description))
+			core.after(8, function() players_warned[tname] = nil end)
+		end
+		minetest.sound_play("default_tool_breaks", {to_player = name, gain = 2.0}, true)
 	end
 end)
 armor:register_on_destroy(function(player, index, stack)
@@ -483,9 +478,9 @@ minetest.register_globalstep(function(dtime)
 	end
 end)
 
-if armor.config.fire_protect == true then
+if armor.config.fire_protect then
 
-	if core.get_modpath("default") then
+	if core.get_modpath("default") and armor.config.fire_protect_torch then
 		-- make torches hurt
 		minetest.override_item("default:torch", {damage_per_second = 1})
 		minetest.override_item("default:torch_wall", {damage_per_second = 1})
@@ -497,14 +492,11 @@ if armor.config.fire_protect == true then
 
 		if reason.type == "node_damage" and reason.node then
 			-- fire protection
-			if armor.config.fire_protect == true and hp_change < 0 then
+			if armor.config.fire_protect and hp_change < 0 then
 				local name = player:get_player_name()
-				for _,igniter in pairs(armor.fire_nodes) do
-					if reason.node == igniter[1] then
-						if armor.def[name].fire >= igniter[2] then
-							hp_change = 0
-						end
-					end
+				local fire_prot = armor.fire_nodes[reason.node]
+				if fire_prot and armor.def[name].fire >= fire_prot then
+					hp_change = 0
 				end
 			end
 		end

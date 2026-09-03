@@ -194,11 +194,13 @@ core.register_abm({
 
 if core.settings:get_bool("farming_disable_weeds") ~= true then
 
+	local chance = tonumber(core.settings:get("farming_weeds_chance") or 70)
+
 	core.register_abm({
 		nodenames = {"group:field"},
 		neighbors = {"air"},
 		interval = 50,
-		chance = 70,
+		chance = chance,
 		catch_up = false,
 
 		action = function(pos, node)
@@ -209,7 +211,7 @@ if core.settings:get_bool("farming_disable_weeds") ~= true then
 
 			pos.y = pos.y + 1
 
-			if core.get_node(pos).name == "air" then
+			if get_node(pos).name == "air" then
 				core.set_node(pos, {name = "farming:weed", param2 = 10})
 			end
 		end

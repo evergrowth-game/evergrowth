@@ -120,6 +120,9 @@ Textures by BlueTangs Rock (CC BY-SA 3.0):
   ethereal_calamari_cooked.png
   ethereal_garlic_butter_shrimp.png
 
+Texture by Sara Mohnori (CC0)
+  ethereal_fish_starfish.png
+
 Texture by Sirrobzeroone (CC0)
   ethereal_fish_seahorse*.png
   ethereal_fish_coy.png
@@ -228,3 +231,5 @@ Sounds by eZZin (CC0) https://freesound.org/people/eZZin/sounds/667122/
 
 Sound by Kostrava (CC0) https://freesound.org/people/Kostrava/sounds/333988/
   ethereal_crystal.ogg
+
+screenshot.jpg created using https://www.textstudio.com/

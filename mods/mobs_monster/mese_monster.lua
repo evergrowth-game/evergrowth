@@ -140,6 +140,9 @@ mobs:register_mob("mobs_monster:mese_monster", {
 	visual_size = {x = 10, y = 10},  -- Got scale wrong in blender by factor of 10 - S01
 	passive = false,
 	attack_type = "dogshoot",
+	dogshoot_switch = 1,
+	dogshoot_count_max = 5, -- shoot for 5 seconds
+	dogshoot_count2_max = 5, -- dogfight for 5 seconds
 	damage = 4,
 	reach = 4,
 	shoot_interval = 0.5,

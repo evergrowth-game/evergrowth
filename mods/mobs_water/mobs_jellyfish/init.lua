@@ -27,9 +27,11 @@ mobs:register_mob("mobs_jellyfish:jellyfish", {
 	fly_in = (mod_mcl and "mcl_core:water_source" or "default:water_source"),
 	stepheight = 0,
 	fall_speed = 0,
-	view_range = 10,
+	view_range = 8,
 	water_damage = 0,
 	lava_damage = 5,
+	fire_damage = 4,
+	air_damage = 0.25,
 	light_damage = 0,
 
 	on_rightclick = function(self, clicker)

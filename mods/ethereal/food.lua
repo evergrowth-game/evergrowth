@@ -196,6 +196,8 @@ core.register_craft({
 })
 
 -- Golden Apple
+local mod_stamina = core.get_modpath("stamina")
+		and stamina and stamina.mod and stamina.mod == "redo"
 
 core.register_node("ethereal:golden_apple", {
 	description = S("Golden Apple"),
@@ -218,9 +220,13 @@ core.register_node("ethereal:golden_apple", {
 
 		if user and pointed_thing and pointed_thing.type ~= "object" then
 
-			user:set_hp(20)
+			local result = core.do_item_eat(2, nil, itemstack, user, pointed_thing)
 
-			return core.do_item_eat(2, nil, itemstack, user, pointed_thing)
+			if (result and mod_stamina) or not mod_stamina then
+				user:set_hp(20)
+			end
+
+			return result
 		end
 	end
 })
@@ -685,7 +691,7 @@ core.register_craft({
 
 -- cooked fish
 
-core.register_craftitem(":ethereal:fish_cooked", {
+core.register_craftitem("ethereal:fish_cooked", {
 	description = S("Cooked Fish"),
 	inventory_image = "ethereal_fish_cooked.png",
 	wield_image = "ethereal_fish_cooked.png",

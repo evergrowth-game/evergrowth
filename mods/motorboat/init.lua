@@ -5,7 +5,7 @@ local LONGIT_DRAG_FACTOR = 0.13*0.13
 local LATER_DRAG_FACTOR = 2.0
 
 motorboat={}
-motorboat.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
+motorboat.gravity = tonumber(core.settings:get("movement_gravity")) or 9.8
 motorboat.fuel = {['biofuel:biofuel'] = 1,['biofuel:bottle_fuel'] = 1,
                 ['biofuel:phial_fuel'] = 0.25, ['biofuel:fuel_can'] = 10,
                 ['airutils:biofuel'] = 1,}
@@ -28,19 +28,24 @@ motorboat.colors ={
     yellow='#ffe400',
 }
 
-dofile(minetest.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_control.lua")
-dofile(minetest.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_fuel_management.lua")
-dofile(minetest.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_custom_physics.lua")
+dofile(core.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_control.lua")
+dofile(core.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_fuel_management.lua")
+dofile(core.get_modpath("motorboat") .. DIR_DELIM .. "motorboat_custom_physics.lua")
 
 --is minetest
 local splash_texture = "motorboat_splash2.png"
---[[if minetest.get_modpath("mtg_craftguide") then
+--[[if core.get_modpath("mtg_craftguide") then
     splash_texture = "default_water.png^[resize:6x6^[mask:motorboat_splash.png"
 end]]--
 
 motorboat.use_particles = false
-if minetest.settings:get_bool('motorboat_enable_particles', false) then
+if core.settings:get_bool('motorboat_enable_particles', false) then
     motorboat.use_particles = true
+end
+
+motorboat.has_3darmor = false
+if core.get_modpath("3d_armor") then
+    motorboat.has_3darmor = true
 end
 
 --
@@ -80,29 +85,33 @@ function motorboat.detect_player_api(player)
         local models = player_api.registered_models
         local character = models[mesh]
         if character then
-            if character.animations.sit.eye_height then
+            if character.animations.sit.eye_height or motorboat.has_3darmor then
+                --core.chat_send_all("new")
                 return 1
             else
+                --core.chat_send_all("old")
                 return 0
             end
         end
     end
-
+    
+    if motorboat.has_3darmor then return 1 end
+    
     return 0
 end
 
 function motorboat.engine_set_sound_and_animation(self)
-    --minetest.chat_send_all('test1 ' .. dump(self._engine_running) )
+    --core.chat_send_all('test1 ' .. dump(self._engine_running) )
     if self._engine_running then
         if self._last_applied_power ~= self._power_lever then
-            --minetest.chat_send_all('test2')
+            --core.chat_send_all('test2')
             self._last_applied_power = self._power_lever
             motorboat.engineSoundPlay(self)
         end
     else
         if self._power_lever > 0 then self._power_lever = 0 end
         if self.sound_handle then
-            minetest.sound_stop(self.sound_handle)
+            core.sound_stop(self.sound_handle)
             self.sound_handle = nil
         end
     end
@@ -110,9 +119,9 @@ end
 
 function motorboat.engineSoundPlay(self)
     --sound
-    if self.sound_handle then minetest.sound_stop(self.sound_handle) end
+    if self.sound_handle then core.sound_stop(self.sound_handle) end
     if self.object then
-        self.sound_handle = minetest.sound_play({name = "motorboat_engine"},
+        self.sound_handle = core.sound_play({name = "motorboat_engine"},
             {object = self.object, gain = 1.0,
                 pitch = 0.5 + ((self._power_lever/100)/2),
                 max_hear_distance = 32,
@@ -134,8 +143,8 @@ function motorboat.attach(self, player)
     player:set_eye_offset({x = 0, y = eye_y, z = 1}, {x = 0, y = -4, z = -30})
     player_api.player_attached[name] = true
     -- make the driver sit
-    minetest.after(0.2, function()
-        player = minetest.get_player_by_name(name)
+    core.after(0.2, function()
+        player = core.get_player_by_name(name)
         if player then
 	        player_api.set_animation(player, "sit")
         end
@@ -155,7 +164,7 @@ function motorboat.dettach(self, player)
     self._engine_running = false
 	-- sound and animation
     if self.sound_handle then
-        minetest.sound_stop(self.sound_handle)
+        core.sound_stop(self.sound_handle)
         self.sound_handle = nil
     end
 	
@@ -169,7 +178,7 @@ function motorboat.dettach(self, player)
     self.object:set_acceleration(vector.multiply(motorboat.vector_up, -motorboat.gravity))
 
     -- move player up
-    minetest.after(0.1, function(pos)
+    core.after(0.1, function(pos)
         pos.y = pos.y + 2
         player:set_pos(pos)
     end, player:get_pos())
@@ -188,8 +197,8 @@ function motorboat.attach_pax(self, player)
     player:set_eye_offset({x = 0, y = eye_y, z = 1}, {x = 0, y = eye_y, z = -30})
     player_api.player_attached[name] = true
     -- make the driver sit
-    minetest.after(0.2, function()
-        player = minetest.get_player_by_name(name)
+    core.after(0.2, function()
+        player = core.get_player_by_name(name)
         if player then
             player_api.set_animation(player, "sit")
         end
@@ -230,7 +239,7 @@ end
 -- destroy the boat
 function motorboat.destroy(self, puncher)
     if self.sound_handle then
-        minetest.sound_stop(self.sound_handle)
+        core.sound_stop(self.sound_handle)
         self.sound_handle = nil
     end
 
@@ -265,30 +274,30 @@ function motorboat.destroy(self, puncher)
             if inv:room_for_item("main", stack) then
                 inv:add_item("main", stack)
             else
-                minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
+                core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
             end
         end
     else
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
+        core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
     end
 
     self.object:remove()
 
     --[[pos.y=pos.y+2
     for i=1,7 do
-	    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:steel_ingot')
+	    core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:steel_ingot')
     end
 
     for i=1,7 do
-	    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:mese_crystal')
+	    core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:mese_crystal')
     end
 
-    --minetest.add_item({x=pos.x+random()-0.5,y=pos.y,z=pos.z+random()-0.5},'motorboat:boat')
-    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:diamond')]]--
+    --core.add_item({x=pos.x+random()-0.5,y=pos.y,z=pos.z+random()-0.5},'motorboat:boat')
+    core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:diamond')]]--
 
     --[[local total_biofuel = math.floor(self._energy) - 1
     for i=0,total_biofuel do
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'biofuel:biofuel')
+        core.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'biofuel:biofuel')
     end]]--
 end
 
@@ -307,7 +316,7 @@ end
 local function water_particle(pos, vel)
     if splash_texture == "" then return end
 
-	minetest.add_particle({
+	core.add_particle({
 		pos = pos,
 		velocity = vel, --{x = 0, y = 0, z = 0},
 		acceleration = {x = 0, y = 0, z = 0},
@@ -347,7 +356,7 @@ end
 --
 -- entity
 --
-minetest.register_entity('motorboat:seat_base',{
+core.register_entity('motorboat:seat_base',{
 initial_properties = {
 	physical = false,
 	collide_with_objects=false,
@@ -358,18 +367,18 @@ initial_properties = {
 	},
 	
     on_activate = function(self,std)
-	    self.sdata = minetest.deserialize(std) or {}
+	    self.sdata = core.deserialize(std) or {}
 	    if self.sdata.remove then self.object:remove() end
     end,
 	    
     get_staticdata=function(self)
       self.sdata.remove=true
-      return minetest.serialize(self.sdata)
+      return core.serialize(self.sdata)
     end,
 	
 })
 
-minetest.register_entity('motorboat:engine',{
+core.register_entity('motorboat:engine',{
 initial_properties = {
 	physical = false,
 	collide_with_objects=false,
@@ -381,18 +390,18 @@ initial_properties = {
 	},
 	
     on_activate = function(self,std)
-	    self.sdata = minetest.deserialize(std) or {}
+	    self.sdata = core.deserialize(std) or {}
 	    if self.sdata.remove then self.object:remove() end
     end,
 	    
     get_staticdata=function(self)
       self.sdata.remove=true
-      return minetest.serialize(self.sdata)
+      return core.serialize(self.sdata)
     end,
 	
 })
 
-minetest.register_entity("motorboat:boat", {
+core.register_entity("motorboat:boat", {
 	initial_properties = {
 	    physical = true,
 	    collisionbox = {-0.6, -0.6, -0.6, 0.6, 1.2, 0.6}, --{-1,0,-1, 1,0.3,1},
@@ -426,7 +435,7 @@ minetest.register_entity("motorboat:boat", {
     --water_drag = 0,
 
     get_staticdata = function(self) -- unloaded/unloads ... is now saved
-        return minetest.serialize({
+        return core.serialize({
             stored_energy = self._energy,
             stored_owner = self.owner,
             stored_hp = self.hp,
@@ -438,14 +447,14 @@ minetest.register_entity("motorboat:boat", {
 
 	on_activate = function(self, staticdata, dtime_s)
         if staticdata ~= "" and staticdata ~= nil then
-            local data = minetest.deserialize(staticdata) or {}
+            local data = core.deserialize(staticdata) or {}
             self._energy = data.stored_energy
             self.owner = data.stored_owner
             self.hp = data.stored_hp
             self.color = data.stored_color
             self.anchored = data.stored_anchor
             self.driver_name = data.stored_driver_name
-            --minetest.debug("loaded: ", self._energy)
+            --core.debug("loaded: ", self._energy)
             local properties = self.object:get_properties()
             properties.infotext = data.stored_owner .. " nice motorboat"
             self.object:set_properties(properties)
@@ -454,22 +463,22 @@ minetest.register_entity("motorboat:boat", {
         motorboat.paint(self, self.color)
         local pos = self.object:get_pos()
 
-	    local engine=minetest.add_entity(pos,'motorboat:engine')
+	    local engine=core.add_entity(pos,'motorboat:engine')
 	    engine:set_attach(self.object,'',{x=0,y=6,z=-21},{x=0,y=0,z=0})
 		-- set the animation once and later only change the speed
         engine:set_animation({x = 1, y = 8}, 0, 0, true)
 	    self.engine = engine
 
-	    local pointer=minetest.add_entity(pos,'motorboat:pointer')
+	    local pointer=core.add_entity(pos,'motorboat:pointer')
         local energy_indicator_angle = motorboat.get_pointer_angle(self._energy)
 	    pointer:set_attach(self.object,'', MOTORBOAT_GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
 	    self.pointer = pointer
 
-        local pilot_seat_base=minetest.add_entity(pos,'motorboat:seat_base')
+        local pilot_seat_base=core.add_entity(pos,'motorboat:seat_base')
         pilot_seat_base:set_attach(self.object,'',{x=-4.2,y=3.8,z=-6},{x=0,y=0,z=0})
 	    self.pilot_seat_base = pilot_seat_base
 
-        local passenger_seat_base=minetest.add_entity(pos,'motorboat:seat_base')
+        local passenger_seat_base=core.add_entity(pos,'motorboat:seat_base')
         passenger_seat_base:set_attach(self.object,'',{x=4.2,y=3.8,z=-6},{x=0,y=0,z=0})
 	    self.passenger_seat_base = passenger_seat_base
 
@@ -490,7 +499,7 @@ minetest.register_entity("motorboat:boat", {
         local newpitch = pitch
 		local roll = rotation.z
 
-        local hull_direction = minetest.yaw_to_dir(yaw)
+        local hull_direction = core.yaw_to_dir(yaw)
         local nhdir = {x=hull_direction.z,y=0,z=-hull_direction.x}		-- lateral unit vector
         local velocity = self.object:get_velocity()
         self.object:set_velocity(velocity)
@@ -508,7 +517,7 @@ minetest.register_entity("motorboat:boat", {
 
         local is_attached = false
         if self.owner then
-            local player = minetest.get_player_by_name(self.owner)
+            local player = core.get_player_by_name(self.owner)
             
             if player then
                 local player_attach = player:get_attach()
@@ -523,7 +532,7 @@ minetest.register_entity("motorboat:boat", {
             if impact > 1 then
                 --self.damage = self.damage + impact --sum the impact value directly to damage meter
                 curr_pos = self.object:get_pos()
-                minetest.sound_play("motorboat_collision", {
+                core.sound_play("motorboat_collision", {
                     --to_player = self.driver_name,
 	                pos = curr_pos,
 	                max_hear_distance = 8,
@@ -544,7 +553,7 @@ minetest.register_entity("motorboat:boat", {
             local can_stop = true
             if self.owner and self.driver_name then
                 -- attach the driver again
-                local player = minetest.get_player_by_name(self.owner)
+                local player = core.get_player_by_name(self.owner)
                 if player then
                     motorboat.attach(self, player)
                     can_stop = false
@@ -554,7 +563,7 @@ minetest.register_entity("motorboat:boat", {
             if can_stop then
                 --detach player
                 if self.sound_handle ~= nil then
-	                minetest.sound_stop(self.sound_handle)
+	                core.sound_stop(self.sound_handle)
 	                self.sound_handle = nil
                 end
             end
@@ -581,13 +590,13 @@ minetest.register_entity("motorboat:boat", {
                 self.pointer:set_attach(self.object,'',MOTORBOAT_GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
             else
                 --in case it have lost the entity by some conflict
-                self.pointer=minetest.add_entity({x=0,y=5.52451,z=5.89734},'motorboat:pointer')
+                self.pointer=core.add_entity({x=0,y=5.52451,z=5.89734},'motorboat:pointer')
                 self.pointer:set_attach(self.object,'',MOTORBOAT_GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
             end
         end
         if self._energy <= 0 and self._engine_running then
             self._engine_running = false
-            if self.sound_handle then minetest.sound_stop(self.sound_handle) end
+            if self.sound_handle then core.sound_stop(self.sound_handle) end
 		    self.engine:set_animation_frame_speed(0)
         end
         ----------------------------
@@ -595,12 +604,12 @@ minetest.register_entity("motorboat:boat", {
 
         --roll adjust
         ---------------------------------
-		local sdir = minetest.yaw_to_dir(newyaw)
+		local sdir = core.yaw_to_dir(newyaw)
 		local snormal = {x=sdir.z,y=0,z=-sdir.x}	-- rightside, dot is negative
 		local prsr = motorboat.dot(snormal,nhdir)
         local rollfactor = -10
         local newroll = (prsr*math.rad(rollfactor))*later_speed
-        --minetest.chat_send_all('newroll: '.. newroll)
+        --core.chat_send_all('newroll: '.. newroll)
         ---------------------------------
         -- end roll
 
@@ -615,7 +624,7 @@ minetest.register_entity("motorboat:boat", {
             if math.abs(bob) > 0.1 and self._last_water_touch >=self._last_rnd then
                 self._last_rnd = math.random(1, 3)
                 self._last_water_touch = 0
-                minetest.sound_play("default_water_footstep", {
+                core.sound_play("default_water_footstep", {
                     --to_player = self.driver_name,
                     object = self.object,
                     max_hear_distance = 15,
@@ -655,7 +664,7 @@ minetest.register_entity("motorboat:boat", {
 			return
 		end
         local is_admin = false
-        is_admin = minetest.check_player_privs(puncher, {server=true})
+        is_admin = core.check_player_privs(puncher, {server=true})
 		local name = puncher:get_player_name()
         if self.owner and self.owner ~= name and self.owner ~= "" then
             if is_admin == false then return end
@@ -677,7 +686,7 @@ minetest.register_entity("motorboat:boat", {
         if itmstck then item_name = itmstck:get_name() end
 
         if self._engine_running == false then
-            --minetest.chat_send_all('refuel')
+            --core.chat_send_all('refuel')
             --refuel
             motorboat.loadFuel(self, puncher:get_player_name())
         end
@@ -692,7 +701,7 @@ minetest.register_entity("motorboat:boat", {
                     --lets paint!!!!
 				    local color = item_name:sub(indx+1)
 				    local colstr = motorboat.colors[color]
-                    --minetest.chat_send_all(color ..' '.. dump(colstr))
+                    --core.chat_send_all(color ..' '.. dump(colstr))
 				    if colstr then
                         motorboat.paint(self, colstr)
 					    itmstck:set_count(itmstck:get_count()-1)
@@ -706,7 +715,7 @@ minetest.register_entity("motorboat:boat", {
 					    --mobkit.hurt(self,toolcaps.damage_groups.fleshy - 1)
 					    --mobkit.make_sound(self,'hit')
                         self.hp = self.hp - 10
-                        minetest.sound_play("motorboat_collision", {
+                        core.sound_play("motorboat_collision", {
 	                        object = self.object,
 	                        max_hear_distance = 5,
 	                        gain = 1.0,
@@ -741,7 +750,7 @@ minetest.register_entity("motorboat:boat", {
 			    -- driver clicked the object => driver gets off the vehicle
                 motorboat.dettach(self, clicker)
                 if self._passenger then
-                    local passenger = minetest.get_player_by_name(self._passenger)
+                    local passenger = core.get_player_by_name(self._passenger)
                     if passenger then
                         motorboat.dettach_pax(self, passenger)
                     end
@@ -776,19 +785,19 @@ minetest.register_entity("motorboat:boat", {
 --
 
 -- engine
-minetest.register_craftitem("motorboat:engine",{
+core.register_craftitem("motorboat:engine",{
 	description = "Boat engine",
 	inventory_image = "motorboat_engine_inv.png",
 })
 -- hull
-minetest.register_craftitem("motorboat:hull",{
+core.register_craftitem("motorboat:hull",{
 	description = "Hull of the boat",
 	inventory_image = "motorboat_hull_inv.png",
 })
 
 
 -- boat
-minetest.register_tool("motorboat:boat", {
+core.register_tool("motorboat:boat", {
 	description = "Motorboat",
 	inventory_image = "motorboat_inv.png",
     liquids_pointable = true,
@@ -803,11 +812,11 @@ minetest.register_tool("motorboat:boat", {
         local staticdata = stack_meta:get_string("staticdata")
 
         local pointed_pos = pointed_thing.under
-        local node_below = minetest.get_node(pointed_pos).name
-        local nodedef = minetest.registered_nodes[node_below]
+        local node_below = core.get_node(pointed_pos).name
+        local nodedef = core.registered_nodes[node_below]
         if nodedef.liquidtype ~= "none" then
 			pointed_pos.y=pointed_pos.y+0.2
-			local boat = minetest.add_entity(pointed_pos, "motorboat:boat", staticdata)
+			local boat = core.add_entity(pointed_pos, "motorboat:boat", staticdata)
 			if boat and placer then
                 local ent = boat:get_luaentity()
                 local owner = placer:get_player_name()
@@ -830,8 +839,8 @@ minetest.register_tool("motorboat:boat", {
 -- crafting
 --
 
-if minetest.get_modpath("default") then
-	minetest.register_craft({
+if core.get_modpath("default") then
+	core.register_craft({
 		output = "motorboat:engine",
 		recipe = {
 			{"",                    "default:steel_ingot", ""},
@@ -839,7 +848,7 @@ if minetest.get_modpath("default") then
 			{"",                    "default:steel_ingot", "default:diamond"},
 		}
 	})
-	minetest.register_craft({
+	core.register_craft({
 		output = "motorboat:hull",
 		recipe = {
 			{"",                    "default:glass",       ""},
@@ -847,7 +856,7 @@ if minetest.get_modpath("default") then
 			{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
 		}
 	})
-	minetest.register_craft({
+	core.register_craft({
 		output = "motorboat:boat",
 		recipe = {
 			{"",                  ""},
@@ -859,13 +868,13 @@ end
 
 -- add chatcommand to eject from motorboat
 
-minetest.register_chatcommand("motorboat_eject", {
+core.register_chatcommand("motorboat_eject", {
 	params = "",
 	description = "Ejects from motorboat",
 	privs = {interact = true},
 	func = function(name, param)
         local colorstring = core.colorize('#ff0000', " >>> you are not inside your motorboat")
-        local player = minetest.get_player_by_name(name)
+        local player = core.get_player_by_name(name)
         local attached_to = player:get_attach()
 
 		if attached_to ~= nil then
@@ -875,11 +884,11 @@ minetest.register_chatcommand("motorboat_eject", {
                 if entity.driver_name == name and entity.name == "motorboat:boat" then
                     motorboat.dettach(entity, player)
                 else
-			        minetest.chat_send_player(name,colorstring)
+			        core.chat_send_player(name,colorstring)
                 end
             end
 		else
-			minetest.chat_send_player(name,colorstring)
+			core.chat_send_player(name,colorstring)
 		end
 	end
 })

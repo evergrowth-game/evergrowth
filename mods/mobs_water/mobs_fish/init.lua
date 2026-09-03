@@ -72,8 +72,9 @@ mobs:register_mob("mobs_fish:clownfish", {
 	fall_speed = 0,
 	view_range = 2,
 	water_damage = 0,
-	air_damage = 0,
+	air_damage = 0.25,
 	lava_damage = 5,
+	fire_damage = 5,
 	light_damage = 0,
 	animation = {
 		speed_normal = 24, speed_run = 24,
@@ -118,8 +119,9 @@ mobs:register_mob("mobs_fish:tropical", {
 	view_range = 8,
 	water_damage = 0,
 	lava_damage = 5,
+	fire_damage = 5,
 	light_damage = 0,
-	air_damage = 0,
+	air_damage = 0.25,
 	animation = {
 		speed_normal = 24, speed_run = 24,
 		stand_start = 1, stand_end = 80,

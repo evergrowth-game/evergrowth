@@ -104,13 +104,13 @@ do_stair(
 
 do_stair(
 	"Frost Wood", "frost_wood", "ethereal:frost_wood",
-	{choppy = 2, oddly_breakable_by_hand = 1, put_out_fire = 1},
+	{choppy = 2, oddly_breakable_by_hand = 1, puts_out_fire = 1},
 	{"ethereal_frost_wood.png"},
 	default.node_sound_wood_defaults())
 
 do_stair(
 	"Healing Wood", "yellow_wood", "ethereal:yellow_wood",
-	{choppy = 2, oddly_breakable_by_hand = 1, put_out_fire = 1},
+	{choppy = 2, oddly_breakable_by_hand = 1, puts_out_fire = 1},
 	{"ethereal_yellow_wood.png"},
 	default.node_sound_wood_defaults())
 
@@ -167,3 +167,9 @@ do_stair(
 	{choppy = 2, oddly_breakable_by_hand = 1, flammable = 2},
 	{"mcl_mangrove_planks.png"},
 	default.node_sound_wood_defaults())
+
+do_stair(
+	"Glostone", "glostone", "ethereal:glostone",
+	{cracky = 3},
+	{"ethereal_glostone.png"},
+	default.node_sound_stone_defaults())

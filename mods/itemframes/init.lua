@@ -238,6 +238,7 @@ local function return_item(pos, ntype, metadata, clicker, itemstack)
 	if remaining:is_empty() then
 
 		meta:set_string("item", "")
+		meta:set_string("infotext", S("Right-click to add or remove item"))
 
 		remove_item(pos, ntype)
 

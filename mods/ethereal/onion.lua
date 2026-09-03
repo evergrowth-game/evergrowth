@@ -11,7 +11,7 @@ core.register_craftitem("ethereal:wild_onion_plant", {
 	on_use = core.item_eat(2),
 
 	on_place = function(itemstack, placer, pointed_thing)
-		return farming.place_seed(itemstack, placer, pointed_thing, "ethereal:wild_onion_1")
+		return farming.place_seed(itemstack, placer, pointed_thing, "ethereal:onion_1")
 	end
 })
 

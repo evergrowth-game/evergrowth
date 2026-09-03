@@ -28,29 +28,23 @@ mobs_npc.drop_trade = function(self, player, item, item_list)
 
 	if item ~= w_inv:get_name() then return end
 
-	local name = player:get_player_name()
-
-	if not mobs.is_creative(name) then
+	if not mobs.is_creative(player:get_player_name()) then
 		w_inv:take_item()
 		player:set_wielded_item(w_inv)
 	end
 
-	local pos = self.object:get_pos()
-	local drops = item_list
-	local drop = drops[math.random(#drops)]
-	local chance = 1
+	local drop_item = item_list[math.random(#item_list)]
+	local drop, chance = drop_item, 1
 
-	if type(drop) == "table" then
-		chance = drop[2] or 1
-		drop = drop[1]
+	if type(drop_item) == "table" then
+		drop, chance = drop_item[1], drop_item[2] or 1
 	end
 
-	if not core.registered_items[drop]
-	or math.random(chance) > 1 then
+	if not core.registered_items[drop] or math.random(chance) > 1 then
 		drop = mcl and "mcl_core:clay_lump" or "default:clay_lump"
 	end
 
-	local obj = core.add_item(pos, {name = drop})
+	local obj = core.add_item(self.object:get_pos(), {name = drop})
 	local dir = player:get_look_dir()
 
 	obj:set_velocity({x = -dir.x, y = 1.5, z = -dir.z})
@@ -124,17 +118,9 @@ function mobs_npc.get_controls_formspec(name, self)
 
 	self.id = set_npc_id(self) -- make sure id is set
 
-	local currentordermode = self.order
 	local npcId = self.id
-	local orderArray = {"wander", "stand", "follow"}
-	local currentorderidx = 1
-
-	for i = 1, 3 do  --this seems like a clumsy way to do this
-		if orderArray[i] == currentordermode then
-			currentorderidx = i
-			break
-		end
-	end
+	local orderArray = {wander = 1, stand = 2, follow = 3}
+	local currentorderidx = orderArray[self.order] or 1
 
 	-- Make npc controls formspec
 	local text = "NPC Controls"
@@ -150,8 +136,6 @@ function mobs_npc.get_controls_formspec(name, self)
 		simple_dialogs.add_dialog_control_to_formspec(name, self, formspec, 0.375, 3.4)
 	end
 
-	table.concat(formspec, "")
-
 	--store npc id in local context so we can use it when the form is returned
 	context[name] = npcId
 
@@ -165,48 +149,40 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 	local pname = player:get_player_name()
 
 	if formname ~= "mobs_npc:controls" then
-
-		if context[pname] then context[pname] = nil end
-
-		return
+		context[pname] = nil ; return
 	end
 
-	local npcId = context[pname] or nil --get the npc id from local context
+	local npcId = context[pname] --get the npc id from local context
 	local npcself = get_npcself_from_id(npcId)
 
-	if npcself ~= nil then
+	if not npcself then return end
 
-		if fields["exit"] then
+	if fields["exit"] then
 
-			core.close_formspec(pname, "mobs_npc:controls")
+		core.close_formspec(pname, "mobs_npc:controls")
 
-		elseif fields["ordermode"] then
+	elseif fields["ordermode"] then
 
-			local pname = player:get_player_name()
+		local pname = player:get_player_name()
 
-			npcself.order = fields["ordermode"]
+		npcself.order = fields["ordermode"]
 
-			if npcself.order == "wander" then
+		if npcself.order == "wander" then
+--			core.chat_send_player(pname, S("NPC will wander."))
+		elseif npcself.order == "follow" then
+--			core.chat_send_player(pname, S("NPC will follow you."))
+		elseif npcself.order == "stand" then
+--			core.chat_send_player(pname, S("NPC stands still."))
 
---				core.chat_send_player(pname, S("NPC will wander."))
-
-			elseif npcself.order == "stand" then
-
-				npcself.state = "stand"
-				npcself.attack = nil
-				npcself:set_animation("stand")
-				npcself:set_velocity(0)
-
---				core.chat_send_player(pname, S("NPC stands still."))
-
-			elseif npcself.order == "follow" then
---				core.chat_send_player(pname, S("NPC will follow you."))
-			end
+			npcself.state = "stand"
+			npcself.attack = nil
+			npcself:set_animation("stand")
+			npcself:set_velocity(0)
 		end
+	end
 
-		if mobs_npc.useDialogs == "Y" then
-			simple_dialogs.process_simple_dialog_control_fields(pname, npcself, fields)
-		end
+	if mobs_npc.useDialogs == "Y" then
+		simple_dialogs.process_simple_dialog_control_fields(pname, npcself, fields)
 	end
 end)
 
@@ -226,11 +202,11 @@ end
 
 function get_npcself_from_id(npcId)
 
-	if npcId == nil then return nil end
+	if not npcId then return end
 
 	for k, v in pairs(core.luaentities) do
 
-		if v.object and v.id and v.id == npcId then
+		if v.object and v.id == npcId then
 			return v
 		end
 	end
@@ -259,57 +235,53 @@ end
 -- Contact sapier a t gmx net
 -------------------------------------------------------------------------------
 
--- This code has been heavily modified by isaiah658.
 -- Trades are saved in entity metadata so they always stay the same after
 -- initially being chosen.  Also the formspec uses item image buttons instead of
--- inventory slots.
+-- inventory slots.  New trade generation by TenPlus1 using Fischer-Yates shuffle.
 
 local function add_goods(self, race)
 
-	local trade_index = 1
-	local trades_already_added = {}
-	local trader_pool_size = 10
-	local item_pool_size = #race.items -- get number of items on list
+	local items = race.items
+	local item_count = #items
+	local trader_pool_size = math.min(10, item_count)
 
 	self.trades = {}
 
-	if item_pool_size < trader_pool_size then
-		trader_pool_size = item_pool_size
+	if not items or item_count == 0 then return end
+
+	-- found the Fisher-Yates shuffle handy to randomize everything
+
+	local indices = {}
+
+	for i = 1, item_count do
+		indices[i] = i
 	end
+
+	for i = item_count, 2, -1 do
+
+		local j = math.random(1, i)
+
+		indices[i], indices[j] = indices[j], indices[i]
+	end
+
+	local trade_index = 1
 
 	for i = 1, trader_pool_size do
 
-		-- If there are more trades than the amount being added, they are
-		-- randomly selected.  If they are equal, there is no reason to randomly
-		-- select them
-		local random_trade = nil
+		local item = items[ indices[i] ]
+		local name, price, rarity = item[1], item[2], item[3]
 
-		if item_pool_size == trader_pool_size then
-			random_trade = i
-		else
-			while random_trade == nil do
+		-- make sure first 3 items always appear on list, then random chance it
+		local can_add = trade_index <= 3 or math.random(100) > rarity
 
-				local num = math.random(item_pool_size)
+		if can_add then
 
-				if trades_already_added[num] == nil then
-					trades_already_added[num] = true
-					random_trade = num
-				end
-			end
-		end
-
-		if math.random(0, 100) > race.items[random_trade][3] then
-
-			self.trades[trade_index] = {
-				race.items[random_trade][1],
-				race.items[random_trade][2]
-			}
+			self.trades[trade_index] = {name, price}
 
 			trade_index = trade_index + 1
 		end
 	end
 end
-
 
 function mobs_npc.shop_trade(self, clicker, race)
 
@@ -319,14 +291,10 @@ function mobs_npc.shop_trade(self, clicker, race)
 
 		self.game_name = tostring(race.names[math.random(1, #race.names)])
 		self.nametag = S("Trader @1", self.game_name)
-
-		self.object:set_properties({
-			nametag = self.nametag,
-			nametag_color = "#00FF00"
-		})
+		self.object:set_properties({nametag = self.nametag, nametag_color = "#00FF00"})
 	end
 
-	if self.trades == nil then
+	if not self.trades then
 		add_goods(self, race)
 	end
 
@@ -395,18 +363,17 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 
 			for k, v in pairs(core.luaentities) do
 
-				if v.object and v.id and v.id == id then
-					self = v
-					break
+				if v.object and v.id == id then
+					self = v ; break
 				end
 			end
 		end
 
-		if self ~= nil then
+		if self then
 
 			local trade_number = tonumber(trade:split("#")[2])
 
-			if trade_number ~= nil and self.trades[trade_number] ~= nil then
+			if trade_number and self.trades[trade_number] then
 
 				local price = self.trades[trade_number][2]
 				local goods = self.trades[trade_number][1]

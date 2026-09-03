@@ -232,6 +232,47 @@ local function enough_height(pos, height)
 			{x = pos.x, y = pos.y + height, z = pos.z})
 end
 
+-- sapling name, dirt name, function name
+
+local list = {
+	["ethereal:basandra_bush_sapling"] = {
+		dirt = "ethereal:fiery_dirt", func = "grow_basandra_bush"},
+	["ethereal:yellow_tree_sapling"] = {
+		dirt = "group:soil", func = "grow_yellow_tree"},
+	["ethereal:big_tree_sapling"] = {
+		dirt = "default:dirt_with_grass", func = "grow_big_tree"},
+	["ethereal:banana_tree_sapling"] = {
+		dirt = "ethereal:grove_dirt", func = "grow_banana_tree"},
+	["ethereal:frost_tree_sapling"] = {
+		dirt = "ethereal:crystal_dirt", func = "grow_frost_tree"},
+	["ethereal:mushroom_sapling"] = {
+		dirt = "ethereal:mushroom_dirt", func = "grow_mushroom_tree"},
+	["ethereal:mushroom_brown_sapling"] = {
+		dirt = "ethereal:mushroom_dirt", func = "grow_mushroom_brown_tree"},
+	["ethereal:palm_sapling"] = {
+		dirt = "default:sand", func = "grow_palm_tree"},
+	["ethereal:willow_sapling"] = {
+		dirt = "ethereal:gray_dirt", func = "grow_willow_tree"},
+	["ethereal:orange_tree_sapling"] = {
+		dirt = "ethereal:prairie_dirt", func = "grow_orange_tree"},
+	["ethereal:bamboo_sprout"] = {
+		dirt = "ethereal:bamboo_dirt", func = "grow_bamboo_tree"},
+	["ethereal:birch_sapling"] = {
+		dirt = "default:dirt_with_grass", func = "grow_birch_tree"},
+	["ethereal:sakura_sapling"] = {
+		dirt = "ethereal:bamboo_dirt", func = "grow_sakura_tree"},
+	["ethereal:olive_tree_sapling"] = {
+		dirt = "ethereal:grove_dirt", func = "grow_olive_tree"},
+	["ethereal:mangrove_sapling"] = {
+		dirt = "ethereal:mud", func = "grow_mangrove_tree"},
+	["ethereal:lemon_tree_sapling"] = {
+		dirt = "ethereal:grove_dirt", func = "grow_lemon_tree"},
+	["ethereal:redwood_sapling"] = {
+		dirt = "default:dirt_with_dry_grass", func = "grow_redwood_tree"},
+	["ethereal:giant_redwood_sapling"] = {
+		dirt = "default:dirt_with_dry_grass", func = "grow_giant_redwood_tree"}
+}
+
 -- global function run by Abm
 
 function ethereal.grow_sapling(pos, node)
@@ -243,73 +284,20 @@ function ethereal.grow_sapling(pos, node)
 	if (core.get_node_light(pos) or 0) < 13 then return end
 
 	-- enought height to grow
-	local height = def.grown_height or 33
+	if not enough_height(pos, (def.grown_height or 33)) then return end
 
-	if not enough_height(pos, height) then return end
+	-- get sapling information from table
+	local data = list[node.name] ; if not data then return end
 
-	-- get node below sapling
-	local under =  get_node({x = pos.x, y = pos.y - 1, z = pos.z}).name
+	-- are we growing on the correct substrate
+	local bpos = {x = pos.x, y = pos.y - 1, z = pos.z}
 
-	-- default ok and magic dirt check (can grow any ethereal sapling)
-	local ok = false ; if under == "ethereal:magical_dirt" then ok = true end
+	if not core.find_node_near(bpos, 0, {data.dirt, "ethereal:magical_dirt"}, true) then
+		return
+	end
 
-	-- check if Ethereal Sapling is growing on correct substrate
-	if node.name == "ethereal:basandra_bush_sapling"
-	and (under == "ethereal:fiery_dirt" or ok) then ethereal.grow_basandra_bush(pos)
-
-	elseif node.name == "ethereal:yellow_tree_sapling"
-	and core.get_item_group(under, "soil") > 0 then ethereal.grow_yellow_tree(pos)
-
-	elseif node.name == "ethereal:big_tree_sapling"
-	and (under == "default:dirt_with_grass" or ok) then ethereal.grow_big_tree(pos)
-
-	elseif node.name == "ethereal:banana_tree_sapling"
-	and (under == "ethereal:grove_dirt" or ok) then ethereal.grow_banana_tree(pos)
-
-	elseif node.name == "ethereal:frost_tree_sapling"
-	and (under == "ethereal:crystal_dirt" or ok) then ethereal.grow_frost_tree(pos)
-
-	elseif node.name == "ethereal:mushroom_sapling"
-	and (under == "ethereal:mushroom_dirt" or ok) then ethereal.grow_mushroom_tree(pos)
-
-	elseif node.name == "ethereal:mushroom_brown_sapling"
-	and (under == "ethereal:mushroom_dirt" or ok) then
-			ethereal.grow_mushroom_brown_tree(pos)
-
-	elseif node.name == "ethereal:palm_sapling"
-	and (under == "default:sand" or ok) then ethereal.grow_palm_tree(pos)
-
-	elseif node.name == "ethereal:willow_sapling"
-	and (under == "ethereal:gray_dirt" or ok) then ethereal.grow_willow_tree(pos)
-
-	elseif node.name == "ethereal:redwood_sapling"
-	and (under == "default:dirt_with_dry_grass" or ok) then
-			ethereal.grow_redwood_tree(pos)
-
-	elseif node.name == "ethereal:giant_redwood_sapling"
-	and (under == "default:dirt_with_dry_grass" or ok) then
-			ethereal.grow_giant_redwood_tree(pos)
-
-	elseif node.name == "ethereal:orange_tree_sapling"
-	and (under == "ethereal:prairie_dirt" or ok) then ethereal.grow_orange_tree(pos)
-
-	elseif node.name == "ethereal:bamboo_sprout"
-	and (under == "ethereal:bamboo_dirt" or ok) then ethereal.grow_bamboo_tree(pos)
-
-	elseif node.name == "ethereal:birch_sapling"
-	and (under == "default:dirt_with_grass" or ok) then ethereal.grow_birch_tree(pos)
-
-	elseif node.name == "ethereal:sakura_sapling"
-	and (under == "ethereal:bamboo_dirt" or ok) then ethereal.grow_sakura_tree(pos)
-
-	elseif node.name == "ethereal:olive_tree_sapling"
-	and (under == "ethereal:grove_dirt" or ok) then ethereal.grow_olive_tree(pos)
-
-	elseif node.name == "ethereal:mangrove_sapling"
-	and (under == "ethereal:mud" or ok) then ethereal.grow_mangrove_tree(pos)
-
-	elseif node.name == "ethereal:lemon_tree_sapling"
-	and (under == "ethereal:grove_dirt" or ok) then ethereal.grow_lemon_tree(pos) end
+	-- run grow function
+	local func = ethereal[data.func] ; if func then func(pos) end
 end
 
 -- grow saplings Abm

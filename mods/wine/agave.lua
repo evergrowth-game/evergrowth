@@ -47,8 +47,8 @@ core.register_node("wine:blue_agave", {
 		end
 
 		local n = core.find_nodes_in_area_under_air(
-			{x = pos.x + 2, y = pos.y + 1, z = pos.z + 2},
-			{x = pos.x - 2, y = pos.y - 1, z = pos.z - 2}, {"wine:blue_agave"})
+				{x = pos.x + 2, y = pos.y + 1, z = pos.z + 2},
+				{x = pos.x - 2, y = pos.y - 1, z = pos.z - 2}, {"wine:blue_agave"})
 
 		-- too crowded, we'll wait for another iteration
 		if n and #n > 2 then

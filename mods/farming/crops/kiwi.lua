@@ -11,7 +11,7 @@ core.register_node("farming:kiwi_vine", {
 	description = S("Kiwi Vine"),
 	tiles = {"x_farming_kiwi_wood.png"},
 	sunlight_propagates = true,
-	groups = {flammable = 3, choppy = 2, oddly_breakable_by_hand = 1},
+	groups = {flammable = 3, choppy = 2, oddly_breakable_by_hand = 1, vines = 1},
 	sounds = farming.node_sound_wood_defaults(),
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -84,22 +84,23 @@ core.register_craft({
 local _ = {name = "air", param1 = 0}
 local k = {name = "farming:kiwi", param1 = 215}
 local L = {name = "farming:kiwi_leaves", param1 = 255}
-local l = {name = "farming:kiwi_leaves", param1 = 127}
+local l = {name = "farming:kiwi_leaves", param1 = 197}
 local t = {name = "farming:kiwi_vine", param1 = 255, param2 = 20}
 local T = {name = "farming:kiwi_vine", param1 = 255, param2 = 18, force_place = true}
-local h = {name = "farming:kiwi_vine", param1 = 255, param2 = 7, force_place = true}
+local u = {name = "farming:kiwi_vine", param1 = 255, param2 = 18}
+local h = {name = "farming:kiwi_vine", param1 = 255, param2 = 7}
 local H = {name = "farming:kiwi_vine", param1 = 255, param2 = 3}
 
 farming.kiwi_vine = {
 	size = {x = 4, y = 4, z = 4},
 	data = {
-		_,_,_,_,	_,_,_,_,	k,L,L,k,	L,L,L,L,
+		_,_,_,_,	_,_,_,_,	k,l,l,k,	L,L,L,L,
 
-		_,_,_,_,	_,_,_,_,	L,t,L,L,	L,L,L,L,
+		_,_,_,_,	_,_,_,_,	l,t,L,l,	L,L,L,L,
 
-		_,T,_,_,	_,_,h,_,	L,T,H,L,	L,L,L,L,
+		_,T,_,_,	_,_,h,_,	l,u,H,l,	L,L,L,L,
 
-		_,_,_,_,	_,_,_,_,	k,L,L,k,	L,L,L,L,
+		_,_,_,_,	_,_,_,_,	k,l,l,k,	L,L,L,L,
 	}
 }
 

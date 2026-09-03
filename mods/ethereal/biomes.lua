@@ -412,7 +412,7 @@ register_biome(ethereal.grove, {
 	node_top = "default:sand", depth_top = 1,
 	node_filler = "default:sand", depth_filler = 2})
 
--- meditteranean
+-- mediterranean
 
 register_biome(ethereal.mediterranean, {
 	name = "mediterranean",
