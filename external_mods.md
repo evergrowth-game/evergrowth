@@ -23,7 +23,7 @@ The following 80 integrated community mods are packaged with this game. All link
 | `bweapons_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/bweapons_modpack/) &bull; [Source](https://github.com/mt-historical/bweapons_modpack) |  |
 | `carpets` | bell07 | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/bell07/carpets/) &bull; [Source](https://github.com/minetest-mods/carpets) |  |
 | `castle_gates` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/castle_gates/) &bull; [Source](https://github.com/minetest-mods/castle_gates) |  |
-| `caverealms` | HeroOfTheWinds | WTFPL | [ContentDB](https://content.luanti.org/packages/HeroOfTheWinds/caverealms/) &bull; [Source](https://github.com/HeroOfTheWinds/minetest-caverealms) |  |
+| `caverealms` | Shara | FreeBSD | [ContentDB](https://content.luanti.org/packages/Shara/caverealms/) &bull; [Source](https://github.com/minetest-mods/caverealms_lite) | Caverealms Lite fork |
 | `cheese` | Annalysa | LGPL-2.1-only for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/Annalysa/cheese/) &bull; [Source](https://github.com/AnnalysaTheMinetester/cheese.git) |  |
 | `cinematic_zoom` | Fennelfox | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/Fennelfox/cinematic_zoom/) &bull; [Source](https://github.com/fennelfox/cinematic_zoom) |  |
 | `climate` | TestificateMods | LGPL-3.0-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TestificateMods/climate/) &bull; [Source](https://github.com/t-affeldt/climate) |  |
@@ -33,7 +33,7 @@ The following 80 integrated community mods are packaged with this game. All link
 | `doc` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc) | Base API for in-game documentation |
 | `doc_basics` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_basics/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_basics) | Basic documentation entries |
 | `doc_encyclopedia` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_encyclopedia/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_encyclopedia) | Encyclopedia UI viewer |
-| `doc_items` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_items/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_items) | Automatically parses block/item docs |
+| `doc_items` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/doc_items/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_doc_items) | Custom-derived (stubbed out in favor of curated thematic guides) |
 | `dungeonsplus` | EmptyStar | MIT | [ContentDB](https://content.luanti.org/packages/EmptyStar/dungeonsplus/) &bull; [Source](https://github.com/EmptyStar/dungeonsplus) |  |
 | `ethereal` | TenPlus1 | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/ethereal/) &bull; [Source](https://codeberg.org/tenplus1/ethereal) |  |
 | `fakelib` | OgelGames | MIT | [ContentDB](https://content.luanti.org/packages/OgelGames/fakelib/) &bull; [Source](https://github.com/OgelGames/fakelib) |  |

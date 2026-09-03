@@ -56,6 +56,21 @@ local function sit_player(player, name)
     end)
 end
 
+function airutils.stand(player)
+    local name = player:get_player_name()
+    if airutils.is_minetest then
+        if player_api.player_attached[name] then
+            player_api.player_attached[name] = nil
+        end
+        player_api.set_animation(player, "stand")
+    elseif airutils.is_mcl then
+        if mcl_player.player_attached[name] then
+            mcl_player.player_attached[name] = nil
+        end
+        mcl_player.player_set_animation(player, "stand")
+    end
+end
+
 -- attach player
 function airutils.attach(self, player, instructor_mode)
     if not player then return end
@@ -145,17 +160,7 @@ function airutils.dettachPlayer(self, player)
     if player then
         player:set_detach()
         player:set_eye_offset({x=0,y=0,z=0},{x=0,y=0,z=0})
-        if airutils.is_minetest then
-            if player_api.player_attached[name] then
-                player_api.player_attached[name] = nil
-            end
-            player_api.set_animation(player, "stand")
-        elseif airutils.is_mcl then
-            if mcl_player.player_attached[name] then
-                mcl_player.player_attached[name] = nil
-            end
-            mcl_player.player_set_animation(player, "stand")
-        end
+        airutils.stand(player)
     end
     self.driver = nil
     --remove_physics_override(player, {speed=1,gravity=1,jump=1})
@@ -293,13 +298,7 @@ function airutils.dettach_pax(self, player, is_flying)
             player:set_pos(pos)
         end
 
-        if airutils.is_minetest then
-            player_api.player_attached[name] = nil
-            player_api.set_animation(player, "stand")
-        elseif airutils.is_mcl then
-            mcl_player.player_attached[name] = nil
-            mcl_player.player_set_animation(player, "stand")
-        end
+        airutils.stand(player)
 
         player:set_eye_offset({x=0,y=0,z=0},{x=0,y=0,z=0})
         --remove_physics_override(player, {speed=1,gravity=1,jump=1})
@@ -437,6 +436,7 @@ function airutils.destroy(self, by_name, by_automation)
 end
 
 function airutils.testImpact(self, velocity, position)
+    if not self.object then return end
     if self.hp_max < 0 then --if acumulated damage is greater than 50, adieu
         airutils.destroy(self)
     end
@@ -561,12 +561,16 @@ function airutils.testImpact(self, velocity, position)
                 damage = impact / 2 --if the plane was landing, the damage is mainly on landing gear, so lets reduce the damage
             end]]--
             --end check
-            if math.abs(math.deg(self.object:get_rotation().x)) < 20 and --nose angle between +20 and -20 degrees
-                self._longit_speed < (self._min_speed*2) then  --longit speed less than the double of min speed
-                damage = impact / 2 --if the plane was landing, the damage is mainly on landing gear, so lets reduce the damage
-                local new_vel = self.object:get_velocity()
-                new_vel.y = 0
-                self.object:set_velocity(new_vel) --TODO something is causing the plane to explode after a shaking, so I'm reseting the speed until I discover the bug
+            local obj_rot = self.object:get_rotation()
+            if obj_rot then
+                local pitch = obj_rot.x or 0
+                if math.abs(math.deg(pitch)) < 20 and --nose angle between +20 and -20 degrees
+                    self._longit_speed < (self._min_speed*2) then  --longit speed less than the double of min speed
+                    damage = impact / 2 --if the plane was landing, the damage is mainly on landing gear, so lets reduce the damage
+                    local new_vel = self.object:get_velocity()
+                    new_vel.y = 0
+                    self.object:set_velocity(new_vel) --TODO something is causing the plane to explode after a shaking, so I'm reseting the speed until I discover the bug
+                end
             end
         end
 
@@ -762,12 +766,8 @@ function airutils.set_param_paint(self, puncher, itmstck, mode)
         if split[1] then _,indx = split[1]:find('dye') end
         if indx then
             self._skin = ""
-            --[[for clr,_ in pairs(airutils.colors) do
-                local _,x = split[2]:find(clr)
-                if x then color = clr end
-            end]]--
             --lets paint!!!!
-            local color = (item_name:sub(indx+1)):gsub(":", "")
+            local color = split[2] --(item_name:sub(indx+1)):gsub(":", "")
 
             local colstr = self._color
             local colstr_2 = self._color_2
@@ -864,19 +864,20 @@ function airutils.param_paint(self, colstr, colstr_2)
         self._color = colstr
         self._color_2 = colstr_2
         local l_textures = self.initial_properties.textures
+        local paint_function = self._paint_function or _paint
 
         --to reduce cpu processing, put the prefix here
         l_textures = set_prefix(self, l_textures)
 
-        l_textures = _paint(self, l_textures, colstr) --paint the main plane
-        l_textures = _paint(self, l_textures, colstr_2, self._painting_texture_2) --paint the main plane
+        l_textures = paint_function(self, l_textures, colstr) --paint the main plane
+        l_textures = paint_function(self, l_textures, colstr_2, self._painting_texture_2) --paint the main plane
         self.object:set_properties({textures=l_textures})
 
         if self._paintable_parts then --paint individual parts
             for i, part_entity in ipairs(self._paintable_parts) do
                 local p_textures = part_entity.initial_properties.textures
-                p_textures = _paint(part_entity, p_textures, colstr, self._painting_texture, self._mask_painting_associations)
-                p_textures = _paint(part_entity, p_textures, colstr_2, self._painting_texture_2, self._mask_painting_associations)
+                p_textures = paint_function(part_entity, p_textures, colstr, self._painting_texture, self._mask_painting_associations)
+                p_textures = paint_function(part_entity, p_textures, colstr_2, self._painting_texture_2, self._mask_painting_associations)
                 part_entity.object:set_properties({textures=p_textures})
             end
         end
@@ -960,6 +961,7 @@ function airutils.add_destruction_effects(pos, radius, w_fire)
     w_fire = w_fire
     if w_fire == nil then w_fire = true end
     local node = airutils.nodeatpos(pos)
+    if not node then return end
     local is_liquid = false
     if (node.drawtype == 'liquid' or node.drawtype == 'flowingliquid') then is_liquid = true end
 

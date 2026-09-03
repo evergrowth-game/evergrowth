@@ -1,19 +1,19 @@
 -- compass configuration interface - adjustable from other mods or minetest.conf settings
 death_compass = {}
 
-local S = minetest.get_translator("death_compass")
+local S = core.get_translator("death_compass")
  
  -- how many seconds does the death compass work for? 0 for indefinite
-local duration = tonumber(minetest.settings:get("death_compass_duration")) or 0
-local automatic = minetest.settings:get_bool("death_compass_automatic", false)
+local duration = tonumber(core.settings:get("death_compass_duration")) or 0
+local automatic = core.settings:get_bool("death_compass_automatic", false)
 
 local range_to_inactivate = 5
 
 local hud_position = {
-	x= tonumber(minetest.settings:get("death_compass_hud_x")) or 0.5,
-	y= tonumber(minetest.settings:get("death_compass_hud_y")) or 0.9,
+	x= tonumber(core.settings:get("death_compass_hud_x")) or 0.5,
+	y= tonumber(core.settings:get("death_compass_hud_y")) or 0.9,
 }
-local hud_color = tonumber("0x" .. (minetest.settings:get("death_compass_hud_color") or "FFFF00")) or 0xFFFF00
+local hud_color = tonumber("0x" .. (core.settings:get("death_compass_hud_color") or "FFFF00")) or 0xFFFF00
 
 -- If round is true the return string will only have the two largest-scale values
 local function clock_string(seconds, round)
@@ -71,16 +71,16 @@ end
 -- set a position to the compass stack
 local function set_target(stack, pos, name)
 	local meta=stack:get_meta()
-	meta:set_string("target_pos", minetest.pos_to_string(pos))
+	meta:set_string("target_pos", core.pos_to_string(pos))
 	meta:set_string("target_corpse", name)
-	meta:set_int("time_of_death", minetest.get_gametime())
+	meta:set_int("time_of_death", core.get_gametime())
 end
 
 -- Get compass target
 local function get_destination(player, stack)
 	local posstring = stack:get_meta():get_string("target_pos")
 	if posstring ~= "" then
-		return minetest.string_to_pos(posstring)
+		return core.string_to_pos(posstring)
 	end
 end
 
@@ -88,14 +88,14 @@ end
 local player_ticking = {}
 local function start_ticking(player_name)
 	if not player_ticking[player_name] then
-		player_ticking[player_name] = minetest.sound_play("death_compass_tick_tock",
+		player_ticking[player_name] = core.sound_play("death_compass_tick_tock",
 			{to_player = player_name, gain = 0.125, loop = true})
 	end
 end
 local function stop_ticking(player_name)
 	local tick_tock_handle = player_ticking[player_name]
 	if tick_tock_handle then
-		minetest.sound_stop(tick_tock_handle)
+		core.sound_stop(tick_tock_handle)
 		player_ticking[player_name] = nil
 	end
 end
@@ -111,7 +111,7 @@ end
 local function update_hud(player, player_name, compass)
 	local metadata = compass:get_meta()
 
-	local target_pos = minetest.string_to_pos(metadata:get_string("target_pos"))
+	local target_pos = core.string_to_pos(metadata:get_string("target_pos"))
 	local player_pos = player:get_pos()
 	local distance = vector.distance(player_pos, target_pos)
 	if not target_pos then
@@ -123,7 +123,7 @@ local function update_hud(player, player_name, compass)
 
 	local description
 	if duration > 0 then
-		local remaining = time_of_death + duration - minetest.get_gametime()
+		local remaining = time_of_death + duration - core.get_gametime()
 		if remaining < 0 then
 			return
 		end
@@ -131,7 +131,7 @@ local function update_hud(player, player_name, compass)
 			target_name, clock_string(remaining, true))
 	else
 		description = S("@1m to @2's corpse, died @3 ago", math.floor(distance),
-			target_name, clock_string(minetest.get_gametime() - time_of_death, true))
+			target_name, clock_string(core.get_gametime() - time_of_death, true))
 	end
 
 	local id = player_huds[player_name]
@@ -168,7 +168,7 @@ local function get_compass_stack(player, stack)
 	
 	if distance < range_to_inactivate then
 		stop_ticking(player_name)
-		minetest.sound_play("death_compass_bone_crunch", {to_player=player_name, gain = 1.0})
+		core.sound_play("death_compass_bone_crunch", {to_player=player_name, gain = 1.0})
 		return inactive_return
 	end
 	
@@ -187,10 +187,10 @@ local function get_compass_stack(player, stack)
 	local time_of_death = tonumber(meta_fields.time_of_death)
 
 	if duration > 0 then
-		local remaining = time_of_death + duration - minetest.get_gametime()
+		local remaining = time_of_death + duration - core.get_gametime()
 		if remaining < 0 then
 			stop_ticking(player_name)
-			minetest.sound_play("death_compass_bone_crunch", {to_player=player_name, gain = 1.0})
+			core.sound_play("death_compass_bone_crunch", {to_player=player_name, gain = 1.0})
 			return inactive_return
 		end
 		start_ticking(player_name)
@@ -204,8 +204,8 @@ local function get_compass_stack(player, stack)
 end
 
 -- update inventory and hud
-minetest.register_globalstep(function(dtime)
-	for i, player in ipairs(minetest.get_connected_players()) do
+core.register_globalstep(function(dtime)
+	for i, player in ipairs(core.get_connected_players()) do
 		local player_name = player:get_player_name()
 		local compass_in_quickbar
 		local inv = player:get_inventory()
@@ -238,7 +238,7 @@ end)
 -- register items
 for i = 0, 15 do
 	local image = "death_compass_16_"..i..".png"
-	minetest.register_craftitem("death_compass:dir"..i, {
+	core.register_craftitem("death_compass:dir"..i, {
 		description = S("Death Compass"),
 		inventory_image = image,
 		wield_image = image,
@@ -250,10 +250,10 @@ end
 if not automatic then
 	local display_doc = function(itemstack, user)
 		local player_name = user:get_player_name()
-		minetest.chat_send_player(player_name, documentation .. "\n" .. durationdesc)
+		core.chat_send_player(player_name, documentation .. "\n" .. durationdesc)
 	end
 
-	minetest.register_craftitem("death_compass:inactive", {
+	core.register_craftitem("death_compass:inactive", {
 		description = S("Death Compass"),
 		_doc_items_longdesc = documentation,
 		_doc_items_usagehelp = durationdesc,
@@ -264,17 +264,27 @@ if not automatic then
         on_secondary_use = display_doc,
 	})
 
-	minetest.register_craft({
+	local bones_def = core.registered_items['bones:bones']
+	if bones_def ~= nil then
+		local bones_groups = table.copy(bones_def.groups or {})
+		bones_groups.bone = 1
+		core.override_item('bones:bones', {
+			groups = bones_groups,
+		})
+	end
+
+	-- "group:bone" to support more mods, e.g. "skeletons"
+	core.register_craft({
 		output = 'death_compass:inactive',
 		recipe = {
-			{'', 'bones:bones', ''},
-			{'bones:bones', 'default:mese_crystal_fragment', 'bones:bones'},
-			{'', 'bones:bones', ''}
+			{'', 'group:bone', ''},
+			{'group:bone', 'default:mese_crystal_fragment', 'group:bone'},
+			{'', 'group:bone', ''}
 		}
 	})
 	
 	-- Allow a player to deliberately deactivate a death compass
-	minetest.register_craft({
+	core.register_craft({
 		output = 'death_compass:inactive',
         type = "shapeless",
         recipe = {
@@ -285,9 +295,9 @@ if not automatic then
 end
 
 local player_death_location = {}
-minetest.register_on_dieplayer(function(player, reason)
+core.register_on_dieplayer(function(player, reason)
 	local player_name = player:get_player_name()
-	local inv = minetest.get_inventory({type="player", name=player:get_player_name()})
+	local inv = core.get_inventory({type="player", name=player:get_player_name()})
 	local list = inv:get_list("main")
 	local count = 0
 	if automatic then
@@ -309,19 +319,19 @@ end)
 -- Called when a player dies
 -- `reason`: a PlayerHPChangeReason table, see register_on_player_hpchange
 
--- Using the regular minetest.register_on_dieplayer causes the new callback to be inserted *after*
+-- Using the regular core.register_on_dieplayer causes the new callback to be inserted *after*
 -- the on_dieplayer used by the bones mod, which means the bones mod clears the player inventory before
 -- we get to this and we can't tell if there was a death compass in it.
 -- We must therefore rearrange the callback table to move this mod's callback to the front
 -- to ensure it always goes first.
-local death_compass_dieplayer_callback = table.remove(minetest.registered_on_dieplayers)
-table.insert(minetest.registered_on_dieplayers, 1, death_compass_dieplayer_callback)
+local death_compass_dieplayer_callback = table.remove(core.registered_on_dieplayers)
+table.insert(core.registered_on_dieplayers, 1, death_compass_dieplayer_callback)
 
-minetest.register_on_respawnplayer(function(player)
+core.register_on_respawnplayer(function(player)
 	local player_name = player:get_player_name()
 	local compasses = player_death_location[player_name]
 	if compasses then
-		local inv = minetest.get_inventory({type="player", name=player_name})
+		local inv = core.get_inventory({type="player", name=player_name})
 		
 		-- Remove any death compasses they might still have for some reason
 		local current = inv:get_list("main")
@@ -345,6 +355,6 @@ end)
 --    * Called _before_ repositioning of player occurs
 --    * return true in func to disable regular player placement
 
-minetest.register_on_leaveplayer(function(player, timed_out)
+core.register_on_leaveplayer(function(player, timed_out)
 	hide_hud(player, player:get_player_name())
 end)

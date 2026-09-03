@@ -38,3 +38,6 @@ minetest.override_item("default:furnace", {
 		"default_furnace_side.png",
 		"default_furnace_front.png")
 })
+
+
+screenshot.jpg created using https://www.textstudio.com/

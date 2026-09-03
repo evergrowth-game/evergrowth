@@ -24,7 +24,7 @@
 {"name": "frost", "heat_point": 5, "humidity_point": 60, "y_min": 2, "y_max": 71},
 {"name": "frost_ocean", "heat_point": 5, "humidity_point": 60, "y_min": -192, "y_max": 1},
 {"name": "snowy_grassland", "heat_point": 15, "humidity_point": 58, "y_min": 3, "y_max": 30},
-{"name": "snowy_grassland_ocean", "heat_point": 15, "humidity_point": 58, "y_min": 2, "y_max": -255},
+{"name": "snowy_grassland_ocean", "heat_point": 15, "humidity_point": 58, "y_min": -255, "y_max": 2},
 {"name": "snowy_grassland_under", "heat_point": 15, "humidity_point": 58, "y_min": -31000, "y_max": -256},
 {"name": "deciduous_forest", "heat_point": 60, "humidity_point": 68, "y_min": 1, "y_max": 91},
 {"name": "deciduous_forest_shore", "heat_point": 60, "humidity_point": 68, "y_min": -1, "y_max": 0},

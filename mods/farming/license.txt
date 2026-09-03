@@ -225,6 +225,13 @@ Created by smoke_th (CC0 - https://opengameart.org/content/popcorn-icon)
 Created by DMBuce (MIT - https://github.com/DMBuce/hatchling-snacks)
   farming_mac_and_cheese.png
 
+Textures by SG7997 (CC-BY-NC-SA 3.0):
+  farming_chapathi.png
+  farming_gulab_jamun.png
+  farming_kitkat.png
+  farming_laddu.png
+  farming_samosa.png
+
 Created by XSSheep (CC BY-SA 4.0 - https://minecraft.curseforge.com/projects/pixel-perfection-freshly-updated)
   farming_coffee_1.png
   farming_coffee_2.png

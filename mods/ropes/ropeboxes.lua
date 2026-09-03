@@ -132,8 +132,6 @@ local function register_rope_block(multiple, max_multiple, name_prefix, node_pre
 			type = "fixed",
 			fixed = rope_box_data[multiple].node
 		},
-		selection_box = {type="regular"},
-		collision_box = {type="regular"},
 		groups = {attached_node = 1, choppy=2, oddly_breakable_by_hand=1, rope_block = 1},
 
 		on_place = function(itemstack, placer, pointed_thing)

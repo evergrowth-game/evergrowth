@@ -54,7 +54,7 @@ core.register_craftitem("ethereal:etherium_dust", {
 	wield_image = "ethereal_etherium_dust.png"
 })
 
--- Ethereium Ore
+-- Etherium Ore
 
 core.register_node("ethereal:etherium_ore", {
 	description = S("Etherium Ore"),
@@ -252,7 +252,7 @@ local function add_candle(col, dcol)
 		light_source = 11,
 		sunlight_propagates = true,
 		walkable = false,
-		groups = {candle = 1, dig_immediate = 3, attached_node = 1},
+		groups = {candle = 1, candle_ethereal = 1, dig_immediate = 3, attached_node = 1},
 		sounds = default.node_sound_defaults(),
 		selection_box = {
 			type = "fixed", fixed = { -0.15, -0.5, -0.15, 0.15, 0, 0.15 }
@@ -288,7 +288,7 @@ add_candle("yellow", "Yellow ")
 core.register_craft({
 	output = "ethereal:candle",
 	recipe = {
-		{"group:candle", "dye:white"}
+		{"group:candle_ethereal", "dye:white"}
 	}
 })
 
@@ -512,7 +512,7 @@ core.register_tool("ethereal:light_staff", {
 		if pointed_thing.type ~= "node" then return end
 
 		local pos = pointed_thing.under
-		local pname = user:get_player_name()
+		local pname = user and user:get_player_name() or ""
 
 		if core.is_protected(pos, pname) then
 			core.record_protection_violation(pos, pname) ; return
@@ -521,10 +521,9 @@ core.register_tool("ethereal:light_staff", {
 		local node = core.get_node(pos).name
 		local def = core.registered_nodes[node]
 		local stone = def and def.groups.stone and def.groups.stone == 1
+		local glo = ethereal.lightstaff_recipes[node] or (stone and "ethereal:glostone")
 
-		if ethereal.lightstaff_recipes[node] or stone then
-
-			local glo = ethereal.lightstaff_recipes[node] or "ethereal:glostone"
+		if glo then
 
 			core.set_node(pos, {name = glo})
 

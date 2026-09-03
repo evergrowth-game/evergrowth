@@ -1,0 +1,61 @@
+# Language ua translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-24 08:27-0500\n"
+"PO-Revision-Date: 2026-08-24 08:27-0500\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ua\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: init.lua:122 init.lua:327
+msgid "Active campfire"
+msgstr "Палаюче багаття"
+
+#: init.lua:132
+msgid "Cooking"
+msgstr "Готування"
+
+#: init.lua:236 init.lua:269 init.lua:518
+msgid "Fireplace"
+msgstr "Місце від багаття"
+
+#: init.lua:276 init.lua:300 init.lua:553
+msgid "Campfire"
+msgstr "Багаття"
+
+#: init.lua:377 init.lua:426 init.lua:483
+msgid "Fireplace with embers"
+msgstr ""
+
+#: init.lua:431
+msgid "Fireplace with embers and grille"
+msgstr ""
+
+#: init.lua:488
+msgid "Fireplace with grille"
+msgstr ""
+
+#: init.lua:529
+msgid "Campfire with grille"
+msgstr ""
+
+#: init.lua:584
+msgid "Active campfire with grille"
+msgstr ""
+
+#: init.lua:747
+msgid "Metal Grille"
+msgstr ""
+
+#: init.lua:752
+msgid "Ash"
+msgstr "Попіл"

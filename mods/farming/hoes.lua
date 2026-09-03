@@ -49,13 +49,14 @@ function farming.hoe_on_use(itemstack, user, pointed_thing, uses)
 
 	local pt = pointed_thing or {}
 	local is_used = false
+	local under = ""
 
 	-- am I pointing at the top of a dirt node
 	if pt.type == "node" and pt.above.y == pt.under.y + 1 then
 
 		local pname = user:get_player_name() or ""
 		local upos = pointed_thing.under
-		local under = core.get_node(upos)
+		under = core.get_node(upos)
 		local udef = core.registered_nodes[under.name] ; if not udef then return end
 
 		if core.is_protected(upos, pname) then

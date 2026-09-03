@@ -28,12 +28,12 @@ This version is compatible backguard with 0.4 and also 5.X, can be downloaded fr
 
 ### NPC
 
-- While NPC's don't actually spawn in the world just yet, they do have a spawn egg
+- NPC's spawn on brick near grass for custom builds, they do have a spawn egg
 available to drop him/her into the world and wander around defending himself if attacked.
 
 - It will also he will help you attack any monsters in the area and will follow you
 if you hold a diamond. Right-clicking the NPC with a gold lump will make him drop steel
-tools or food, right-clicking with an empty hand orders the NPC to stay or follow if owned.
+tools or food, right-clicking with an empty hand has them talk to you, while right-clicking with a stick brings up a dialog with orders to have them stay, wander or follow if owned.
 
 
 ### Trader

@@ -87,14 +87,20 @@ core.override_item("default:aspen_leaves", {
 	walkable = ethereal.leafwalk
 })
 
--- willow twig (always shows as plantlike)
+-- willow twig
+
+local tex = "ethereal_willow_twig.png"
+
+if ethereal.leaftype ~= 0 then
+	tex = "ethereal_willow_twig_allfaces.png"
+end
 
 core.register_node("ethereal:willow_twig", {
 	description = S("Willow Twig"),
-	drawtype = "plantlike",
-	tiles = {"ethereal_willow_twig.png"},
-	inventory_image = "ethereal_willow_twig.png",
-	wield_image = "ethereal_willow_twig.png",
+	drawtype = leaftype,
+	tiles = {tex},
+	inventory_image = l_tex(tex),
+	wield_image = l_tex(tex),
 	paramtype = "light",
 	walkable = ethereal.leafwalk,
 	visual_scale = 1.4,
@@ -729,14 +735,14 @@ if core.settings:get_bool("ethereal.leaf_particles") ~= false then
 					maxsize = 4,
 					collisiondetection = true,
 					collision_removal = true,
-					texture = "ethereal_falling_leaf.png^[multiply:#" .. prop[1] .. "70",
+					texture = "ethereal_falling_leaf.png^[multiply:#" .. prop[1],
 					vertical = true,
 					glow = prop[2]
 				}
 
 				if core.features.particlespawner_tweenable then
 					def.texture = "ethereal_falling_leaf_animated.png^[multiply:#"
-						.. prop[1] .. "70"
+						.. prop[1]
 					def.animation = {
 						type = 'vertical_frames', aspect_w = 16, aspect_h = 16, length = 1
 					}

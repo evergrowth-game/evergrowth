@@ -90,9 +90,9 @@ local function flower_spread(pos, node)
 
 	if check and num > 3 then
 
-		local grass = core.find_nodes_in_area_under_air(pos0, pos1, {node.name})
+		local grass = core.find_nodes_in_area_under_air(pos0, pos1, node.name)
 
-		if #grass > check.min and not core.find_node_near(pos, 4, {check.item}) then
+		if #grass > check.min and not core.find_node_near(pos, 4, check.item) then
 
 			pos = grass[math_random(#grass)]
 
@@ -117,9 +117,9 @@ local function flower_spread(pos, node)
 	-- check for custom substrate to grow on, default to soil if none found
 	local plant_def = core.registered_nodes[node.name]
 	local substrate = plant_def and plant_def.flora_substrate or "group:soil"
-	local under = core.find_nodes_in_area(pos, pos, substrate)
 
-	if #under == 0 then return end -- not on a substrate we can grow on
+	 -- not on a substrate we can grow on
+	if not core.find_node_near(pos, 0, substrate, true) then return end
 
 	local soils = core.find_nodes_in_area_under_air(pos0, pos1, substrate)
 
@@ -146,7 +146,7 @@ local function grow_papyrus(pos, node)
 
 	pos.y = pos.y - 1
 
-	local nod = core.get_node(pos)
+	local nod = get_node(pos)
 
 	if core.get_item_group(nod.name, "soil") == 0
 	or not core.find_node_near(pos, 3, {"group:water"}) then return end
@@ -160,14 +160,13 @@ local function grow_papyrus(pos, node)
 		pos.y = pos.y + 1
 	end
 
-	if core.get_node(pos).name == "air" and height < high then
+	if get_node(pos).name ~= "air" or height >= high then return end
 
-		if node.name == "ethereal:bamboo" and height == (high - 1) then
+	if node.name == "ethereal:bamboo" and height == (high - 1) then
 
-			ethereal.grow_bamboo_tree({x = pos.x, y = oripos, z = pos.z})
-		else
-			core.set_node(pos, {name = node.name})
-		end
+		ethereal.grow_bamboo_tree({x = pos.x, y = oripos, z = pos.z})
+	else
+		core.set_node(pos, {name = node.name})
 	end
 end
 

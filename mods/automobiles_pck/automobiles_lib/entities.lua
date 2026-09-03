@@ -426,6 +426,13 @@ function automobiles_lib.on_activate(self, staticdata, dtime_s)
     automobiles_lib.actfunc(self, staticdata, dtime_s)
 end
 
+function checkIsFinite(mynumber)
+    if math.isfinite(mynumber) then
+        return mynumber
+    end
+    return 0
+end
+
 function automobiles_lib.on_step(self, dtime)
     automobiles_lib.stepfunc(self, dtime)
 
@@ -693,13 +700,18 @@ function automobiles_lib.on_step(self, dtime)
         end
     end
     
+    --if it's not NaN, add accel
+    accel.x = checkIsFinite(accel.x)
+    accel.y = checkIsFinite(accel.y)
+    accel.z = checkIsFinite(accel.z)
+
     --[[
     accell correction
     under some circunstances the acceleration exceeds the max value accepted by set_acceleration and
     the game crashes with an overflow, so limiting the max acceleration in each axis prevents the crash
     ]]--
     local max_factor = 25
-    local acc_adjusted = 10
+    local acc_adjusted = 0
     if accel.x > max_factor then accel.x = acc_adjusted end
     if accel.x < -max_factor then accel.x = -acc_adjusted end
     if accel.z > max_factor then accel.z = acc_adjusted end
@@ -761,7 +773,7 @@ function automobiles_lib.on_step(self, dtime)
         self.object:set_velocity({x=0,y=0,z=0})
     else
         self.object:move_to(curr_pos)
-        --airutils.set_acceleration(self.object, new_accel)
+        --automobiles_lib.set_acceleration(self.object, new_accel)
         local limit = (self._max_speed/self.dtime)
         if accel.y > limit then accel.y = limit end --it isn't a rocket :/
         self._last_accel = accel

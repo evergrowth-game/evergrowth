@@ -39,7 +39,7 @@ for _, clay in pairs(clays) do
 
 	core.register_node("bakedclay:" .. clay[1], {
 		description = clay[2] .. " " .. S("Baked Clay"),
-		tiles = {"baked_clay_" .. clay[1] ..".png"},
+		tiles = {"baked_clay_" .. clay[1] .. ".png"},
 		groups = {cracky = 3, bakedclay = 1},
 		sounds = default.node_sound_stone_defaults(),
 		is_ground_content = false
@@ -104,19 +104,22 @@ for _, clay in pairs(clays) do
 			clay[2] .. " " .. S("Baked Clay Slab"),
 			default.node_sound_stone_defaults())
 	end
+end
 
-	-- register bakedclay for use in technic_cnc mod after all mods loaded
+-- register bakedclay for use in technic_cnc mod after all mods loaded
 
-	if techcnc_mod then
+if techcnc_mod then
 
-		core.register_on_mods_loaded(function()
+	core.register_on_mods_loaded(function()
+
+		for _, clay in pairs(clays) do
 
 			technic_cnc.register_all("bakedclay:" .. clay[1],
 				{cracky = 3, not_in_creative_inventory = 1},
 				{"baked_clay_" .. clay[1] .. ".png"},
 				clay[2] .. " Baked Clay")
-		end)
-	end
+		end
+	end)
 end
 
 -- Terracotta blocks
@@ -130,10 +133,10 @@ for _, clay in pairs(clays) do
 		core.register_node("bakedclay:terracotta_" .. clay[1], {
 			description = clay[2] .. " " .. S("Glazed Terracotta"),
 			tiles = {
-				texture .. "",
-				texture .. "",
+				texture,
+				texture,
 				texture .. "^[transformR180",
-				texture .. "",
+				texture,
 				texture .. "^[transformR270",
 				texture .. "^[transformR90",
 			},

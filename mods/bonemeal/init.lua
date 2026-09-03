@@ -141,7 +141,7 @@ local function check_crops(pos, nodename, strength, light_ok)
 	local def = core.registered_nodes[nodename] ; if not def then return end
 
 	-- check if crop has next_plant and enough light
-	if def and def.next_plant and light_ok then
+	if def.next_plant and light_ok then
 
 		for g = 1, strength do
 
@@ -563,6 +563,12 @@ core.register_craft({
 		{"group:seed", "group:seed", "group:seed"},
 		{"group:seed", "group:seed", "group:seed"}
 	}
+})
+
+core.register_craft({
+	type = "fuel",
+	recipe = "bonemeal:mulch",
+	burntime = 3
 })
 
 -- fertiliser

@@ -136,7 +136,7 @@ function wine:add_drink(name, desc, has_bottle, num_hunger, num_thirst, alcoholi
 		core.register_node(":wine:bottle_" .. name, {
 			description = S("Bottle of " .. desc),
 			drawtype = "plantlike",
-			visual_scale = 0.7,
+			visual_scale = 0.8,
 			tiles = {"wine_" .. name .. "_bottle.png"},
 			inventory_image = "wine_" .. name .. "_bottle.png",
 			paramtype = "light",

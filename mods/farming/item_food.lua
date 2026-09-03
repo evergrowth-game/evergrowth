@@ -2,6 +2,42 @@
 local S = core.get_translator("farming")
 local a = farming.recipe_items
 
+-- Apple Cider Vinegar
+
+core.register_node("farming:acv", {
+	description = S("Apple Cider Vinegar"),
+	drawtype = "plantlike",
+	visual_scale = 0.8,
+	tiles = {"farming_acv.png"},
+	inventory_image = "farming_acv.png",
+	wield_image = "farming_acv.png",
+	paramtype = "light",
+	is_ground_content = false,
+	sunlight_propagates = true,
+	walkable = false,
+	selection_box = {type = "fixed", fixed = {-0.15, -0.5, -0.15, 0.15, 0.3, 0.15}},
+	groups = {food_vinegar = 1, vessel = 1, dig_immediate = 3, attached_node = 1},
+	sounds = farming.node_sound_defaults(),
+})
+
+-- Cinnamon Powder
+
+minetest.register_craftitem("farming:cinnamon_ground", {
+	description = S("Ground Cinnamon"),
+	inventory_image = "farming_cinnamon_ground.png",
+	groups = {food_cinnamon = 1, compostability = 35}
+})
+
+-- Cinnamon Roll
+
+minetest.register_craftitem("farming:cinnamon_roll", {
+	description = S("Cinnamon Roll"),
+	inventory_image = "farming_cinnamon_roll.png",
+	on_use = minetest.item_eat(4)
+})
+
+farming.add_eatable("farming:cinnamon_roll", 4)
+
 -- Flour
 
 core.register_craftitem("farming:flour", {
@@ -9,6 +45,84 @@ core.register_craftitem("farming:flour", {
 	inventory_image = "farming_flour.png",
 	groups = {food_flour = 1, flammable = 1}
 })
+
+-- Tortang Talong
+
+core.register_craftitem("farming:tortang_talong", {
+	description = S("Eggplant Omelette (Tortang Talong)"),
+	inventory_image = "farming_tortang_talong.png",
+	on_use = core.item_eat(10),
+	groups = {compostability = 55}
+})
+
+farming.add_eatable("farming:tortang_talong", 10)
+
+
+-- Chapathi
+
+core.register_craftitem("farming:chapathi", {
+	description = S("Chapathi"),
+	inventory_image = "farming_chapathi.png",
+	on_use = core.item_eat(3),
+	groups = {food_chapathi = 1, compostability = 55}
+})
+
+farming.add_eatable("farming:chapathi", 3)
+
+-- Gulab Jamun
+
+core.register_craftitem("farming:gulab_jamun", {
+	description = S("Gulab Jamun"),
+	inventory_image = "farming_gulab_jamun.png",
+	on_use = core.item_eat(3),
+	groups = {compostability = 55}
+})
+
+farming.add_eatable("farming:gulab_jamun", 3)
+
+-- KitKat
+
+core.register_craftitem("farming:kitkat", {
+	description = S("KitKat"),
+	inventory_image = "farming_kitkat.png",
+	on_use = core.item_eat(5),
+	groups = {compostability = 55}
+})
+
+farming.add_eatable("farming:kitkat", 5)
+
+-- Laddu
+
+core.register_craftitem("farming:laddu", {
+	description = S("Laddu"),
+	inventory_image = "farming_laddu.png",
+	on_use = core.item_eat(5),
+	groups = {compostability = 55}
+})
+
+farming.add_eatable("farming:laddu", 5)
+
+-- Samosa
+
+core.register_craftitem("farming:samosa", {
+	description = S("Samosa"),
+	inventory_image = "farming_samosa.png",
+	on_use = core.item_eat(6),
+	groups = {compostability = 55}
+})
+
+farming.add_eatable("farming:samosa", 6)
+
+-- Croissant
+
+core.register_craftitem("farming:croissant", {
+	description = S("Croissant"),
+	inventory_image = "farming_croissant.png",
+	on_use = core.item_eat(3),
+	groups = {food_bread = 1, compostability = 55}
+})
+
+farming.add_eatable("farming:croissant", 3)
 
 -- Garlic bulb
 
@@ -139,7 +253,7 @@ core.register_craftitem("farming:chili_powder", {
 	description = S("Chili Powder"),
 	on_use = core.item_eat(-1),
 	inventory_image = "farming_chili_powder.png",
-	groups = {compostability = 45}
+	groups = {food_chili_powder = 1, compostability = 45}
 })
 
 -- Carrot juice
@@ -262,8 +376,7 @@ core.register_node("farming:salt", {
 	is_ground_content = false,
 	sounds = farming.node_sound_defaults(),
 	selection_box = {
-		type = "fixed",
-		fixed = {-0.25, -0.5, -0.25, 0.25, 0.3, 0.25}
+		type = "fixed", fixed = {-0.25, -0.5, -0.25, 0.25, 0.3, 0.25}
 	},
 	-- special function to make salt crystals form inside water
 	dropped_step = function(self, pos, dtime)
@@ -287,11 +400,9 @@ core.register_node("farming:salt", {
 
 		if not objs or #objs ~= 1 then return end
 
-		local salt, ent = nil, nil
-
 		for k, obj in pairs(objs) do
 
-			ent = obj:get_luaentity()
+			local ent = obj:get_luaentity()
 
 			if ent and ent.name == "__builtin:item"
 			and ent.itemstring == "farming:salt " .. needed then
@@ -615,6 +726,14 @@ core.register_craftitem("farming:butter_vegan", {
 	description = S("Vegan Butter"),
 	inventory_image = "farming_vegan_butter.png",
 	groups = {food_butter = 1}
+})
+
+-- Vegan Egg
+
+core.register_craftitem("farming:egg_vegan", {
+	description = S("Vegan Egg"),
+	inventory_image = "farming_vegan_egg.png",
+	groups = {food_egg = 1}
 })
 
 -- Onigiri

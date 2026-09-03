@@ -24,7 +24,7 @@ end
 
 local function set_timer(user, timer)
 
-	local meta = user:get_meta() ; if not meta then return end
+	local meta = user and user:get_meta() ; if not meta then return end
 
 	meta:set_string("ethereal:fly_timer", timer)
 end
@@ -132,7 +132,7 @@ core.register_node("ethereal:flight_potion", {
 
 	on_use = function(itemstack, user, pointed_thing)
 
-		if user.is_fake_player then return end
+		if not user or user.is_fake_player then return end
 
 		-- get info
 		local name = user:get_player_name()

@@ -433,8 +433,7 @@ function farming.refill_plant(player, plantname, index)
 		if stack:get_name() == plantname and i ~= index then
 
 			inv:set_stack("main", index, stack)
-			stack:clear()
-			inv:set_stack("main", i, stack)
+			inv:set_stack("main", i, ItemStack(""))
 
 			return
 		end
@@ -499,7 +498,8 @@ function farming.place_seed(itemstack, placer, pointed_thing, plantname)
 
 			-- check for refill
 			if itemstack:get_count() == 0 then
-				core.after(0.2, farming.refill_plant, placer, item_name,
+
+				core.after(0.1, farming.refill_plant, placer, item_name,
 						placer:get_wield_index())
 			end
 		end

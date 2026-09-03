@@ -142,6 +142,7 @@ lucky_block:add_blocks({
 		{name = "ethereal:fish_piranha", max = 4},
 		{name = "ethereal:fish_trevally", max  = 4},
 		{name = "ethereal:fishing_rod", max = 1},
+		{name = "ethereal:fish_starfish", max = 2},
 		{name = "ethereal:worm", max = 10}
 	}},
 	{"dro", {"ethereal:lemon"}, 9},

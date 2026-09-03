@@ -29,11 +29,14 @@ usage() {
     local exit_code="${1:-1}"
     echo "Usage:"
     echo "  $SCRIPT_NAME list                                      List all tracked external mods and divergence status"
+    echo "  $SCRIPT_NAME check-all [--git]                         Check all tracked external mods against ContentDB releases (--git for raw Git HEAD)"
     echo "  $SCRIPT_NAME diff <mod_name> [-d|--detailed|--full]     Show high-level upstream change summary (-d for full diff)"
     echo "  $SCRIPT_NAME sync <mod_name> [-y|--yes|-f|--force]     Sync a non-diverged external mod from upstream source"
     echo ""
     echo "Examples:"
     echo "  $SCRIPT_NAME list"
+    echo "  $SCRIPT_NAME check-all"
+    echo "  $SCRIPT_NAME check-all --git"
     echo "  $SCRIPT_NAME diff airtanks"
     echo "  $SCRIPT_NAME diff airtanks --detailed"
     echo "  $SCRIPT_NAME sync airtanks"
@@ -92,6 +95,217 @@ do_list() {
     
     echo ""
     echo "Total: $count external mods tracked."
+}
+
+do_check_all_cdb() {
+    echo "Checking all external mods against ContentDB releases..."
+    echo ""
+    python3 - "$EXTERNAL_MODS_FILE" "$MODS_DIR" << 'EOF'
+import sys, os, re, json, urllib.request
+
+mods_file = sys.argv[1]
+mods_dir = sys.argv[2]
+
+# 1. Fetch entire ContentDB package catalog in one polite HTTP request
+url = "https://content.luanti.org/api/packages/"
+req = urllib.request.Request(url, headers={"User-Agent": "Minetest/5.8.0 (Evergrowth Updater)"})
+try:
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        cdb_catalog = json.loads(resp.read().decode("utf-8"))
+except Exception as e:
+    print(f"Error: Failed to fetch package catalog from ContentDB API: {e}", file=sys.stderr)
+    sys.exit(1)
+
+cdb_map = {}
+for item in cdb_catalog:
+    author = (item.get("author") or "").lower()
+    name = (item.get("name") or "").lower()
+    rel = item.get("release")
+    if author and name:
+        cdb_map[(author, name)] = rel
+    if name and name not in cdb_map:
+        cdb_map[name] = rel
+
+packages = []
+with open(mods_file, "r", encoding="utf-8") as f:
+    for line in f:
+        m = re.match(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|\s*(.*?)\s*\|", line)
+        if not m:
+            continue
+        mod_name = m.group(1).strip()
+        author = m.group(2).strip()
+        sources_str = m.group(4).strip()
+        notes = m.group(5).strip()
+        
+        cdb_match = re.search(r"\[ContentDB\]\(https://content\.luanti\.org/packages/([^/]+)/([^/]+)/?\)", sources_str)
+        cdb_author = cdb_match.group(1) if cdb_match else None
+        cdb_name = cdb_match.group(2) if cdb_match else None
+            
+        is_diverged = bool(re.search(r"\b(custom-derived|customized|stripped|diverged)\b", notes, re.IGNORECASE))
+        
+        # Read local release ID from modpack.conf or mod.conf
+        local_rel = None
+        candidates = [
+            os.path.join(mods_dir, mod_name, "modpack.conf"),
+            os.path.join(mods_dir, mod_name, "mod.conf"),
+            os.path.join(mods_dir, mod_name, mod_name, "mod.conf")
+        ]
+        for cand in candidates:
+            if os.path.isfile(cand):
+                with open(cand, "r", encoding="utf-8", errors="ignore") as cf:
+                    for cline in cf:
+                        cm = re.match(r"^\s*release\s*=\s*(\d+)", cline)
+                        if cm:
+                            local_rel = int(cm.group(1))
+                            break
+            if local_rel is not None:
+                break
+                
+        packages.append({
+            "mod_name": mod_name,
+            "author": author,
+            "cdb_author": cdb_author,
+            "cdb_name": cdb_name,
+            "is_diverged": is_diverged,
+            "local_rel": local_rel,
+            "notes": notes
+        })
+
+updates = 0
+up_to_date = 0
+diverged = 0
+unversioned = 0
+errors = 0
+
+print(f"{'MOD NAME':<26} {'STATUS':<20} {'DETAILS'}")
+print(f"{'--------------------------':<26} {'--------------------':<20} {'----------------------------------------'}")
+
+for pkg in packages:
+    mod_name = pkg["mod_name"]
+    local_rel = pkg["local_rel"]
+    is_diverged = pkg["is_diverged"]
+    cdb_author = pkg["cdb_author"]
+    cdb_name = pkg["cdb_name"]
+
+    remote_rel = None
+    if cdb_author and cdb_name:
+        remote_rel = cdb_map.get((cdb_author.lower(), cdb_name.lower()))
+    if remote_rel is None and cdb_name:
+        remote_rel = cdb_map.get(cdb_name.lower())
+
+    if is_diverged:
+        diverged += 1
+        detail = f"Release {local_rel or 'N/A'}"
+        if remote_rel and local_rel and remote_rel > local_rel:
+            detail += f" (Upstream: {remote_rel})"
+        print(f"{mod_name:<26} {'Diverged 🔒':<20} {detail}")
+    elif remote_rel is None:
+        errors += 1
+        print(f"{mod_name:<26} {'Not on ContentDB ❌':<20} {'No ContentDB release found'}")
+    else:
+        if local_rel is None:
+            unversioned += 1
+            print(f"{mod_name:<26} {'No Local Rel ID ⚠️':<20} Upstream: {remote_rel}")
+        elif remote_rel > local_rel:
+            updates += 1
+            print(f"{mod_name:<26} {'Update Available ⚠️':<20} Local: {local_rel} -> Upstream: {remote_rel}")
+        else:
+            up_to_date += 1
+            print(f"{mod_name:<26} {'Up to date ✅':<20} Release {local_rel}")
+
+print("")
+print("==================================================================")
+print(f"Summary: {len(packages)} checked | {up_to_date} up to date | {updates} updates available | {unversioned} unversioned | {diverged} diverged | {errors} errors")
+print("==================================================================")
+if updates > 0:
+    print("Tip: Run 'update_external_mods.sh diff <mod_name>' to inspect upstream source for any mod with updates.")
+EOF
+}
+
+do_check_all_git() {
+    echo "Checking all external mods against upstream Git repositories (raw HEAD)..."
+    echo ""
+    printf "%-26s %-20s %s\n" "MOD NAME" "STATUS" "DETAILS"
+    printf "%-26s %-20s %s\n" "--------------------------" "--------------------" "----------------------------------------"
+
+    local total=0
+    local up_to_date=0
+    local updates_available=0
+    local diverged=0
+    local errors=0
+
+    while IFS=$'\t' read -r mod_name source_url is_diverged notes; do
+        total=$((total + 1))
+        local local_mod_path="$MODS_DIR/$mod_name"
+        
+        if [ ! -d "$local_mod_path" ]; then
+            printf "%-26s %-20s %s\n" "$mod_name" "Missing Locally ❌" "Directory not in mods/"
+            errors=$((errors + 1))
+            continue
+        fi
+
+        if [ -z "$source_url" ]; then
+            printf "%-26s %-20s %s\n" "$mod_name" "No Source URL ❌" "No source URL in external_mods.md"
+            errors=$((errors + 1))
+            continue
+        fi
+
+        cleanup
+        TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/eg_mod_${mod_name}_XXXXXX")"
+
+        local clone_err
+        if ! clone_err="$(git clone --depth 1 --quiet -- "$source_url" "$TEMP_DIR/clone" 2>&1)"; then
+            printf "%-26s %-20s %s\n" "$mod_name" "Fetch Failed ❌" "Git clone error"
+            errors=$((errors + 1))
+            continue
+        fi
+
+        local upstream_mod_root
+        upstream_mod_root="$(locate_mod_root "$TEMP_DIR/clone" "$mod_name" "$local_mod_path")"
+
+        strip_vcs_metadata "$TEMP_DIR/clone"
+        if [ "$upstream_mod_root" != "$TEMP_DIR/clone" ]; then
+            strip_vcs_metadata "$upstream_mod_root"
+        fi
+
+        set +e
+        local diff_output
+        diff_output="$(git diff --no-index --shortstat "$local_mod_path" "$upstream_mod_root" 2>/dev/null)"
+        local diff_status=$?
+        set -e
+
+        if [ "$diff_status" -eq 0 ]; then
+            if [ "$is_diverged" = "1" ]; then
+                printf "%-26s %-20s %s\n" "$mod_name" "Diverged (Sync) 🔒" "Matches upstream"
+                diverged=$((diverged + 1))
+            else
+                printf "%-26s %-20s %s\n" "$mod_name" "Up to date ✅" "Matches upstream HEAD"
+                up_to_date=$((up_to_date + 1))
+            fi
+        elif [ "$diff_status" -eq 1 ]; then
+            local stat_summary
+            stat_summary="$(echo "$diff_output" | sed 's/^[[:space:]]*//')"
+            if [ "$is_diverged" = "1" ]; then
+                printf "%-26s %-20s %s\n" "$mod_name" "Diverged 🔒" "$stat_summary"
+                diverged=$((diverged + 1))
+            else
+                printf "%-26s %-20s %s\n" "$mod_name" "Update Available ⚠️" "$stat_summary"
+                updates_available=$((updates_available + 1))
+            fi
+        else
+            printf "%-26s %-20s %s\n" "$mod_name" "Diff Error ❌" "Exit code $diff_status"
+            errors=$((errors + 1))
+        fi
+    done < <(parse_registry)
+
+    cleanup
+    echo ""
+    echo "=================================================================="
+    echo "Summary: $total checked | $up_to_date up to date | $updates_available updates available | $diverged diverged | $errors errors"
+    echo "=================================================================="
+    if [ "$updates_available" -gt 0 ]; then
+        echo "Tip: Run '$SCRIPT_NAME diff <mod_name>' to inspect changes for any mod with updates."
+    fi
 }
 
 fetch_upstream() {
@@ -335,6 +549,29 @@ case "$ACTION" in
         ;;
     list)
         do_list
+        ;;
+    check-all|check|status)
+        shift || true
+        USE_GIT="false"
+        for arg in "$@"; do
+            case "$arg" in
+                --git)
+                    USE_GIT="true"
+                    ;;
+                -h|--help)
+                    usage 0
+                    ;;
+                *)
+                    echo "Error: Unknown option '$arg'." >&2
+                    usage 1
+                    ;;
+            esac
+        done
+        if [ "$USE_GIT" = "true" ]; then
+            do_check_all_git
+        else
+            do_check_all_cdb
+        fi
         ;;
     diff)
         shift

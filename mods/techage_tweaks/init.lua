@@ -367,4 +367,32 @@ minetest.register_on_mods_loaded(function()
             end)
         end)
     end
+
+    -- 7. Clean up Test Nodes & Deprecated Legacy Variants
+    local clutter_nodes = {
+        -- Test & Dev Nodes
+        "techage:sink",
+        "techage:sink_on",
+        "techage:t2_source",
+        "techage:t4_source",
+        "techage:testblock",
+        -- Legacy / Deprecated Variants
+        "techage:powerswitch_box",
+        "techage:powerswitch_box_on",
+        "techage:ta3_doorcontroller",
+        "techage:ta4_movecontroller",
+        "techage:ta3_logic",
+    }
+
+    for _, nodename in ipairs(clutter_nodes) do
+        if minetest.registered_items[nodename] then
+            local groups = table.copy(minetest.registered_items[nodename].groups or {})
+            groups.not_in_creative_inventory = 1
+            minetest.override_item(nodename, {
+                groups = groups,
+            })
+            minetest.clear_craft({ output = nodename })
+        end
+    end
 end)
+

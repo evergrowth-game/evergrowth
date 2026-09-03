@@ -43,7 +43,7 @@ local function std_normal(u)
 end
 
 
-local function generate_cdf(lambda_index, lambda)
+local function generate_cdf(lambda)
 
 	local max = ceil(4 * lambda)
 	local pdf = exp(-lambda)
@@ -63,7 +63,7 @@ end
 local cdf_table = {}
 
 for li = 1, 100 do
-	cdf_table[li] = generate_cdf(li, 0.25 * li)
+	cdf_table[li] = generate_cdf(0.25 * li)
 end
 
 
