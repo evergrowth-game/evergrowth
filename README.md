@@ -27,10 +27,10 @@ Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foun
 
 ## Integrated Community Mods
 
-Evergrowth is built on the foundation of Minetest Game (MTG) and utilizes a carefully curated selection of 80 integrated community mods to provide rich features (such as vehicle systems, machinery, biomes, and magic) without rebuilding those complex engines from scratch.
+Evergrowth is built on the foundation of Minetest Game (MTG) and utilizes a carefully curated selection of 83 integrated community mods to provide rich features (such as vehicle systems, machinery, biomes, and magic) without rebuilding those complex engines from scratch.
 
 These mods are pre-packaged directly in the `mods/` directory for three critical reasons:
-1. **Out-of-the-Box Playability**: Players and server hosts do not need to hunt down, download, or configure 80 separate external mods. The game is fully complete and playable immediately upon installation.
+1. **Out-of-the-Box Playability**: Players and server hosts do not need to hunt down, download, or configure 83 separate external mods. The game is fully complete and playable immediately upon installation.
 2. **Stability & Version Control**: Community mods evolve independently and updates can introduce breaking conflicts. Statically snapshotting these specific versions guarantees that all integrated systems remain locked at tested, compatible, and stable states.
 3. **Custom Integration & Optimization**: Many of these mods have been custom-tweaked via `*_tweaks` layers to ensure thematic compatibility, resolved dependencies, and clean performance.
 
