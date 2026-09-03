@@ -394,5 +394,22 @@ minetest.register_on_mods_loaded(function()
             minetest.clear_craft({ output = nodename })
         end
     end
+
+    -- 8. Unified Inventory Button Layout & Privilege Filtering
+    if minetest.global_exists("unified_inventory") and unified_inventory then
+        unified_inventory.hide_disabled_buttons = true
+        if unified_inventory.style_full then
+            unified_inventory.style_full.main_button_cols = 14
+        end
+
+        -- Remove clear_inv button for all players
+        if unified_inventory.buttons then
+            for i = #unified_inventory.buttons, 1, -1 do
+                if unified_inventory.buttons[i].name == "clear_inv" then
+                    table.remove(unified_inventory.buttons, i)
+                end
+            end
+        end
+    end
 end)
 
