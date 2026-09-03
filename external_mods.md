@@ -6,7 +6,7 @@ To ensure that the Evergrowth game repository is entirely self-contained, stable
 
 ## Integrated Mods List
 
-The following 80 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
+The following 83 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
 
 | Mod Name | Author / Creator | License | Upstream Source | Notes / Attributions |
 | :--- | :--- | :--- | :--- | :--- |
@@ -74,7 +74,9 @@ The following 80 integrated community mods are packaged with this game. All link
 | `ropes` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/ropes/) &bull; [Source](https://github.com/minetest-mods/ropes) |  |
 | `ruined_structures` | X-DE1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/X-DE1/ruined_structures/) &bull; [Source](https://github.com/X-DE1/ruined_structures) |  |
 | `shipwrecks` | mt-mods | GPL-3.0-only | [ContentDB](https://content.luanti.org/packages/mt-mods/shipwrecks/) &bull; [Source](https://github.com/mt-historical/shipwrecks) |  |
+| `signs_lib` | mt-mods | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/signs_lib/) &bull; [Source](https://github.com/mt-mods/signs_lib) | Adds signs with readable text |
 | `simple_woodcutter` | luarocks | MIT | [ContentDB](https://content.luanti.org/packages/luarocks/simple_woodcutter/) &bull; [Source](https://notabug.org/rr/simple_woodcutter) |  |
+| `skinsdb` | bell07 | GPL-3.0-or-later for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/bell07/skinsdb/) &bull; [Source](https://github.com/minetest-mods/skinsdb) | Player skin selector UI |
 | `supercub` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/supercub/) &bull; [Source](https://github.com/APercy/supercub.git) |  |
 | `techage_modpack` | joe7575 | AGPL-3.0-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/joe7575/techage_modpack/) &bull; [Source](https://github.com/joe7575/techage_modpack.git) |  |
 | `telemosaic` | mt-mods | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/mt-mods/telemosaic/) &bull; [Source](https://github.com/mt-mods/telemosaic) |  |
@@ -86,6 +88,7 @@ The following 80 integrated community mods are packaged with this game. All link
 | `unified_inventory_plus` | mt-mods | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/unified_inventory_plus/) &bull; [Source](https://github.com/mt-mods/unified_inventory_plus) |  |
 | `wielded_light` | bell07 | GPL-3.0-only | [ContentDB](https://content.luanti.org/packages/bell07/wielded_light/) &bull; [Source](https://github.com/minetest-mods/wielded_light) |  |
 | `wine` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/wine/) &bull; [Source](https://codeberg.org/tenplus1/wine) |  |
+| `worm_farm` | sirrobzeroone | MIT | [ContentDB](https://content.luanti.org/packages/sirrobzeroone/worm_farm/) &bull; [Source](https://github.com/sirrobzeroone/worm_farm) | Worm cultivation boxes for fishing bait |
 | `worldedit` | sfan5 | AGPL-3.0-only | [ContentDB](https://content.luanti.org/packages/sfan5/worldedit/) &bull; [Source](https://github.com/Uberi/Minetest-WorldEdit) |  |
 | `x_enchanting` | SaKeL | LGPL-2.1-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/SaKeL/x_enchanting/) &bull; [Source](https://bitbucket.org/minetest_gamers/x_enchanting/src/master/) |  |
 | `xcompat` | mt-mods | MIT | [ContentDB](https://content.luanti.org/packages/mt-mods/xcompat/) &bull; [Source](https://github.com/mt-mods/xcompat) |  |
