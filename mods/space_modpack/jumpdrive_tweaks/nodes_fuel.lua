@@ -7,12 +7,12 @@ local S = minetest.get_translator("jumpdrive_tweaks")
 minetest.register_node("jumpdrive_tweaks:fuel_tank", {
 	description = S("Spacecraft Fuel Tank (Techage Compatible)"),
 	tiles = {
-		"default_steel_block.png^jumpdrive_front.png",
-		"default_steel_block.png^jumpdrive_engine_side.png",
-		"default_steel_block.png^jumpdrive_engine_side.png",
-		"default_steel_block.png^jumpdrive_engine_side.png",
-		"default_steel_block.png^jumpdrive_engine_side.png",
-		"default_steel_block.png^jumpdrive_front.png"
+		"default_steel_block.png^jumpdrive_warpdevice.png",
+		"default_steel_block.png^jumpdrive_backbone.png",
+		"default_steel_block.png^jumpdrive_backbone.png",
+		"default_steel_block.png^jumpdrive_backbone.png",
+		"default_steel_block.png^jumpdrive_backbone.png",
+		"default_steel_block.png^jumpdrive_warpdevice.png"
 	},
 	groups = {cracky = 1, jumpdrive_ship_part = 1},
 	paramtype = "light",
@@ -41,7 +41,7 @@ minetest.register_node("jumpdrive_tweaks:fuel_port", {
 		"default_steel_block.png",
 		"default_steel_block.png",
 		"default_steel_block.png",
-		"default_steel_block.png^jumpdrive_front.png^[colorize:#00ffff:60"
+		"default_steel_block.png^jumpdrive.png^[colorize:#00ffff:60"
 	},
 	groups = {cracky = 1, jumpdrive_ship_part = 1},
 	paramtype = "light",

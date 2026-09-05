@@ -6,7 +6,7 @@ local S = minetest.get_translator("other_worlds_tweaks")
 -- 1. Rich Asteroid Iron Ore (Drops 2-4 iron lumps)
 minetest.register_node("other_worlds_tweaks:rich_iron_ore", {
 	description = S("Rich Asteroid Iron Ore"),
-	tiles = {"asteroid_stone.png^default_mineral_iron.png"},
+	tiles = {"default_stone.png^default_mineral_iron.png"},
 	is_ground_content = false,
 	groups = {cracky = 2},
 	drop = {
@@ -23,7 +23,7 @@ minetest.register_node("other_worlds_tweaks:rich_iron_ore", {
 -- 2. Rich Asteroid Copper Ore (Drops 2-4 copper lumps)
 minetest.register_node("other_worlds_tweaks:rich_copper_ore", {
 	description = S("Rich Asteroid Copper Ore"),
-	tiles = {"asteroid_stone.png^default_mineral_copper.png"},
+	tiles = {"default_stone.png^default_mineral_copper.png"},
 	is_ground_content = false,
 	groups = {cracky = 2},
 	drop = {
@@ -40,7 +40,7 @@ minetest.register_node("other_worlds_tweaks:rich_copper_ore", {
 -- 3. Rich Asteroid Gold Ore (Drops 2-3 gold lumps)
 minetest.register_node("other_worlds_tweaks:rich_gold_ore", {
 	description = S("Rich Asteroid Gold Ore"),
-	tiles = {"asteroid_stone.png^default_mineral_gold.png"},
+	tiles = {"default_stone.png^default_mineral_gold.png"},
 	is_ground_content = false,
 	groups = {cracky = 2},
 	drop = {
@@ -56,7 +56,7 @@ minetest.register_node("other_worlds_tweaks:rich_gold_ore", {
 -- 4. Rich Asteroid Diamond Ore (Drops 2-3 diamonds)
 minetest.register_node("other_worlds_tweaks:rich_diamond_ore", {
 	description = S("Rich Asteroid Diamond Ore"),
-	tiles = {"asteroid_stone.png^default_mineral_diamond.png"},
+	tiles = {"default_stone.png^default_mineral_diamond.png"},
 	is_ground_content = false,
 	groups = {cracky = 1},
 	drop = {
@@ -72,7 +72,7 @@ minetest.register_node("other_worlds_tweaks:rich_diamond_ore", {
 -- 5. Rich Asteroid Mese Ore (Drops 2-3 mese crystals)
 minetest.register_node("other_worlds_tweaks:rich_mese_ore", {
 	description = S("Rich Asteroid Mese Ore"),
-	tiles = {"asteroid_stone.png^default_mineral_mese.png"},
+	tiles = {"default_stone.png^default_mineral_mese.png"},
 	is_ground_content = false,
 	groups = {cracky = 1},
 	drop = {
