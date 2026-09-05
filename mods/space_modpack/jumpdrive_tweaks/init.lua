@@ -6,5 +6,7 @@ dofile(modpath .. "/nodes_fuel.lua")
 dofile(modpath .. "/techage_pipe.lua")
 dofile(modpath .. "/validator.lua")
 dofile(modpath .. "/decouple.lua")
+dofile(modpath .. "/crafts.lua")
 
-minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, validator, and decoupling hooks.")
+minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, validator, crafts, and decoupling hooks.")
+

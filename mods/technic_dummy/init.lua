@@ -19,3 +19,14 @@ setmetatable(technic, {
 technic.register_power_tool = no_op
 technic.set_RE_wear = no_op
 technic.refill_RE_charge = no_op
+
+-- Register dummy anchor nodes so mods like jumpdrive can safely override them
+minetest.register_node("technic:admin_anchor", {
+	description = "Admin Anchor (Dummy)",
+	groups = {not_in_creative_inventory = 1},
+})
+minetest.register_node("technic:anchor", {
+	description = "Anchor (Dummy)",
+	groups = {not_in_creative_inventory = 1},
+})
+
