@@ -68,6 +68,49 @@ if jumpdrive then
 	end
 end
 
+-- Auto-jump on uncharted destinations (single-click workflow)
+if jumpdrive and jumpdrive.execute_jump then
+	local orig_execute_jump = jumpdrive.execute_jump
+
+	jumpdrive.execute_jump = function(pos, player)
+		local playername = (player and player:is_player()) and player:get_player_name() or ""
+		local radius = jumpdrive.get_radius(pos)
+		local targetPos = jumpdrive.get_meta_pos(pos)
+		local radius_vector = vector.new(radius, radius, radius)
+		local target_pos1 = vector.subtract(targetPos, radius_vector)
+		local target_pos2 = vector.add(targetPos, radius_vector)
+
+		-- Probe destination blocks
+		minetest.get_voxel_manip():read_from_map(target_pos1, target_pos2)
+		local is_empty, empty_msg = jumpdrive.is_area_empty(target_pos1, target_pos2)
+
+		if not is_empty and empty_msg == "uncharted" then
+			if playername ~= "" then
+				minetest.chat_send_player(playername, "Target sector uncharted: generating destination and executing jump...")
+			end
+
+			local function emerge_callback(blockpos, action, calls_remaining, data)
+				if calls_remaining == 0 then
+					local success, msg = orig_execute_jump(pos, player)
+					if playername ~= "" then
+						if success then
+							local time_millis = math.floor(msg / 1000)
+							minetest.chat_send_player(playername, "Jump executed in " .. time_millis .. " ms")
+						else
+							minetest.chat_send_player(playername, "Auto-jump aborted: " .. tostring(msg))
+						end
+					end
+				end
+			end
+
+			minetest.emerge_area(target_pos1, target_pos2, emerge_callback)
+			return false, "Charting sector in progress..."
+		end
+
+		return orig_execute_jump(pos, player)
+	end
+end
+
 -- Override jumpdrive.preflight_check to automatically charge engine from fuel tanks before jump
 if jumpdrive then
 	jumpdrive.preflight_check = function(source, destination, radius, playername)
