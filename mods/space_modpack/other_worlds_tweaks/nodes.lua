@@ -8,6 +8,8 @@ minetest.register_node("other_worlds_tweaks:rich_iron_ore", {
 	description = S("Rich Asteroid Iron Ore"),
 	tiles = {"default_stone.png^default_mineral_iron.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 2},
 	drop = {
 		max_items = 4,
@@ -25,6 +27,8 @@ minetest.register_node("other_worlds_tweaks:rich_copper_ore", {
 	description = S("Rich Asteroid Copper Ore"),
 	tiles = {"default_stone.png^default_mineral_copper.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 2},
 	drop = {
 		max_items = 4,
@@ -42,6 +46,8 @@ minetest.register_node("other_worlds_tweaks:rich_gold_ore", {
 	description = S("Rich Asteroid Gold Ore"),
 	tiles = {"default_stone.png^default_mineral_gold.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 2},
 	drop = {
 		max_items = 3,
@@ -58,6 +64,8 @@ minetest.register_node("other_worlds_tweaks:rich_diamond_ore", {
 	description = S("Rich Asteroid Diamond Ore"),
 	tiles = {"default_stone.png^default_mineral_diamond.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 1},
 	drop = {
 		max_items = 3,
@@ -74,6 +82,8 @@ minetest.register_node("other_worlds_tweaks:rich_mese_ore", {
 	description = S("Rich Asteroid Mese Ore"),
 	tiles = {"default_stone.png^default_mineral_mese.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 1},
 	drop = {
 		max_items = 3,
@@ -90,6 +100,8 @@ minetest.register_node("other_worlds_tweaks:rich_tin_ore", {
 	description = S("Rich Asteroid Tin Ore"),
 	tiles = {"default_stone.png^default_mineral_tin.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 2},
 	drop = {
 		max_items = 4,
@@ -107,6 +119,8 @@ minetest.register_node("other_worlds_tweaks:rich_coal_ore", {
 	description = S("Rich Asteroid Coal Ore"),
 	tiles = {"default_stone.png^default_mineral_coal.png"},
 	is_ground_content = false,
+	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 3},
 	drop = {
 		max_items = 5,
@@ -125,6 +139,7 @@ minetest.register_node("other_worlds_tweaks:comet_ice", {
 	tiles = {"default_ice.png^[colorize:#88ccff:40"},
 	is_ground_content = false,
 	paramtype = "light",
+	sunlight_propagates = true,
 	groups = {cracky = 3, cools_lava = 1},
 	sounds = default.node_sound_glass_defaults()
 })
@@ -203,4 +218,30 @@ if minetest.registered_nodes["asteroid:meseore"] then
 			}
 		}
 	})
+end
+
+-- Allow sunlight to propagate through all space and asteroid nodes so they do not cast phantom shadows on the ground
+local asteroid_nodes = {
+	"asteroid:stone",
+	"asteroid:redstone",
+	"asteroid:cobble",
+	"asteroid:redcobble",
+	"asteroid:gravel",
+	"asteroid:redgravel",
+	"asteroid:dust",
+	"asteroid:reddust",
+	"asteroid:ironore",
+	"asteroid:copperore",
+	"asteroid:goldore",
+	"asteroid:diamondore",
+	"asteroid:meseore",
+}
+
+for _, nodename in ipairs(asteroid_nodes) do
+	if minetest.registered_nodes[nodename] then
+		minetest.override_item(nodename, {
+			paramtype = "light",
+			sunlight_propagates = true,
+		})
+	end
 end
