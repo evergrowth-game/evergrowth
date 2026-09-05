@@ -56,6 +56,18 @@ local function charge_engine_from_tanks(engine_pos, radius, target_eu)
 	return current_eu
 end
 
+-- Enable automatic background map emergence for jumps into uncharted destinations
+if jumpdrive and jumpdrive.config then
+	jumpdrive.config.emerge_uncharted = true
+end
+
+-- Disable the 10-second mapgen proximity lockout so jumps execute immediately
+if jumpdrive then
+	jumpdrive.check_mapgen = function(pos)
+		return false
+	end
+end
+
 -- Override jumpdrive.preflight_check to automatically charge engine from fuel tanks before jump
 if jumpdrive then
 	jumpdrive.preflight_check = function(source, destination, radius, playername)
