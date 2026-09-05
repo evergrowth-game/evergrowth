@@ -85,7 +85,41 @@ minetest.register_node("other_worlds_tweaks:rich_mese_ore", {
 	sounds = default.node_sound_stone_defaults()
 })
 
--- 6. Comet Ice (Source of off-world water and hydrogen)
+-- 6. Rich Asteroid Tin Ore (Drops 2-4 tin lumps)
+minetest.register_node("other_worlds_tweaks:rich_tin_ore", {
+	description = S("Rich Asteroid Tin Ore"),
+	tiles = {"default_stone.png^default_mineral_tin.png"},
+	is_ground_content = false,
+	groups = {cracky = 2},
+	drop = {
+		max_items = 4,
+		items = {
+			{items = {"default:tin_lump 4"}, rarity = 4},
+			{items = {"default:tin_lump 3"}, rarity = 2},
+			{items = {"default:tin_lump 2"}, rarity = 1}
+		}
+	},
+	sounds = default.node_sound_stone_defaults()
+})
+
+-- 7. Rich Asteroid Coal Ore (Drops 3-5 coal lumps)
+minetest.register_node("other_worlds_tweaks:rich_coal_ore", {
+	description = S("Rich Asteroid Coal Ore"),
+	tiles = {"default_stone.png^default_mineral_coal.png"},
+	is_ground_content = false,
+	groups = {cracky = 3},
+	drop = {
+		max_items = 5,
+		items = {
+			{items = {"default:coal_lump 5"}, rarity = 4},
+			{items = {"default:coal_lump 4"}, rarity = 2},
+			{items = {"default:coal_lump 3"}, rarity = 1}
+		}
+	},
+	sounds = default.node_sound_stone_defaults()
+})
+
+-- 8. Comet Ice (Source of off-world water and hydrogen)
 minetest.register_node("other_worlds_tweaks:comet_ice", {
 	description = S("Comet Ice"),
 	tiles = {"default_ice.png^[colorize:#88ccff:40"},
@@ -108,69 +142,65 @@ if minetest.get_modpath("techage") and techage and techage.register_recipe then
 	techage.register_recipe("cooking", "other_worlds_tweaks:comet_ice", "bucket:bucket_water")
 end
 
--- Mapgen registrations for rich ores in asteroid layer (Y = 5000 to 12000)
-minetest.register_ore({
-	ore_type = "scatter",
-	ore = "other_worlds_tweaks:rich_iron_ore",
-	wherein = "asteroid:stone",
-	clust_scarcity = 12 * 12 * 12,
-	clust_num_ores = 4,
-	clust_size = 3,
-	y_min = 5000,
-	y_max = 12000,
-})
+-- Override existing asteroid ores with rich drop yields (2-4x)
+if minetest.registered_nodes["asteroid:ironore"] then
+	minetest.override_item("asteroid:ironore", {
+		drop = {
+			max_items = 4,
+			items = {
+				{items = {"default:iron_lump 4"}, rarity = 4},
+				{items = {"default:iron_lump 3"}, rarity = 2},
+				{items = {"default:iron_lump 2"}, rarity = 1}
+			}
+		}
+	})
+end
 
-minetest.register_ore({
-	ore_type = "scatter",
-	ore = "other_worlds_tweaks:rich_copper_ore",
-	wherein = "asteroid:stone",
-	clust_scarcity = 14 * 14 * 14,
-	clust_num_ores = 4,
-	clust_size = 3,
-	y_min = 5000,
-	y_max = 12000,
-})
+if minetest.registered_nodes["asteroid:copperore"] then
+	minetest.override_item("asteroid:copperore", {
+		drop = {
+			max_items = 4,
+			items = {
+				{items = {"default:copper_lump 4"}, rarity = 4},
+				{items = {"default:copper_lump 3"}, rarity = 2},
+				{items = {"default:copper_lump 2"}, rarity = 1}
+			}
+		}
+	})
+end
 
-minetest.register_ore({
-	ore_type = "scatter",
-	ore = "other_worlds_tweaks:rich_gold_ore",
-	wherein = "asteroid:stone",
-	clust_scarcity = 18 * 18 * 18,
-	clust_num_ores = 3,
-	clust_size = 2,
-	y_min = 5000,
-	y_max = 12000,
-})
+if minetest.registered_nodes["asteroid:goldore"] then
+	minetest.override_item("asteroid:goldore", {
+		drop = {
+			max_items = 3,
+			items = {
+				{items = {"default:gold_lump 3"}, rarity = 2},
+				{items = {"default:gold_lump 2"}, rarity = 1}
+			}
+		}
+	})
+end
 
-minetest.register_ore({
-	ore_type = "scatter",
-	ore = "other_worlds_tweaks:rich_diamond_ore",
-	wherein = "asteroid:stone",
-	clust_scarcity = 22 * 22 * 22,
-	clust_num_ores = 2,
-	clust_size = 2,
-	y_min = 5000,
-	y_max = 12000,
-})
+if minetest.registered_nodes["asteroid:diamondore"] then
+	minetest.override_item("asteroid:diamondore", {
+		drop = {
+			max_items = 3,
+			items = {
+				{items = {"default:diamond 3"}, rarity = 3},
+				{items = {"default:diamond 2"}, rarity = 1}
+			}
+		}
+	})
+end
 
-minetest.register_ore({
-	ore_type = "scatter",
-	ore = "other_worlds_tweaks:rich_mese_ore",
-	wherein = "asteroid:stone",
-	clust_scarcity = 20 * 20 * 20,
-	clust_num_ores = 3,
-	clust_size = 2,
-	y_min = 5000,
-	y_max = 12000,
-})
-
-minetest.register_ore({
-	ore_type = "blob",
-	ore = "other_worlds_tweaks:comet_ice",
-	wherein = {"asteroid:stone", "asteroid:redstone"},
-	clust_scarcity = 24 * 24 * 24,
-	clust_num_ores = 12,
-	clust_size = 4,
-	y_min = 5000,
-	y_max = 12000,
-})
+if minetest.registered_nodes["asteroid:meseore"] then
+	minetest.override_item("asteroid:meseore", {
+		drop = {
+			max_items = 3,
+			items = {
+				{items = {"default:mese_crystal 3"}, rarity = 2},
+				{items = {"default:mese_crystal 2"}, rarity = 1}
+			}
+		}
+	})
+end
