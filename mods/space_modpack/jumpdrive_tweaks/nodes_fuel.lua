@@ -3,6 +3,47 @@
 
 local S = minetest.get_translator("jumpdrive_tweaks")
 
+local MANUAL_CANISTERS = {
+	-- Techage Gas Cylinders & Petrochemicals
+	["techage:cylinder_large_hydrogen"] = {
+		liquid = "techage:hydrogen",
+		amount = 5000,
+		empty = "techage:ta3_cylinder_large",
+		label = "Hydrogen"
+	},
+	["techage:cylinder_small_hydrogen"] = {
+		liquid = "techage:hydrogen",
+		amount = 1000,
+		empty = "techage:ta3_cylinder_small",
+		label = "Hydrogen"
+	},
+	["techage:ta3_cylinder_large_gas"] = {
+		liquid = "techage:gas",
+		amount = 5000,
+		empty = "techage:ta3_cylinder_large",
+		label = "Petroleum Gas"
+	},
+	["techage:ta4_cylinder_large_isobutane"] = {
+		liquid = "techage:isobutane",
+		amount = 5000,
+		empty = "techage:ta3_cylinder_large",
+		label = "Isobutane"
+	},
+	-- Biofuel Canisters & Bottles
+	["biofuel:canister_fuel"] = {
+		liquid = "biofuel:fuel",
+		amount = 2500,
+		empty = "biofuel:canister_empty",
+		label = "Biofuel"
+	},
+	["biofuel:bottle_fuel"] = {
+		liquid = "biofuel:fuel",
+		amount = 500,
+		empty = "vessels:glass_bottle",
+		label = "Biofuel"
+	},
+}
+
 -- 1. Spacecraft Onboard Fuel Tank
 minetest.register_node("jumpdrive_tweaks:fuel_tank", {
 	description = S("Spacecraft Fuel Tank (Techage Compatible)"),
@@ -25,6 +66,50 @@ minetest.register_node("jumpdrive_tweaks:fuel_tank", {
 		meta:set_int("fuel_amount", 0)
 		meta:set_string("fuel_type", "")
 		meta:set_string("infotext", S("Spacecraft Fuel Tank: 0 / 5000 units"))
+	end,
+	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+		if not clicker or not itemstack then return itemstack end
+		local item_name = itemstack:get_name()
+		local canister_data = MANUAL_CANISTERS[item_name]
+		if not canister_data then return itemstack end
+
+		local meta = minetest.get_meta(pos)
+		local current = meta:get_int("fuel_amount")
+		local capacity = meta:get_int("capacity") or 5000
+		local current_type = meta:get_string("fuel_type")
+
+		if current >= capacity then
+			minetest.chat_send_player(clicker:get_player_name(), S("Fuel tank is already completely full."))
+			return itemstack
+		end
+
+		if current > 0 and current_type ~= "" and current_type ~= canister_data.liquid then
+			minetest.chat_send_player(clicker:get_player_name(), S("Cannot mix different propellant types in the same tank."))
+			return itemstack
+		end
+
+		local space = capacity - current
+		local fill_amount = math.min(space, canister_data.amount)
+		local new_amount = current + fill_amount
+
+		meta:set_int("fuel_amount", new_amount)
+		meta:set_string("fuel_type", canister_data.liquid)
+		meta:set_string("infotext", string.format("Spacecraft Fuel Tank: %d / %d (%s)", new_amount, capacity, canister_data.label))
+
+		-- Consume 1 filled canister from hand
+		itemstack:take_item(1)
+
+		-- Give empty container back to player
+		local inv = clicker:get_inventory()
+		if canister_data.empty and inv then
+			local leftover = inv:add_item("main", ItemStack(canister_data.empty))
+			if leftover and not leftover:is_empty() then
+				minetest.add_item(pos, leftover)
+			end
+		end
+
+		minetest.sound_play("default_cool_lava", {pos = pos, gain = 0.5}, true)
+		return itemstack
 	end,
 	can_dig = function(pos, player)
 		local meta = minetest.get_meta(pos)

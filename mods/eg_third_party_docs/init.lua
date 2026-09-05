@@ -576,7 +576,7 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"• Jumpdrive Engine:\n" ..
 					"The core block that teleports the ship and all occupants to destination coordinates. Powered by high-voltage Techage electricity or internal battery buffers.\n\n" ..
 					"• Fuel System:\n" ..
-					"Starships require Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with liquid Hydrogen or Petrochemicals. Refuel tanks using the Starship Fuel Port (jumpdrive_tweaks:fuel_port) linked to a Techage pipe network.\n\n" ..
+					"Starships require Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with liquid Hydrogen, Gas, or Petrochemicals. Refuel tanks by right-clicking directly with fuel canisters/cylinders or connecting via a Starship Fuel Port (jumpdrive_tweaks:fuel_port) linked to a Techage pipe network.\n\n" ..
 					"• Structural Constraints:\n" ..
 					"- Ships must form a continuous structure anchored by structural hull blocks (steel, carbon, composites).\n" ..
 					"- Unanchored loose nodes further than 3 meters from the hull backbone are rejected by the drive.\n" ..

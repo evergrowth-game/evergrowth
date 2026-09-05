@@ -226,7 +226,7 @@ local item_docs = {
 	},
 	["jumpdrive_tweaks:fuel_tank"] = {
 		longdesc = "A heavy-duty cryogenic storage cylinder for starship propellants (Hydrogen or Petrochemicals). Must be installed on a vessel and filled to allow Jumpdrive jumps.",
-		usagehelp = "Place within your starship hull. Connect adjacent to a Starship Fuel Port to fill via a Techage pipe network.",
+		usagehelp = "Place within your starship hull. Right-click with fuel canisters/cylinders to refill manually, or connect adjacent to a Starship Fuel Port to fill via a Techage pipe network.",
 	},
 	["jumpdrive_tweaks:fuel_port"] = {
 		longdesc = "A specialized Starship Liquid Fuel Port that interfaces with Techage pipe networks. Automatically decouples safely upon starship jump without liquid spillage.",

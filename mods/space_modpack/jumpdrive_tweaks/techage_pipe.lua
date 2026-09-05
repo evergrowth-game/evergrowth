@@ -9,6 +9,9 @@ if jumpdrive and jumpdrive.fuel and jumpdrive.fuel.register then
 	jumpdrive.fuel.register("techage:hydrogen", 50)
 
 	-- Medium efficiency: Petrochemicals & Refined Fuel
+	jumpdrive.fuel.register("techage:cylinder_large_gas", 5000)
+	jumpdrive.fuel.register("techage:ta3_cylinder_large_gas", 5000)
+	jumpdrive.fuel.register("techage:ta4_cylinder_large_isobutane", 5000)
 	jumpdrive.fuel.register("techage:fuel", 2500)
 	jumpdrive.fuel.register("techage:diesel", 2000)
 	jumpdrive.fuel.register("techage:petroleum", 1500)
