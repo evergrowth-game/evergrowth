@@ -513,7 +513,88 @@ doc.add_entry("techage_industry", "power_grids", {
 })
 
 -- ==========================================
--- 7. CATEGORY ORDERING
+-- 7. CATEGORY: Space & Starships
+-- ==========================================
+if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or minetest.get_modpath("jumpdrive") then
+	doc.add_category("space_exploration", {
+		name = "Space & Starships",
+		description = "Guide to vacuum survival, celestial orbital realms, asteroid mining, and jumpdrive-powered starship engineering.",
+		build_formspec = doc.entry_builders.text_and_gallery,
+	})
+
+	if minetest.get_modpath("vacuum") or minetest.get_modpath("spacesuit") then
+		doc.add_entry("space_exploration", "vacuum_survival", {
+			name = "Vacuum Survival & Life Support",
+			data = {
+				text = "The upper atmosphere (above Y = 2,000) transitions into a deadly vacuum:\n\n" ..
+					"• Vacuum Hazards:\n" ..
+					"Exposure to vacuum causes rapid suffocation damage unless protected by a complete, pressurized spacesuit.\n\n" ..
+					"• Spacesuit Equipment:\n" ..
+					"Equip a Spacesuit Helmet, Chestplate with Air Tanks, Leggings, and Boots in your 3D Armor inventory. The integrated air tanks supply breathable oxygen in vacuum and deep underwater.\n\n" ..
+					"• Low Gravity:\n" ..
+					"Gravitational pull in orbital space (Y >= 2,000) is reduced to 25% of terrestrial gravity. Be cautious when leaping across asteroid voids.\n\n" ..
+					"• Autonomous Constructs:\n" ..
+					"Clay Golems and Combat Drones (eg_constructs) do not require oxygen and are naturally immune to vacuum damage.",
+				images = {
+					{ image = "spacesuit:helmet", imagetype = "item", caption = "Spacesuit Helmet" },
+					{ image = "spacesuit:chestplate", imagetype = "item", caption = "Pressurized Suit" },
+					{ image = "spacesuit:pants", imagetype = "item", caption = "Spacesuit Pants" },
+					{ image = "spacesuit:boots", imagetype = "item", caption = "Spacesuit Boots" },
+				},
+			},
+		})
+	end
+
+	if minetest.get_modpath("other_worlds") then
+		doc.add_entry("space_exploration", "celestial_bodies", {
+			name = "Celestial Realms & Asteroid Mining",
+			data = {
+				text = "Orbital space contains vast asteroid clusters, planetary rings, and planetary moons:\n\n" ..
+					"• Orbital Layers:\n" ..
+					"- Terrestrial Atmosphere: Y = -30,000 to 1,999\n" ..
+					"- Orbital Asteroid Belt: Y = 2,000 to 3,500 (Rich Ore Asteroids, Comet Ice)\n" ..
+					"- Moon / Satellite Orbit: Y = 4,000 to 6,500 (Craters, Moon Dust, Basalt)\n" ..
+					"- Red Planet / Mars Orbit: Y = 7,000 to 9,500\n\n" ..
+					"• Comet Ice:\n" ..
+					"Mined from glacial asteroids. Comet ice can be melted in Techage furnaces or industrial cookers into pure liquid water.\n\n" ..
+					"• Enriched Asteroid Ores:\n" ..
+					"Asteroid cores contain dense deposits of Iron, Copper, Gold, Titanium, and Mese Crystals.",
+				images = {
+					{ image = "other_worlds:moon_dust", imagetype = "item", caption = "Moon Regolith" },
+					{ image = "other_worlds:ore_dense_titanium", imagetype = "item", caption = "Dense Titanium Ore" },
+					{ image = "other_worlds:comet_ice", imagetype = "item", caption = "Comet Ice" },
+				},
+			},
+		})
+	end
+
+	if minetest.get_modpath("jumpdrive") then
+		doc.add_entry("space_exploration", "starships", {
+			name = "Starships & Jumpdrive Engineering",
+			data = {
+				text = "Vessels can teleport across space and planetary coordinates using Jumpdrive technology:\n\n" ..
+					"• Jumpdrive Engine:\n" ..
+					"The core block that teleports the ship and all occupants to destination coordinates. Powered by high-voltage Techage electricity or internal battery buffers.\n\n" ..
+					"• Fuel System:\n" ..
+					"Starships require Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with liquid Hydrogen or Petrochemicals. Refuel tanks using the Starship Fuel Port (jumpdrive_tweaks:fuel_port) linked to a Techage pipe network.\n\n" ..
+					"• Structural Constraints:\n" ..
+					"- Ships must form a continuous structure anchored by structural hull blocks (steel, carbon, composites).\n" ..
+					"- Unanchored loose nodes further than 3 meters from the hull backbone are rejected by the drive.\n" ..
+					"- Natural planetary terrain (dirt, stone, water) cannot be jumped.\n\n" ..
+					"• Docking & Pipe Decoupling:\n" ..
+					"Connect to space stations using Starship Fuel Ports. When jumping, fuel ports automatically decouple safely without spilling liquids.",
+				images = {
+					{ image = "jumpdrive:jumpdrive", imagetype = "item", caption = "Jumpdrive Core" },
+					{ image = "jumpdrive_tweaks:fuel_tank", imagetype = "item", caption = "Fuel Tank" },
+					{ image = "jumpdrive_tweaks:fuel_port", imagetype = "item", caption = "Fuel Port" },
+				},
+			},
+		})
+	end
+end
+
+-- ==========================================
+-- 8. CATEGORY ORDERING
 -- ==========================================
 minetest.register_on_mods_loaded(function()
 	doc.set_category_order({
@@ -524,6 +605,7 @@ minetest.register_on_mods_loaded(function()
 		"combat",
 		"magic",
 		"vehicles",
+		"space_exploration",
 
 		-- Column 2: Advanced Systems & Settlements
 		"eg_settlers_guide",
@@ -537,6 +619,7 @@ minetest.register_on_mods_loaded(function()
 end)
 
 -- ==========================================
--- 8. ITEM ENCYCLOPEDIA OVERRIDES
+-- 9. ITEM ENCYCLOPEDIA OVERRIDES
 -- ==========================================
 dofile(minetest.get_modpath("eg_third_party_docs") .. "/item_docs.lua")
+

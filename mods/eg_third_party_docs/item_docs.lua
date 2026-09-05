@@ -204,6 +204,38 @@ local item_docs = {
 		longdesc = "A specialized compass calibrated to point directly toward the coordinates of your last death location.",
 		usagehelp = "Hold in hand or keep in inventory to follow the needle toward your lost items.",
 	},
+
+	-- ==========================================
+	-- 9. Space Exploration & Starship Items
+	-- ==========================================
+	["spacesuit:helmet"] = {
+		longdesc = "A reinforced atmospheric helmet equipped with a sealed visor and life support connectors. Protects against vacuum suffocation when worn with the full spacesuit set.",
+		usagehelp = "Equip in the 3D Armor inventory slot.",
+	},
+	["spacesuit:chestplate"] = {
+		longdesc = "A pressurized spacesuit chestpiece integrated with dual air tanks. Supplies oxygen in vacuum environments (Y >= 2,000) and underwater.",
+		usagehelp = "Equip in the 3D Armor inventory slot.",
+	},
+	["spacesuit:pants"] = {
+		longdesc = "Pressurized carbon-reinforced spacesuit leggings providing atmospheric insulation.",
+		usagehelp = "Equip in the 3D Armor inventory slot.",
+	},
+	["spacesuit:boots"] = {
+		longdesc = "Heavy magnetic boots providing traction and shielding in vacuum and low-gravity environments.",
+		usagehelp = "Equip in the 3D Armor inventory slot.",
+	},
+	["jumpdrive_tweaks:fuel_tank"] = {
+		longdesc = "A heavy-duty cryogenic storage cylinder for starship propellants (Hydrogen or Petrochemicals). Must be installed on a vessel and filled to allow Jumpdrive jumps.",
+		usagehelp = "Place within your starship hull. Connect adjacent to a Starship Fuel Port to fill via a Techage pipe network.",
+	},
+	["jumpdrive_tweaks:fuel_port"] = {
+		longdesc = "A specialized Starship Liquid Fuel Port that interfaces with Techage pipe networks. Automatically decouples safely upon starship jump without liquid spillage.",
+		usagehelp = "Mount on the starship hull or docking cradle. Connect Techage liquid pipes to transfer fuel into adjacent fuel tanks.",
+	},
+	["other_worlds:comet_ice"] = {
+		longdesc = "Pure frozen volatiles harvested from glacial asteroids in orbital space.",
+		usagehelp = "Can be processed in Techage electric furnaces or cooking apparatus into pure liquid water.",
+	},
 }
 
 -- Apply doc_items fields on loaded items

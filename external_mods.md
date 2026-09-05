@@ -50,6 +50,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `i_have_hands` | SURV | MIT | [ContentDB](https://content.luanti.org/packages/SURV/i_have_hands/) &bull; [Source](https://github.com/KingTheGuy/i_have_hands) |  |
 | `item_drop` | texmex | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/texmex/item_drop/) &bull; [Source](https://github.com/minetest-mods/item_drop) |  |
 | `itemframes` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/itemframes/) &bull; [Source](https://codeberg.org/tenplus1/itemframes) |  |
+| `jumpdrive` | Thomas Rudin / mt-mods | GPL-3.0-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/jumpdrive/) &bull; [Source](https://github.com/mt-mods/jumpdrive) | Multi-block starship jump engine. |
 | `lighting_monoid` | TestificateMods | MIT | [ContentDB](https://content.luanti.org/packages/TestificateMods/lighting_monoid/) &bull; [Source](https://github.com/t-affeldt/lighting_monoids) |  |
 | `lootchest_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/lootchest_modpack/) &bull; [Source](https://github.com/mt-historical/lootchests_modpack) |  |
 | `magic_materials` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/magic_materials/) &bull; [Source](https://github.com/mt-historical/magic_materials) |  |
@@ -66,6 +67,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `music_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/music_modpack/) &bull; [Source](https://github.com/mt-historical/music_modpack.git) |  |
 | `nautilus` | apercy | MIT | [ContentDB](https://content.luanti.org/packages/apercy/nautilus/) &bull; [Source](https://github.com/APercy/nautilus) |  |
 | `new_campfire` | mt-mods | LGPL-2.1-only for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/new_campfire/) &bull; [Source](https://github.com/mt-mods/new_campfire) |  |
+| `other_worlds` | Shara RedCat, TenPlus1 | MIT for code, CC-BY-SA-4.0 / CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/other_worlds/) &bull; [Source](https://codeberg.org/tenplus1/other_worlds) | Asteroid worldgen and celestial skyboxes. Original code by paramat/Shara RedCat, skybox by Ulukai, crystal models by Electra Gizen. |
 | `pa28` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/pa28/) &bull; [Source](https://github.com/APercy/pa28.git) |  |
 | `player_monoids` | Byakuren | Apache-2.0 | [ContentDB](https://content.luanti.org/packages/Byakuren/player_monoids/) &bull; [Source](https://github.com/minetest-mods/player_monoids) |  |
 | `playereffects` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/playereffects/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_playereffects) |  |
@@ -77,6 +79,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `signs_lib` | VanessaE | LGPL-3.0-only for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/signs_lib/) &bull; [Source](https://github.com/mt-mods/signs_lib) | Adds signs with readable text |
 | `simple_woodcutter` | luarocks | MIT | [ContentDB](https://content.luanti.org/packages/luarocks/simple_woodcutter/) &bull; [Source](https://notabug.org/rr/simple_woodcutter) |  |
 | `skinsdb` | bell07 | GPL-3.0-or-later for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/bell07/skinsdb/) &bull; [Source](https://github.com/minetest-mods/skinsdb) | Player skin selector UI |
+| `spacesuit` | Thomas Rudin / mt-mods | GPL-3.0-or-later for code, CC-BY-SA-3.0 for media | [Source](https://github.com/mt-mods/spacesuit) | 3D Armor spacesuit gear. Textures by Anonymous_moose and bas080. |
 | `supercub` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/supercub/) &bull; [Source](https://github.com/APercy/supercub.git) |  |
 | `techage_modpack` | joe7575 | AGPL-3.0-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/joe7575/techage_modpack/) &bull; [Source](https://github.com/joe7575/techage_modpack.git) |  |
 | `telemosaic` | mt-mods | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/mt-mods/telemosaic/) &bull; [Source](https://github.com/mt-mods/telemosaic) |  |
@@ -86,6 +89,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `tt_armor` | adikalon | MIT | [ContentDB](https://content.luanti.org/packages/adikalon/tt_armor/) &bull; [Source](https://github.com/adikalon/tt_armor) |  |
 | `tt_food` | adikalon | MIT | [ContentDB](https://content.luanti.org/packages/adikalon/tt_food/) &bull; [Source](https://github.com/adikalon/tt_food) |  |
 | `unified_inventory_plus` | mt-mods | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/unified_inventory_plus/) &bull; [Source](https://github.com/mt-mods/unified_inventory_plus) |  |
+| `vacuum` | Thomas Rudin / mt-mods | GPL-3.0-or-later | [Source](https://github.com/mt-mods/vacuum) | Atmospheric pressure and room seals. |
 | `wielded_light` | bell07 | GPL-3.0-only | [ContentDB](https://content.luanti.org/packages/bell07/wielded_light/) &bull; [Source](https://github.com/minetest-mods/wielded_light) |  |
 | `wine` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/wine/) &bull; [Source](https://codeberg.org/tenplus1/wine) |  |
 | `worm_farm` | sirrobzeroone | MIT | [ContentDB](https://content.luanti.org/packages/sirrobzeroone/worm_farm/) &bull; [Source](https://github.com/sirrobzeroone/worm_farm) | Worm cultivation boxes for fishing bait |
