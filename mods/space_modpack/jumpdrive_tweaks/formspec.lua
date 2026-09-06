@@ -87,7 +87,7 @@ jumpdrive.update_formspec = function(meta, pos)
 	end
 
 	-- Build Beacon Dropdown entries
-	local beacon_items = {"Select Active Transponder"}
+	local beacon_items = {"Select Navigation Beacon"}
 	local active_beacons = jumpdrive_tweaks.get_active_beacons and jumpdrive_tweaks.get_active_beacons() or {}
 
 	for _, binfo in pairs(active_beacons) do
@@ -150,7 +150,7 @@ jumpdrive.update_formspec = function(meta, pos)
 		"button[9.0,4.6;1.3,0.6;nudge_z_pos;+500 Z]" ..
 		"button[10.5,4.6;2.8,0.6;preset_mars;Mars Orbit (8000)]" ..
 
-		"label[7.5,5.3;Lock Vessel Transponder:]" ..
+		"label[7.5,5.3;Lock Navigation Beacon:]" ..
 		"dropdown[7.5,5.6;4.6,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
 		"button[12.3,5.6;1.0,0.7;plot_beacon;Plot]" ..
 
@@ -257,20 +257,73 @@ minetest.register_on_mods_loaded(function()
 				return
 			end
 
-			-- Handle beacon plotting matching dropdown selection
+			-- Handle beacon plotting matching dropdown selection with 2-stage guidance
 			if fields.plot_beacon and fields.beacon_select then
 				local active_beacons = jumpdrive_tweaks.get_active_beacons and jumpdrive_tweaks.get_active_beacons() or {}
 				for _, binfo in pairs(active_beacons) do
 					local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
 					if label == fields.beacon_select and binfo.pos then
-						meta:set_int("x", jumpdrive.sanitize_coord(math.floor(binfo.pos.x)))
-						meta:set_int("y", jumpdrive.sanitize_coord(math.floor(binfo.pos.y)))
-						meta:set_int("z", jumpdrive.sanitize_coord(math.floor(binfo.pos.z)))
-						jumpdrive.update_formspec(meta, pos)
-						if sender then
-							minetest.chat_send_player(sender:get_player_name(), "Navigation plotted to beacon: " .. (binfo.name or "Vessel"))
+						local bx = math.floor(binfo.pos.x)
+						local by = math.floor(binfo.pos.y)
+						local bz = math.floor(binfo.pos.z)
+						local bname = binfo.name or "Beacon"
+
+						-- Case A: Ship in orbit/space (Y >= 1000) and target beacon on surface (Y < 1000)
+						if pos.y >= 1000 and by < 1000 then
+							if pos.x ~= bx or pos.z ~= bz then
+								-- Stage 1: Plot orbital approach waypoint directly above beacon
+								meta:set_int("x", jumpdrive.sanitize_coord(bx))
+								meta:set_int("y", 1200)
+								meta:set_int("z", jumpdrive.sanitize_coord(bz))
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									minetest.chat_send_player(sender:get_player_name(), string.format("Orbital Guidance: Plotted approach vector above [%s] at (%d, 1200, %d). Once in position, plot vertical touchdown.", bname, bx, bz))
+								end
+								return
+							else
+								-- Stage 2: Already aligned horizontally in orbit -> plot vertical descent
+								meta:set_int("x", jumpdrive.sanitize_coord(bx))
+								meta:set_int("y", jumpdrive.sanitize_coord(by))
+								meta:set_int("z", jumpdrive.sanitize_coord(bz))
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									minetest.chat_send_player(sender:get_player_name(), string.format("Landing Guidance: Ship aligned in orbit. Plotted vertical descent to [%s] at (%d, %d, %d).", bname, bx, by, bz))
+								end
+								return
+							end
+						-- Case B: Ship on surface (Y < 1000) and target beacon in space (Y >= 1000)
+						elseif pos.y < 1000 and by >= 1000 then
+							if pos.x ~= bx or pos.z ~= bz then
+								-- Stage 1: Plot vertical ascent into orbit first
+								meta:set_int("x", jumpdrive.sanitize_coord(pos.x))
+								meta:set_int("y", 1200)
+								meta:set_int("z", jumpdrive.sanitize_coord(pos.z))
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									minetest.chat_send_player(sender:get_player_name(), string.format("Atmospheric Guidance: Plotted vertical ascent to orbit (Y=1,200). Once in orbit, navigate to [%s].", bname))
+								end
+								return
+							else
+								meta:set_int("x", jumpdrive.sanitize_coord(bx))
+								meta:set_int("y", jumpdrive.sanitize_coord(by))
+								meta:set_int("z", jumpdrive.sanitize_coord(bz))
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted vertical ascent to [%s] at (%d, %d, %d).", bname, bx, by, bz))
+								end
+								return
+							end
+						else
+							-- Case C: Direct navigation (both in space or direct vertical)
+							meta:set_int("x", jumpdrive.sanitize_coord(bx))
+							meta:set_int("y", jumpdrive.sanitize_coord(by))
+							meta:set_int("z", jumpdrive.sanitize_coord(bz))
+							jumpdrive.update_formspec(meta, pos)
+							if sender then
+								minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, bx, by, bz))
+							end
+							return
 						end
-						return
 					end
 				end
 			end

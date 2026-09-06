@@ -70,16 +70,16 @@ jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius)
 	end
 end
 
--- 1. Ship Transponder Beacon Node
+-- 1. Navigation Beacon Node
 local function get_beacon_formspec(ship_name)
 	return "size[6,3]" ..
-		"label[0.5,0.5;Ship Transponder Beacon Configuration]" ..
-		"field[0.8,1.5;4.8,0.8;ship_name;Vessel Callsign / Name;" .. minetest.formspec_escape(ship_name) .. "]" ..
+		"label[0.5,0.5;Navigation Beacon Configuration]" ..
+		"field[0.8,1.5;4.8,0.8;ship_name;Beacon Name;" .. minetest.formspec_escape(ship_name) .. "]" ..
 		"button_exit[2,2.3;2,0.8;save;Save]"
 end
 
 minetest.register_node("jumpdrive_tweaks:beacon", {
-	description = S("Ship Transponder Beacon"),
+	description = S("Navigation Beacon"),
 	tiles = {
 		"jumpdrive_warpdevice.png^[colorize:#00e5ff:70",
 		"jumpdrive_warpdevice.png",
@@ -97,8 +97,8 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("ship_name", "Vessel")
-		meta:set_string("infotext", "Ship Transponder Beacon: [Vessel]")
+		meta:set_string("ship_name", "Beacon")
+		meta:set_string("infotext", "Navigation Beacon: [Beacon]")
 	end,
 
 	after_place_node = function(pos, placer)
@@ -106,17 +106,17 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 			local pname = placer:get_player_name()
 			local meta = minetest.get_meta(pos)
 			meta:set_string("owner", pname)
-			meta:set_string("ship_name", "Vessel")
-			meta:set_string("infotext", string.format("Ship Transponder Beacon: [Vessel] (Owner: %s)", pname))
+			meta:set_string("ship_name", "Beacon")
+			meta:set_string("infotext", string.format("Navigation Beacon: [Beacon] (Owner: %s)", pname))
 
 			local key = pos_to_key(pos)
 			active_beacons[key] = {
 				pos = {x = pos.x, y = pos.y, z = pos.z},
 				owner = pname,
-				name = "Vessel"
+				name = "Beacon"
 			}
 			save_beacons()
-			minetest.chat_send_player(pname, "Ship Transponder Beacon active: Registered 3D waypoint on navigation HUD.")
+			minetest.chat_send_player(pname, "Navigation Beacon active: Registered 3D waypoint on HUD.")
 		end
 	end,
 
@@ -124,7 +124,7 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 		if not clicker or not clicker:is_player() then return itemstack end
 		local meta = minetest.get_meta(pos)
 		local ship_name = meta:get_string("ship_name")
-		if ship_name == "" then ship_name = "Vessel" end
+		if ship_name == "" then ship_name = "Beacon" end
 		minetest.show_formspec(clicker:get_player_name(), "jumpdrive_tweaks:beacon_" .. pos_to_key(pos), get_beacon_formspec(ship_name))
 		return itemstack
 	end,
@@ -149,12 +149,12 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 
 	if fields.save and fields.ship_name then
 		local new_name = fields.ship_name:sub(1, 24)
-		if new_name == "" then new_name = "Vessel" end
+		if new_name == "" then new_name = "Beacon" end
 
 		local meta = minetest.get_meta(pos)
 		local owner = meta:get_string("owner")
 		meta:set_string("ship_name", new_name)
-		meta:set_string("infotext", string.format("Ship Transponder Beacon: [%s] (Owner: %s)", new_name, owner))
+		meta:set_string("infotext", string.format("Navigation Beacon: [%s] (Owner: %s)", new_name, owner))
 
 		local key = pos_to_key(pos)
 		if active_beacons[key] then
@@ -162,7 +162,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 			save_beacons()
 		end
 
-		minetest.chat_send_player(player:get_player_name(), string.format("Ship beacon callsign updated to [%s]", new_name))
+		minetest.chat_send_player(player:get_player_name(), string.format("Navigation beacon name updated to [%s]", new_name))
 		return true
 	end
 	return false
