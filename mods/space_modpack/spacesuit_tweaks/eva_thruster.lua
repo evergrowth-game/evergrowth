@@ -1,5 +1,5 @@
 -- spacesuit_tweaks/eva_thruster.lua
--- Handheld EVA Reaction Control System (RCS) Thruster with Flight Assist & Inertial Dampening
+-- Handheld EVA Reaction Control System (RCS) Thruster with Client-Authoritative Physics
 
 local S = minetest.get_translator("spacesuit_tweaks")
 
@@ -12,7 +12,7 @@ local function consume_propellant(player, itemstack, amount)
 	local air_list = inv:get_list("main")
 	for i, stack in ipairs(air_list) do
 		if stack:get_name() == "spacesuit:airbottle" then
-			local wear = stack:get_wear() + (amount * 120)
+			local wear = stack:get_wear() + (amount * 100)
 			if wear >= 65535 then
 				inv:set_stack("main", i, ItemStack(""))
 			else
@@ -21,7 +21,7 @@ local function consume_propellant(player, itemstack, amount)
 			end
 			return true
 		elseif stack:get_name():find("hydrogen") or stack:get_name():find("fuel_canister") then
-			local wear = stack:get_wear() + (amount * 80)
+			local wear = stack:get_wear() + (amount * 70)
 			if wear >= 65535 then
 				inv:set_stack("main", i, ItemStack(""))
 			else
@@ -34,7 +34,7 @@ local function consume_propellant(player, itemstack, amount)
 
 	-- 2. Fallback: Emergency onboard reserve (wears the tool itself)
 	if itemstack then
-		itemstack:add_wear(amount * 25)
+		itemstack:add_wear(amount * 20)
 		return true
 	end
 
@@ -78,7 +78,7 @@ end
 
 -- Register EVA Thruster Tool
 minetest.register_tool("spacesuit_tweaks:eva_thruster", {
-	description = S("EVA RCS Thruster Pack\nZero-g Flight Maneuvering Unit\n[Hold Space]: Steady Ascent\n[Hold Shift]: Steady Descent\n[WASD]: Directional Flight\n[Release Keys]: Active Hover / Inertial Dampener\n[Left-Click]: Instant Boost Surge\nRequires Compressed Air or Hydrogen in inventory"),
+	description = S("EVA RCS Thruster Pack\nZero-g Maneuvering Unit\n[Hold Space]: Steady Vertical Ascent\n[Hold Shift]: Steady Vertical Descent\n[WASD]: Horizontal Vector Glide\n[Release Keys]: Stationary Zero-G Hover\n[Left-Click]: Instant Forward Boost Surge\nRequires Compressed Air or Hydrogen in inventory"),
 	inventory_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
 	wield_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
 	stack_max = 1,
@@ -96,8 +96,8 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 		end
 
 		local look_dir = user:get_look_dir()
-		local boost_vel = vector.multiply(look_dir, 12.0)
-		user:set_velocity(boost_vel)
+		local boost_vel = vector.multiply(look_dir, 14.0)
+		user:add_velocity(boost_vel)
 
 		play_thruster_sound(pname, ppos)
 		spawn_rcs_particles(ppos, look_dir)
@@ -106,20 +106,19 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 	end,
 })
 
--- Track players currently holding thruster to zero-out gravity
-local active_eva_players = {}
-local EVA_GRAV_MONOID = "spacesuit_tweaks_eva_gravity"
+-- Track player state
+local player_states = {} -- playername -> {active = bool, last_gravity = num, last_speed = num}
 
-local CLIMB_SPEED = 6.5     -- m/s upward climb
-local DESCENT_SPEED = 6.5   -- m/s downward descent
-local HORIZ_SPEED = 8.0     -- m/s horizontal flight speed
-local BRAKE_DAMPING = 5.0   -- speed of coming to complete stop when keys are released
-
--- Globalstep Physics Loop for EVA Maneuvering with Flight Assist
+-- Globalstep Physics Loop using Client-Authoritative Physics Overrides
 minetest.register_globalstep(function(dtime)
 	for _, player in ipairs(minetest.get_connected_players()) do
 		local ppos = player:get_pos()
 		local pname = player:get_player_name()
+
+		if not player_states[pname] then
+			player_states[pname] = {active = false}
+		end
+		local st = player_states[pname]
 
 		-- Only active in space / vacuum (Y >= 1000)
 		if ppos and ppos.y >= 1000 then
@@ -127,112 +126,91 @@ minetest.register_globalstep(function(dtime)
 			local has_thruster = wielded:get_name() == "spacesuit_tweaks:eva_thruster"
 
 			if has_thruster then
-				-- Zero-out passive world gravity while holding thruster
-				if not active_eva_players[pname] then
-					active_eva_players[pname] = true
-					if player_monoids and player_monoids.gravity then
-						player_monoids.gravity:add_change(player, 0.0, EVA_GRAV_MONOID)
-					else
-						player:set_physics_override({gravity = 0.0})
-					end
-				end
-
+				st.active = true
 				local ctrl = player:get_player_control()
-				local target_vx = 0
-				local target_vy = 0
-				local target_vz = 0
-				local is_thrusting = false
 
-				-- 1. Vertical axis control
+				local target_gravity = 0.0
+				local target_speed = 1.6
+				local is_moving = false
+				local particle_dir = {x = 0, y = 0, z = 0}
+
 				if ctrl.jump then
-					target_vy = CLIMB_SPEED
-					is_thrusting = true
+					-- Inverted gravity to smoothly and cleanly climb upward on client
+					target_gravity = -0.65
+					is_moving = true
+					particle_dir.y = 1
 				elseif ctrl.sneak then
-					target_vy = -DESCENT_SPEED
-					is_thrusting = true
+					-- Positive gravity for descent
+					target_gravity = 0.65
+					is_moving = true
+					particle_dir.y = -1
 				else
-					target_vy = 0
+					-- Stable stationary zero-g hover
+					target_gravity = 0.0
 				end
 
-				-- 2. Horizontal axis control (WASD relative to view yaw)
 				if ctrl.up or ctrl.down or ctrl.left or ctrl.right then
+					is_moving = true
+					target_speed = 2.0
 					local yaw = player:get_look_horizontal()
-					local fwd = {x = -math.sin(yaw), y = 0, z = math.cos(yaw)}
-					local right = {x = math.cos(yaw), y = 0, z = math.sin(yaw)}
-
-					local move_dir = {x = 0, y = 0, z = 0}
-					if ctrl.up then move_dir = vector.add(move_dir, fwd) end
-					if ctrl.down then move_dir = vector.subtract(move_dir, fwd) end
-					if ctrl.right then move_dir = vector.add(move_dir, right) end
-					if ctrl.left then move_dir = vector.subtract(move_dir, right) end
-
-					if vector.length(move_dir) > 0 then
-						local norm_dir = vector.normalize(move_dir)
-						target_vx = norm_dir.x * HORIZ_SPEED
-						target_vz = norm_dir.z * HORIZ_SPEED
-						is_thrusting = true
+					if ctrl.up then
+						particle_dir.x = -math.sin(yaw)
+						particle_dir.z = math.cos(yaw)
+					elseif ctrl.down then
+						particle_dir.x = math.sin(yaw)
+						particle_dir.z = -math.cos(yaw)
 					end
 				end
 
-				-- 3. Compute smooth velocity transition with active inertial dampening
-				local cur_vel = player:get_velocity() or {x = 0, y = 0, z = 0}
-				local target_vel = {x = target_vx, y = target_vy, z = target_vz}
-
-				-- Acceleration / Braking blending
-				local blend = math.min(1.0, BRAKE_DAMPING * dtime)
-				local new_vel = {
-					x = cur_vel.x + (target_vel.x - cur_vel.x) * blend,
-					y = cur_vel.y + (target_vel.y - cur_vel.y) * blend,
-					z = cur_vel.z + (target_vel.z - cur_vel.z) * blend,
-				}
-
-				-- Snap to 0 if very small to prevent endless micro-drift
-				if not is_thrusting then
-					if math.abs(new_vel.x) < 0.1 then new_vel.x = 0 end
-					if math.abs(new_vel.y) < 0.1 then new_vel.y = 0 end
-					if math.abs(new_vel.z) < 0.1 then new_vel.z = 0 end
+				-- Apply physics override if changed
+				if st.last_gravity ~= target_gravity or st.last_speed ~= target_speed then
+					st.last_gravity = target_gravity
+					st.last_speed = target_speed
+					player:set_physics_override({
+						gravity = target_gravity,
+						speed = target_speed,
+						jump = 1.0,
+					})
 				end
 
-				player:set_velocity(new_vel)
-
-				-- Audio, particles, and fuel drain when actively holding keys
-				if is_thrusting then
+				-- Sound, particles, and fuel consumption when actively thrusting
+				if is_moving then
 					play_thruster_sound(pname, ppos)
-					local thrust_dir = vector.normalize(target_vel)
-					if vector.length(thrust_dir) > 0 then
-						spawn_rcs_particles(ppos, thrust_dir)
+					if vector.length(particle_dir) > 0 then
+						spawn_rcs_particles(ppos, vector.normalize(particle_dir))
 					end
 					consume_propellant(player, wielded, 1)
 					player:set_wielded_item(wielded)
 				end
 			else
-				-- Restoring normal space gravity when thruster is not wielded
-				if active_eva_players[pname] then
-					active_eva_players[pname] = nil
-					if player_monoids and player_monoids.gravity then
-						player_monoids.gravity:del_change(player, EVA_GRAV_MONOID)
-					else
-						player:set_physics_override({gravity = 0.35})
-					end
+				-- Restore space physics when not holding thruster
+				if st.active then
+					st.active = false
+					st.last_gravity = 0.35
+					st.last_speed = 1.0
+					player:set_physics_override({
+						gravity = 0.35,
+						speed = 1.0,
+						jump = 1.0,
+					})
 				end
 			end
 		else
-			if active_eva_players[pname] then
-				active_eva_players[pname] = nil
-				if player_monoids and player_monoids.gravity then
-					player_monoids.gravity:del_change(player, EVA_GRAV_MONOID)
-				else
-					player:set_physics_override({gravity = 1.0})
-				end
+			-- Restore normal planetary physics below space
+			if st.active then
+				st.active = false
+				st.last_gravity = 1.0
+				st.last_speed = 1.0
+				player:set_physics_override({
+					gravity = 1.0,
+					speed = 1.0,
+					jump = 1.0,
+				})
 			end
 		end
 	end
 end)
 
 minetest.register_on_leaveplayer(function(player)
-	local pname = player:get_player_name()
-	active_eva_players[pname] = nil
-	if player_monoids and player_monoids.gravity then
-		player_monoids.gravity:del_change(player, EVA_GRAV_MONOID)
-	end
+	player_states[player:get_player_name()] = nil
 end)
