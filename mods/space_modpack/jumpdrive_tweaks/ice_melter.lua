@@ -133,12 +133,32 @@ local function process_melting(pos, nvm)
 	end
 end
 
+local function push_water(pos, meta, nvm)
+	if nvm.liquid and (nvm.liquid.amount or 0) > 0 then
+		local out_dir = meta:get_int("out_dir")
+		if out_dir == 0 then
+			local node = minetest.get_node(pos)
+			out_dir = techage.side_to_outdir("R", node.param2)
+			meta:set_int("out_dir", out_dir)
+		end
+		local to_push = math.min(nvm.liquid.amount, 50)
+		local leftover = liquid.put(pos, Pipe, out_dir, "techage:water", to_push)
+		nvm.liquid.amount = nvm.liquid.amount - (to_push - leftover)
+		if nvm.liquid.amount == 0 then
+			nvm.liquid.name = nil
+		end
+	end
+end
+
 -- Automatic node timer loop
 local function node_timer(pos, elapsed)
 	local meta = M(pos)
 	local nvm = techage.get_nvm(pos)
 	nvm.liquid = nvm.liquid or {}
 	nvm.liquid.amount = nvm.liquid.amount or 0
+
+	-- 1. Push any stored water out to connected pipes/tanks first to free up buffer space
+	push_water(pos, meta, nvm)
 
 	local inv = meta:get_inventory()
 	local stack = inv:get_stack("src", 1)
@@ -156,6 +176,11 @@ local function node_timer(pos, elapsed)
 		State:blocked(pos, nvm, S("Water tank full"))
 	else
 		local in_dir = meta:get_int("in_dir")
+		if in_dir == 0 then
+			local node = minetest.get_node(pos)
+			in_dir = techage.side_to_outdir("L", node.param2)
+			meta:set_int("in_dir", in_dir)
+		end
 
 		local curr_load = power.get_storage_load(pos, Cable, in_dir, 1)
 		if curr_load > (nvm.turnoff or 0) then
@@ -169,6 +194,8 @@ local function node_timer(pos, elapsed)
 			elseif running then
 				process_melting(pos, nvm)
 				State:keep_running(pos, nvm, 1)
+				-- Push newly melted water out immediately
+				push_water(pos, meta, nvm)
 			end
 		elseif curr_load == 0 then
 			nvm.taken = 0
@@ -176,17 +203,6 @@ local function node_timer(pos, elapsed)
 		else
 			nvm.taken = 0
 			State:standby(pos, nvm, S("Turnoff point reached"))
-		end
-	end
-
-	-- Auto-push water to adjacent pipes
-	if nvm.liquid.amount > 0 then
-		local out_dir = meta:get_int("out_dir")
-		local to_push = math.min(nvm.liquid.amount, 10)
-		local leftover = liquid.put(pos, Pipe, out_dir, "techage:water", to_push)
-		nvm.liquid.amount = nvm.liquid.amount - (to_push - leftover)
-		if nvm.liquid.amount == 0 then
-			nvm.liquid.name = nil
 		end
 	end
 
@@ -199,6 +215,7 @@ end
 local function on_receive_fields(pos, formname, fields, player)
 	if minetest.is_protected(pos, player:get_player_name()) then return end
 	local nvm = techage.get_nvm(pos)
+	push_water(pos, M(pos), nvm)
 	techage.set_activeformspec(pos, player)
 	State:state_button_event(pos, nvm, fields)
 	M(pos):set_string("formspec", get_formspec(State, pos, nvm))
@@ -206,6 +223,7 @@ end
 
 local function on_rightclick(pos, node, clicker)
 	local nvm = techage.get_nvm(pos)
+	push_water(pos, M(pos), nvm)
 	techage.set_activeformspec(pos, clicker)
 	M(pos):set_string("formspec", get_formspec(State, pos, nvm))
 end
