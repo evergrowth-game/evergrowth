@@ -34,31 +34,38 @@ end
 
 local function get_formspec(self, pos, nvm)
 	local water_amount = (nvm.liquid and nvm.liquid.amount) or 0
-	local arrow = "image[3.5,1.5;1,1;techage_form_arrow_bg.png^[transformR270]"
+	local arrow = "image[4.5,1.3;1,1;techage_form_arrow_bg.png^[transformR270]"
 	if techage.is_running(nvm) then
-		arrow = "image[3.5,1.5;1,1;techage_form_arrow_fg.png^[transformR270]"
+		arrow = "image[4.5,1.3;1,1;techage_form_arrow_fg.png^[transformR270]"
 	end
 
-	return "size[8,7.5]" ..
+	local hotbar_bg = default.get_hotbar_bg and default.get_hotbar_bg(0, 4.85) or ""
+
+	return "size[8,9]" ..
 		default.gui_bg ..
 		default.gui_bg_img ..
 		default.gui_slots ..
 		"box[0,-0.1;7.8,0.5;#252830]" ..
 		"label[0.2,-0.1;" .. minetest.colorize("#00ffff", S("Starship Thermal Ice Melter")) .. "]" ..
 		techage.wrench_tooltip(7.4, -0.1) ..
-		"label[1.5,0.7;" .. S("Ice Hopper Input") .. "]" ..
-		"list[context;src;2,1.3;1,1;]" ..
-		techage.formspec_power_bar(pos, 0.1, 0.8, S("Electricity"), nvm.taken or 0, PWR_NEEDED) ..
+		techage.formspec_power_bar(pos, 0.2, 0.7, S("Electricity"), nvm.taken or 0, PWR_NEEDED) ..
+		"label[3.0,0.8;" .. S("Ice Feedstock") .. "]" ..
+		"list[context;src;3.2,1.3;1,1;]" ..
 		arrow ..
-		"image_button[3.5,2.5;1,1;" .. self:get_state_button_image(nvm) .. ";state_button;]" ..
-		"tooltip[3.5,2.5;1,1;" .. self:get_state_tooltip(nvm) .. "]" ..
-		"box[5.0,1.2;2.5,1.2;#10141a]" ..
-		"label[5.2,1.3;" .. minetest.colorize("#70a1ff", S("Water Buffer")) .. "]" ..
-		"label[5.2,1.8;" .. minetest.colorize("#ffffff", string.format("%d / %d units", water_amount, CAPACITY)) .. "]" ..
-		"list[current_player;main;0,3.2;8,4;]" ..
+		"image_button[3.2,2.7;1,1;" .. self:get_state_button_image(nvm) .. ";state_button;]" ..
+		"tooltip[3.2,2.7;1,1;" .. self:get_state_tooltip(nvm) .. "]" ..
+		"label[4.3,3.0;" .. (techage.is_running(nvm) and minetest.colorize("#00ff99", S("ACTIVE")) or minetest.colorize("#ffaa00", S("STANDBY"))) .. "]" ..
+		"box[5.6,0.7;2.2,3.3;#10141a]" ..
+		"label[5.8,0.9;" .. minetest.colorize("#70a1ff", S("Water Tank")) .. "]" ..
+		"label[5.8,1.5;" .. minetest.colorize("#00ffcc", S("Buffer Output:")) .. "]" ..
+		"label[5.8,1.9;" .. minetest.colorize("#ffffff", string.format("%d / %d", water_amount, CAPACITY)) .. "]" ..
+		"label[5.8,2.3;" .. minetest.colorize("#ffffff", S("units")) .. "]" ..
+		"label[5.8,2.9;" .. minetest.colorize("#8899aa", S("Pipes: Right (R)")) .. "]" ..
+		"list[current_player;main;0,4.85;8,1;]" ..
+		"list[current_player;main;0,6.08;8,3;8]" ..
 		"listring[context;src]" ..
-		"listring[current_player;main]"
-
+		"listring[current_player;main]" ..
+		hotbar_bg
 end
 
 local function can_start(pos, nvm, state)
