@@ -94,18 +94,18 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
 
-	-- Optional Technic upgrades row
-	local technic_fs = ""
-	if has_technic then
-		technic_fs = "label[8.9,11.9;HV Upgrades:]" ..
-			"list[context;upgrade;8.9,12.2;4,1;]"
-	end
-
-	-- Formspec Layout (Clean 14x13.2 formspec_version[4] grid with distinct functional panels)
+	-- Formspec Layout (Clean 14x12.8 formspec_version[4] grid with distinct functional panels)
 	local formspec =
 		"formspec_version[4]" ..
-		"size[14,13.2]" ..
+		"size[14,12.8]" ..
 		"bgcolor[#0a0f18;true]" ..
+
+		-- Button Styles
+		"style[jump;bgcolor=#047857;textcolor=#ffffff]" ..
+		"style[show,reset,save;bgcolor=#1e293b;textcolor=#ffffff]" ..
+		"style[preset_surface,preset_orbit,preset_asteroids,preset_moon,preset_mars;bgcolor=#1e293b;textcolor=#38bdf8]" ..
+		"style[nudge_x_neg,nudge_x_pos,nudge_y_neg,nudge_y_pos,nudge_z_neg,nudge_z_pos;bgcolor=#1e293b;textcolor=#f59e0b]" ..
+		"style[plot_beacon;bgcolor=#0284c7;textcolor=#ffffff]" ..
 
 		-- 1. TOP TELEMETRY & DIAGNOSTICS HEADER
 		"box[0.4,0.4;13.2,2.4;#101826]" ..
@@ -152,18 +152,17 @@ jumpdrive.update_formspec = function(meta, pos)
 		"button[12.3,5.6;1.0,0.7;plot_beacon;Plot]" ..
 
 		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS
-		technic_fs ..
-		"label[0.4,7.0;Engine Buffer Inventory:]" ..
-		"list[context;main;0.4,7.3;8,1;]" ..
-		"label[0.4,8.6;Player Cargo Inventory:]" ..
-		"list[current_player;main;0.4,8.9;8,4;]" ..
+		"label[0.4,6.8;Engine Buffer Inventory:]" ..
+		"list[context;main;0.4,7.1;8,1;]" ..
+		"label[0.4,8.1;Player Cargo Inventory:]" ..
+		"list[current_player;main;0.4,8.4;8,4;]" ..
 		"listring[context;main]" ..
 		"listring[current_player;main]" ..
 
-		"button_exit[8.9,7.3;4.7,1.2;jump;ENGAGE JUMP DRIVE]" ..
-		"button[8.9,8.9;4.7,0.8;show;PROJECT BOUNDS]" ..
-		"button[8.9,9.9;4.7,0.8;reset;RESET COORDS]" ..
-		"button[8.9,10.9;4.7,0.8;save;SAVE SETTINGS]"
+		"button_exit[8.9,7.1;4.7,1.1;jump;ENGAGE JUMP DRIVE]" ..
+		"button[8.9,8.4;4.7,0.8;show;PROJECT BOUNDS]" ..
+		"button[8.9,9.4;4.7,0.8;reset;RESET COORDS]" ..
+		"button[8.9,10.4;4.7,0.8;save;SAVE SETTINGS]"
 
 	meta:set_string("formspec", formspec)
 end

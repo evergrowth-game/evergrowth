@@ -302,8 +302,8 @@ end
 -- 4. Register Quantum Recall Tether Tool
 minetest.register_tool("jumpdrive_tweaks:quantum_tether", {
 	description = S("Quantum Recall Tether\nEmergency Return Beacon\n[Sneak + Right-Click on Beacon]: Tune to Vessel\n[Sneak + Right-Click in Void]: Teleport to Tuned Beacon (Range: 5000m)"),
-	inventory_image = "jumpdrive_quantumtether.png",
-	wield_image = "jumpdrive_quantumtether.png",
+	inventory_image = "jumpdrive_remote.png^[colorize:#00e5ff:160",
+	wield_image = "jumpdrive_remote.png^[colorize:#00e5ff:160",
 	stack_max = 1,
 
 	on_place = function(itemstack, placer, pointed_thing)
