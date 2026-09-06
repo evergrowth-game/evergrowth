@@ -94,40 +94,71 @@ local c_rich_coal = minetest.get_content_id("other_worlds_tweaks:rich_coal_ore")
 local c_rich_iron = minetest.get_content_id("other_worlds_tweaks:rich_iron_ore")
 local c_comet_ice = minetest.get_content_id("other_worlds_tweaks:comet_ice")
 
--- Magic Materials integration
+-- Magic Materials & TechAge integration
 local has_magic = minetest.get_modpath("magic_materials")
 local c_egerum = has_magic and minetest.get_content_id("magic_materials:stone_with_egerum") or c_rich_diamond
 local c_februm = has_magic and minetest.get_content_id("magic_materials:stone_with_februm") or c_rich_mese
+
+local has_techage = minetest.get_modpath("techage")
+local c_baborium = has_techage and minetest.get_content_id("techage:stone_with_baborium") or c_rich_diamond
 
 -- Redsky specific
 local c_redstone = minetest.get_content_id("asteroid:redstone")
 local c_redgravel = minetest.get_content_id("asteroid:redgravel")
 local c_reddust = minetest.get_content_id("asteroid:reddust")
 
--- Ore selector function: evenly distributes high-value resources
-local function select_rich_ore(is_redsky)
+-- Specialized Ore Selectors for Space Tiers
+local function select_space_ore()
 	local roll = random(1, 100)
-	if roll <= 15 then
+	if roll <= 18 then
 		return c_rich_diamond
-	elseif roll <= 30 then
+	elseif roll <= 34 then
 		return c_rich_mese
-	elseif roll <= 45 then
+	elseif roll <= 48 then
 		return c_rich_gold
-	elseif roll <= 55 then
+	elseif roll <= 62 then
 		return (random(1, 2) == 1) and c_egerum or c_februm
-	elseif roll <= 70 then
+	elseif roll <= 78 then
 		return c_rich_copper
-	elseif roll <= 80 then
+	elseif roll <= 90 then
 		return c_rich_tin
-	elseif roll <= 88 then
-		return c_rich_coal
-	else
+	elseif roll <= 96 then
 		return c_rich_iron
+	else
+		return c_rich_coal
 	end
 end
 
--- Core generator function for space and redsky layers
-local function generate_asteroid_chunk(minp, maxp, seed, is_redsky, ymin, ymax)
+local function select_redsky_ore()
+	local roll = random(1, 100)
+	if roll <= 25 then
+		return c_baborium
+	elseif roll <= 50 then
+		return c_rich_iron
+	elseif roll <= 70 then
+		return c_rich_gold
+	elseif roll <= 85 then
+		return c_rich_copper
+	else
+		return c_rich_tin
+	end
+end
+
+local function select_deep_space_ore()
+	local roll = random(1, 100)
+	if roll <= 30 then
+		return c_baborium
+	elseif roll <= 55 then
+		return c_rich_diamond
+	elseif roll <= 80 then
+		return c_rich_mese
+	else
+		return c_rich_gold
+	end
+end
+
+-- Core generator function for space, redsky, and deep space layers
+local function generate_asteroid_chunk(minp, maxp, seed, layer_type, ymin, ymax)
 	if minp.x < XMIN or maxp.x > XMAX
 	or minp.y < ymin or maxp.y > ymax
 	or minp.z < ZMIN or maxp.z > ZMAX then
@@ -154,10 +185,27 @@ local function generate_asteroid_chunk(minp, maxp, seed, is_redsky, ymin, ymax)
 	local ni = 1
 	local noise1abs, noise4abs, comet, noise1dep, noise4dep, vi
 
+	local is_redsky = (layer_type == "redsky")
+	local is_deep = (layer_type == "blackness")
+
 	local stone_id = is_redsky and c_redstone or c_stone
 	local cobble_id = is_redsky and c_air or c_cobble
 	local gravel_id = is_redsky and c_redgravel or c_gravel
 	local dust_id = is_redsky and c_reddust or c_dust
+
+	-- Thresholds: deep space asteroids are rarer and larger
+	local ascot = is_deep and 1.12 or ASCOT
+	local sascot = is_deep and 1.12 or SASCOT
+	local ore_chance = is_deep and 4 or ORECHA
+
+	local select_ore_func
+	if is_deep then
+		select_ore_func = select_deep_space_ore
+	elseif is_redsky then
+		select_ore_func = select_redsky_ore
+	else
+		select_ore_func = select_space_ore
+	end
 
 	for z = z0, z1 do
 	for y = y0, y1 do
@@ -167,21 +215,21 @@ local function generate_asteroid_chunk(minp, maxp, seed, is_redsky, ymin, ymax)
 			noise4abs = abs(nvals4[ni])
 			comet = false
 
-			if nvals6[ni] < -(ASCOT + ATMOT)
-			or (nvals7[ni] < -(SASCOT + ATMOT) and nvals1[ni] < ASCOT) then
+			if nvals6[ni] < -(ascot + ATMOT)
+			or (nvals7[ni] < -(sascot + ATMOT) and nvals1[ni] < ascot) then
 				comet = true
 			end
 
-			if noise1abs > ASCOT or noise4abs > SASCOT then
-				noise1dep = noise1abs - ASCOT
+			if noise1abs > ascot or noise4abs > sascot then
+				noise1dep = noise1abs - ascot
 				if abs(nvals3[ni]) > FISTS + noise1dep * FISEXP then
-					noise4dep = noise4abs - SASCOT
+					noise4dep = noise4abs - sascot
 
 					if not comet or (comet and (noise1dep > random() + ICET or noise4dep > random() + ICET)) then
 						if noise1dep >= STOT or noise4dep >= STOT then
 							-- Solid Core: Rich multi-ore generation
-							if random(ORECHA) == 1 then
-								data[vi] = select_rich_ore(is_redsky)
+							if random(ore_chance) == 1 then
+								data[vi] = select_ore_func()
 							else
 								data[vi] = stone_id
 							end
@@ -225,18 +273,25 @@ for i = #minetest.registered_on_generateds, 1, -1 do
 	end
 end
 
--- Register new high-yield space generator (Y = 5000 to 5999)
+-- Register Space Asteroid generator (Y = 5000 to 5999)
 minetest.register_on_generated(function(minp, maxp, seed)
 	local ymin = otherworlds.settings.space_asteroids.YMIN or 5000
 	local ymax = otherworlds.settings.space_asteroids.YMAX or 5999
-	generate_asteroid_chunk(minp, maxp, seed, false, ymin, ymax)
+	generate_asteroid_chunk(minp, maxp, seed, "space", ymin, ymax)
 end)
 
--- Register new high-yield redsky generator (Y = 6000 to 6999)
+-- Register Redsky / Mars generator (Y = 6000 to 6999)
 minetest.register_on_generated(function(minp, maxp, seed)
 	local ymin = otherworlds.settings.redsky_asteroids.YMIN or 6000
 	local ymax = otherworlds.settings.redsky_asteroids.YMAX or 6999
-	generate_asteroid_chunk(minp, maxp, seed, true, ymin, ymax)
+	generate_asteroid_chunk(minp, maxp, seed, "redsky", ymin, ymax)
 end)
 
-minetest.log("action", "[other_worlds_tweaks] Registered overhauled high-yield space asteroid & comet mapgen.")
+-- Register Deep Space Primordial Mega-Asteroid generator (Y = 7000 to 31000)
+minetest.register_on_generated(function(minp, maxp, seed)
+	local ymin = otherworlds.settings.blackness.YMIN or 7000
+	local ymax = otherworlds.settings.blackness.YMAX or 31000
+	generate_asteroid_chunk(minp, maxp, seed, "blackness", ymin, ymax)
+end)
+
+minetest.log("action", "[other_worlds_tweaks] Registered overhauled high-yield space, mars, and deep space asteroid & comet mapgen.")
