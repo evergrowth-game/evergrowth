@@ -13,8 +13,9 @@ local function charge_engine_from_tanks(engine_pos, radius, target_eu)
 	local needed_eu = math.min(target_eu or max_eu, max_eu) - current_eu
 	if needed_eu <= 0 then return current_eu end
 
-	local p1 = vector.subtract(engine_pos, {x = radius, y = radius, z = radius})
-	local p2 = vector.add(engine_pos, {x = radius, y = radius, z = radius})
+	local search_r = math.max(radius or 5, 25)
+	local p1 = vector.subtract(engine_pos, {x = search_r, y = search_r, z = search_r})
+	local p2 = vector.add(engine_pos, {x = search_r, y = search_r, z = search_r})
 	local tank_positions = minetest.find_nodes_in_area(p1, p2, {"jumpdrive_tweaks:fuel_tank"})
 
 	local total_added_eu = 0

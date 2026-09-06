@@ -6,11 +6,12 @@ local has_technic = minetest.get_modpath("technic")
 
 jumpdrive_tweaks = jumpdrive_tweaks or {}
 
--- Helper to scan nearby tanks for fuel readout
+-- Helper to scan nearby tanks for fuel readout (searches full ship volume)
 local function get_fuel_telemetry(engine_pos, radius)
 	if not engine_pos then return 0, 0, "None" end
-	local p1 = vector.subtract(engine_pos, {x = radius, y = radius, z = radius})
-	local p2 = vector.add(engine_pos, {x = radius, y = radius, z = radius})
+	local search_r = math.max(radius or 5, 25)
+	local p1 = vector.subtract(engine_pos, {x = search_r, y = search_r, z = search_r})
+	local p2 = vector.add(engine_pos, {x = search_r, y = search_r, z = search_r})
 	local tank_positions = minetest.find_nodes_in_area(p1, p2, {"jumpdrive_tweaks:fuel_tank"})
 
 	local total_fuel = 0
@@ -33,7 +34,7 @@ local function get_fuel_telemetry(engine_pos, radius)
 	return total_fuel, total_cap, fuel_type
 end
 
--- Override jumpdrive.update_formspec
+-- Override jumpdrive.update_formspec with clean, spacious sci-fi layout
 jumpdrive.update_formspec = function(meta, pos)
 	if not meta then return end
 
@@ -49,7 +50,7 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local power_pct = math.min(100, math.floor((powerstorage / max_powerstorage) * 100))
 
-	-- Fuel telemetry
+	-- Fuel telemetry across ship
 	local fuel_amount, fuel_cap, fuel_type = get_fuel_telemetry(pos, radius)
 	local fuel_pct = (fuel_cap > 0) and math.min(100, math.floor((fuel_amount / fuel_cap) * 100)) or 0
 
@@ -58,7 +59,7 @@ jumpdrive.update_formspec = function(meta, pos)
 	local distance = pos and math.floor(vector.distance(pos, target_pos)) or 0
 	local power_req = (pos and jumpdrive.calculate_power) and math.floor(jumpdrive.calculate_power(radius, distance, pos, target_pos)) or 0
 
-	-- Native area check
+	-- Area safety check
 	local status_text = "STATUS: STANDBY"
 	local status_color = "#38bdf8" -- Cyan
 
@@ -93,70 +94,79 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
 
-	-- Technic upgrades layout
+	-- Optional Technic upgrades row
 	local technic_fs = ""
 	if has_technic then
-		technic_fs = "label[0.2,5.8;Technic Upgrades:]" ..
-			"list[context;upgrade;2.2,5.6;4,1;]"
+		technic_fs = "label[0.3,6.2;Upgrades:]" ..
+			"list[context;upgrade;1.6,6.0;4,1;]"
 	end
 
-	-- Formspec Layout
+	-- Formspec Layout (Clean 13x11.6 grid with distinct functional panels)
 	local formspec =
-		"size[12,10.6;]" ..
+		"size[13,11.6;]" ..
 		"bgcolor[#0a0e17;true]" ..
 
-		-- 1. TOP TELEMETRY PANEL
-		"box[0.2,0.2;11.6,2.3;#111827]" ..
-		"label[0.4,0.4;STARSHIP PROPULSION & NAVIGATION COMPUTER]" ..
-		"label[8.2,0.4;" .. minetest.colorize(status_color, status_text) .. "]" ..
+		-- 1. TOP TELEMETRY & DIAGNOSTICS HEADER
+		"box[0.3,0.3;12.4,2.3;#111827]" ..
+		"label[0.5,0.5;STARSHIP PROPULSION & NAVIGATION COMPUTER]" ..
+		"label[8.6,0.5;" .. minetest.colorize(status_color, status_text) .. "]" ..
 
-		"label[0.4,1.0;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
-		"label[0.4,1.4;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
-		"label[0.4,1.8;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
+		"label[0.5,1.1;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
+		"label[0.5,1.5;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
+		"label[0.5,1.9;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
 
-		"label[6.2,1.0;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
-		"label[6.2,1.4;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
-		"label[6.2,1.8;Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
+		"label[6.8,1.1;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
+		"label[6.8,1.5;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
+		"label[6.8,1.9;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
 
-		-- 2. MIDDLE LEFT: TARGET COORDINATES & PRESETS
-		"box[0.2,2.7;5.6,3.0;#131c2e]" ..
-		"label[0.4,2.9;DESTINATION COORDINATES]" ..
-		"field[0.4,3.6;1.2,0.7;x;X;" .. current_x .. "]" ..
-		"field[1.7,3.6;1.2,0.7;y;Y;" .. current_y .. "]" ..
-		"field[3.0,3.6;1.2,0.7;z;Z;" .. current_z .. "]" ..
-		"field[4.3,3.6;1.2,0.7;radius;Radius;" .. radius .. "]" ..
+		-- 2. MIDDLE LEFT: DESTINATION COORDINATES & PRESETS
+		"box[0.3,2.8;6.0,3.3;#131c2e]" ..
+		"label[0.5,3.0;DESTINATION COORDINATES]" ..
 
-		"button[0.4,4.3;2.5,0.6;preset_surface;Surface (Y=20)]" ..
-		"button[3.0,4.3;2.5,0.6;preset_orbit;Low Orbit (1200)]" ..
-		"button[0.4,5.0;2.5,0.6;preset_asteroids;Asteroids (2500)]" ..
-		"button[3.0,5.0;2.5,0.6;preset_moon;Moon (5000)]" ..
+		"label[0.5,3.4;X:]" ..
+		"field[0.5,3.7;1.2,0.6;x;;" .. current_x .. "]" ..
+		"label[1.9,3.4;Y:]" ..
+		"field[1.9,3.7;1.2,0.6;y;;" .. current_y .. "]" ..
+		"label[3.3,3.4;Z:]" ..
+		"field[3.3,3.7;1.2,0.6;z;;" .. current_z .. "]" ..
+		"label[4.7,3.4;Radius:]" ..
+		"field[4.7,3.7;1.3,0.6;radius;;" .. radius .. "]" ..
+
+		"label[0.5,4.6;Altitude Presets:]" ..
+		"button[0.5,4.9;2.6,0.6;preset_surface;Surface (Y=20)]" ..
+		"button[3.3,4.9;2.7,0.6;preset_orbit;Low Orbit (1200)]" ..
+		"button[0.5,5.5;2.6,0.6;preset_asteroids;Asteroids (2500)]" ..
+		"button[3.3,5.5;2.7,0.6;preset_moon;Moon (5000)]" ..
 
 		-- 3. MIDDLE RIGHT: VECTOR NUDGE & BEACONS
-		"box[6.2,2.7;5.6,3.0;#131c2e]" ..
-		"label[6.4,2.9;VECTOR NUDGE & TRANSPONDERS]" ..
-		"button[6.4,3.4;1.1,0.6;nudge_x_neg;-500 X]" ..
-		"button[7.6,3.4;1.1,0.6;nudge_x_pos;+500 X]" ..
-		"button[8.9,3.4;1.1,0.6;nudge_y_neg;-250 Y]" ..
-		"button[10.1,3.4;1.1,0.6;nudge_y_pos;+250 Y]" ..
+		"box[6.6,2.8;6.1,3.3;#131c2e]" ..
+		"label[6.8,3.0;VECTOR NUDGE & TRANSPONDERS]" ..
+		"button[6.8,3.5;1.3,0.6;nudge_x_neg;-500 X]" ..
+		"button[8.2,3.5;1.3,0.6;nudge_x_pos;+500 X]" ..
+		"button[9.7,3.5;1.3,0.6;nudge_y_neg;-250 Y]" ..
+		"button[11.1,3.5;1.3,0.6;nudge_y_pos;+250 Y]" ..
 
-		"button[6.4,4.1;1.1,0.6;nudge_z_neg;-500 Z]" ..
-		"button[7.6,4.1;1.1,0.6;nudge_z_pos;+500 Z]" ..
-		"button[8.9,4.1;2.3,0.6;preset_mars;Mars Orbit (8000)]" ..
+		"button[6.8,4.2;1.3,0.6;nudge_z_neg;-500 Z]" ..
+		"button[8.2,4.2;1.3,0.6;nudge_z_pos;+500 Z]" ..
+		"button[9.7,4.2;2.7,0.6;preset_mars;Mars Orbit (8000)]" ..
 
-		"dropdown[6.4,4.9;3.5,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
-		"button[10.0,4.9;1.5,0.7;plot_beacon;Plot]" ..
+		"label[6.8,4.9;Target Beacon:]" ..
+		"dropdown[6.8,5.3;4.3,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
+		"button[11.2,5.3;1.2,0.7;plot_beacon;Plot]" ..
 
-		-- 4. INVENTORY & BOTTOM ACTION CONTROLS
+		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS
 		technic_fs ..
-		"list[context;main;0.2,6.7;8,1;]" ..
-		"list[current_player;main;0.2,7.7;8,3;]" ..
+		"label[0.3,6.8;Engine Buffer Inventory:]" ..
+		"list[context;main;0.3,7.1;8,1;]" ..
+		"label[0.3,8.2;Player Cargo Inventory:]" ..
+		"list[current_player;main;0.3,8.5;8,4;]" ..
 		"listring[context;main]" ..
 		"listring[current_player;main]" ..
 
-		"button_exit[8.6,6.7;3.2,1.0;jump;ENGAGE JUMP]" ..
-		"button[8.6,7.8;3.2,0.7;show;PROJECT BOUNDS]" ..
-		"button[8.6,8.6;3.2,0.7;reset;RESET COORDS]" ..
-		"button[8.6,9.4;3.2,0.7;save;SAVE SETTINGS]"
+		"button_exit[8.8,7.1;3.9,1.1;jump;ENGAGE JUMP]" ..
+		"button[8.8,8.5;3.9,0.8;show;PROJECT BOUNDS]" ..
+		"button[8.8,9.5;3.9,0.8;reset;RESET COORDS]" ..
+		"button[8.8,10.5;3.9,0.8;save;SAVE SETTINGS]"
 
 	meta:set_string("formspec", formspec)
 end
@@ -177,7 +187,7 @@ local function sync_coords_from_fields(meta, fields)
 	end
 end
 
--- Hook engine on_receive_fields to process presets, vector nudges, and beacon plotting
+-- Override jumpdrive:engine to add on_rightclick dynamic refresh and handle all field inputs
 minetest.register_on_mods_loaded(function()
 	local engine_def = minetest.registered_nodes["jumpdrive:engine"]
 	if not engine_def then return end
@@ -185,6 +195,13 @@ minetest.register_on_mods_loaded(function()
 	local orig_on_receive_fields = engine_def.on_receive_fields
 
 	minetest.override_item("jumpdrive:engine", {
+		on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+			if not clicker or not clicker:is_player() then return itemstack end
+			local meta = minetest.get_meta(pos)
+			jumpdrive.update_formspec(meta, pos)
+			return itemstack
+		end,
+
 		on_receive_fields = function(pos, formname, fields, sender)
 			local meta = minetest.get_meta(pos)
 
