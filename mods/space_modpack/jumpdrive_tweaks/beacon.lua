@@ -1,0 +1,308 @@
+-- jumpdrive_tweaks/beacon.lua
+-- Ship Transponder Beacon and Quantum Recall Tether
+
+local storage = minetest.get_mod_storage()
+local S = minetest.get_translator("jumpdrive_tweaks")
+
+-- In-memory registry of active beacons: hash -> {pos = {x, y, z}, owner = string, name = string}
+local active_beacons = {}
+
+-- Load beacons from storage
+local function load_beacons()
+	local raw = storage:get_string("active_beacons")
+	if raw and raw ~= "" then
+		active_beacons = minetest.deserialize(raw) or {}
+	end
+end
+
+-- Save beacons to storage
+local function save_beacons()
+	storage:set_string("active_beacons", minetest.serialize(active_beacons))
+end
+
+load_beacons()
+
+local function pos_to_key(pos)
+	return string.format("%d,%d,%d", pos.x, pos.y, pos.z)
+end
+
+-- Helper: calculate 8-point compass bearing
+local function get_bearing(from_pos, to_pos)
+	local dx = to_pos.x - from_pos.x
+	local dz = to_pos.z - from_pos.z
+	local angle = math.atan2(dx, dz) * (180 / math.pi)
+	if angle < 0 then angle = angle + 360 end
+
+	if angle >= 337.5 or angle < 22.5 then return "N"
+	elseif angle < 67.5 then return "NE"
+	elseif angle < 112.5 then return "E"
+	elseif angle < 157.5 then return "SE"
+	elseif angle < 202.5 then return "S"
+	elseif angle < 247.5 then return "SW"
+	elseif angle < 292.5 then return "W"
+	else return "NW"
+	end
+end
+
+-- 1. Ship Transponder Beacon Node
+local function get_beacon_formspec(ship_name)
+	return "size[6,3]" ..
+		"label[0.5,0.5;Ship Transponder Beacon Configuration]" ..
+		"field[0.8,1.5;4.8,0.8;ship_name;Vessel Callsign / Name;" .. minetest.formspec_escape(ship_name) .. "]" ..
+		"button_exit[2,2.3;2,0.8;save;Save]"
+end
+
+minetest.register_node("jumpdrive_tweaks:beacon", {
+	description = S("Ship Transponder Beacon"),
+	tiles = {
+		"jumpdrive_warpdevice.png^[colorize:#00e5ff:70",
+		"jumpdrive_warpdevice.png",
+		"jumpdrive_warpdevice.png^[colorize:#00e5ff:40",
+		"jumpdrive_warpdevice.png^[colorize:#00e5ff:40",
+		"jumpdrive_warpdevice.png^[colorize:#00e5ff:60",
+		"jumpdrive_warpdevice.png^[colorize:#00e5ff:60"
+	},
+	paramtype = "light",
+	light_source = 13,
+	sunlight_propagates = true,
+	is_ground_content = false,
+	groups = {cracky = 2, oddly_breakable_by_hand = 1},
+	sounds = default.node_sound_metal_defaults(),
+
+	on_construct = function(pos)
+		local meta = minetest.get_meta(pos)
+		meta:set_string("ship_name", "Vessel")
+		meta:set_string("infotext", "Ship Transponder Beacon: [Vessel]")
+	end,
+
+	after_place_node = function(pos, placer)
+		if placer and placer:is_player() then
+			local pname = placer:get_player_name()
+			local meta = minetest.get_meta(pos)
+			meta:set_string("owner", pname)
+			meta:set_string("ship_name", "Vessel")
+			meta:set_string("infotext", string.format("Ship Transponder Beacon: [Vessel] (Owner: %s)", pname))
+
+			local key = pos_to_key(pos)
+			active_beacons[key] = {
+				pos = {x = pos.x, y = pos.y, z = pos.z},
+				owner = pname,
+				name = "Vessel"
+			}
+			save_beacons()
+			minetest.chat_send_player(pname, "Ship Transponder Beacon activated. Registered to navigation HUD.")
+		end
+	end,
+
+	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+		if not clicker or not clicker:is_player() then return itemstack end
+		local meta = minetest.get_meta(pos)
+		local ship_name = meta:get_string("ship_name")
+		if ship_name == "" then ship_name = "Vessel" end
+		minetest.show_formspec(clicker:get_player_name(), "jumpdrive_tweaks:beacon_" .. pos_to_key(pos), get_beacon_formspec(ship_name))
+		return itemstack
+	end,
+
+	on_destruct = function(pos)
+		local key = pos_to_key(pos)
+		active_beacons[key] = nil
+		save_beacons()
+	end,
+})
+
+-- Handle beacon formspec submission
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+	if not formname:find("^jumpdrive_tweaks:beacon_") then return false end
+	local pos_str = formname:sub(24)
+	local p = {}
+	for coord in pos_str:gmatch("([^,]+)") do
+		table.insert(p, tonumber(coord))
+	end
+	if #p ~= 3 then return false end
+	local pos = {x = p[1], y = p[2], z = p[3]}
+
+	if fields.save and fields.ship_name then
+		local new_name = fields.ship_name:sub(1, 24)
+		if new_name == "" then new_name = "Vessel" end
+
+		local meta = minetest.get_meta(pos)
+		local owner = meta:get_string("owner")
+		meta:set_string("ship_name", new_name)
+		meta:set_string("infotext", string.format("Ship Transponder Beacon: [%s] (Owner: %s)", new_name, owner))
+
+		local key = pos_to_key(pos)
+		if active_beacons[key] then
+			active_beacons[key].name = new_name
+			save_beacons()
+		end
+
+		minetest.chat_send_player(player:get_player_name(), string.format("Ship beacon callsign updated to [%s]", new_name))
+		return true
+	end
+	return false
+end)
+
+-- 2. HUD Waypoint Tracking Globalstep
+local player_beacon_huds = {} -- playername -> hud_id
+
+local HUD_POSITION = {x = 0.5, y = 0.03}
+local HUD_ALIGNMENT = {x = 0, y = 0}
+
+minetest.register_globalstep(function(dtime)
+	for _, player in ipairs(minetest.get_connected_players()) do
+		local pname = player:get_player_name()
+		local ppos = player:get_pos()
+
+		if ppos then
+			-- Find active beacon for this player (prefer owned, otherwise closest within 3500m)
+			local best_beacon = nil
+			local min_dist = math.huge
+
+			for key, bdata in pairs(active_beacons) do
+				local dist = vector.distance(ppos, bdata.pos)
+				if bdata.owner == pname then
+					if dist < min_dist then
+						min_dist = dist
+						best_beacon = bdata
+					end
+				elseif not best_beacon and dist < 2000 then
+					min_dist = dist
+					best_beacon = bdata
+				end
+			end
+
+			if best_beacon and ppos.y >= 500 then
+				local dist = math.floor(vector.distance(ppos, best_beacon.pos))
+				local bearing = get_bearing(ppos, best_beacon.pos)
+				local dy = math.floor(best_beacon.pos.y - ppos.y)
+				local hud_text = string.format("[Beacon: %s] %dm %s (dY: %+dm)", best_beacon.name or "Vessel", dist, bearing, dy)
+
+				if not player_beacon_huds[pname] then
+					player_beacon_huds[pname] = player:hud_add({
+						hud_elem_type = "text",
+						position = HUD_POSITION,
+						offset = {x = 0, y = 0},
+						text = hud_text,
+						alignment = HUD_ALIGNMENT,
+						scale = {x = 100, y = 100},
+						number = 0x00E5FF
+					})
+				else
+					player:hud_change(player_beacon_huds[pname], "text", hud_text)
+				end
+			else
+				if player_beacon_huds[pname] then
+					player:hud_remove(player_beacon_huds[pname])
+					player_beacon_huds[pname] = nil
+				end
+			end
+		end
+	end
+end)
+
+minetest.register_on_leaveplayer(function(player)
+	player_beacon_huds[player:get_player_name()] = nil
+end)
+
+-- 3. Quantum Recall Tether Tool
+minetest.register_tool("jumpdrive_tweaks:quantum_tether", {
+	description = S("Quantum Recall Tether\nShift+Right-Click: Lock to Ship Beacon\nRight-Click: Recall to Ship"),
+	inventory_image = "jumpdrive_remote.png^[colorize:#00e5ff:90",
+	stack_max = 1,
+
+	on_place = function(itemstack, placer, pointed_thing)
+		if not placer or not placer:is_player() then return itemstack end
+		local pname = placer:get_player_name()
+
+		if pointed_thing.type == "node" then
+			local pos = pointed_thing.under
+			local node = minetest.get_node(pos)
+
+			if node.name == "jumpdrive_tweaks:beacon" then
+				local meta = minetest.get_meta(pos)
+				local ship_name = meta:get_string("ship_name")
+				if ship_name == "" then ship_name = "Vessel" end
+
+				local imeta = itemstack:get_meta()
+				imeta:set_string("target_pos", minetest.pos_to_string(pos))
+				imeta:set_string("target_name", ship_name)
+				imeta:set_string("description", string.format("Quantum Recall Tether (Locked: [%s] at %s)", ship_name, minetest.pos_to_string(pos)))
+
+				minetest.chat_send_player(pname, string.format("Quantum Tether resonance frequency locked to [%s] at %s", ship_name, minetest.pos_to_string(pos)))
+				minetest.sound_play("jumpdrive_remote", {to_player = pname, gain = 1.0})
+				return itemstack
+			end
+		end
+
+		return minetest.item_place(itemstack, placer, pointed_thing)
+	end,
+
+	on_secondary_use = function(itemstack, user, pointed_thing)
+		if not user or not user:is_player() then return itemstack end
+		local pname = user:get_player_name()
+		local imeta = itemstack:get_meta()
+		local target_pos_str = imeta:get_string("target_pos")
+		local target_name = imeta:get_string("target_name")
+
+		if not target_pos_str or target_pos_str == "" then
+			minetest.chat_send_player(pname, "Quantum Tether not tuned! Shift+Right-Click your ship's Transponder Beacon to lock resonance frequency.")
+			return itemstack
+		end
+
+		local target_pos = minetest.string_to_pos(target_pos_str)
+		if not target_pos then
+			minetest.chat_send_player(pname, "Quantum Tether coordinate data corrupted. Re-tune on beacon.")
+			return itemstack
+		end
+
+		-- Verify target beacon node is still present
+		local node = minetest.get_node_or_nil(target_pos)
+		if node and node.name ~= "jumpdrive_tweaks:beacon" and node.name ~= "ignore" then
+			minetest.chat_send_player(pname, "Resonance signal lost: Target Beacon was destroyed or moved.")
+			return itemstack
+		end
+
+		local ppos = user:get_pos()
+		local dist = vector.distance(ppos, target_pos)
+
+		if dist > 2500 then
+			minetest.chat_send_player(pname, string.format("Out of quantum recall range (%dm > 2500m max).", math.floor(dist)))
+			return itemstack
+		end
+
+		-- Spawn departure particles
+		minetest.add_particlespawner({
+			amount = 60,
+			time = 0.5,
+			minpos = vector.subtract(ppos, {x = 0.5, y = 0.5, z = 0.5}),
+			maxpos = vector.add(ppos, {x = 0.5, y = 1.5, z = 0.5}),
+			minvel = {x = -2, y = -2, z = -2},
+			maxvel = {x = 2, y = 2, z = 2},
+			texture = "spark.png",
+			glow = 10,
+		})
+
+		-- Teleport player to destination on top of beacon
+		local dest_pos = {x = target_pos.x, y = target_pos.y + 1.0, z = target_pos.z}
+		user:set_pos(dest_pos)
+
+		-- Spawn arrival particles
+		minetest.add_particlespawner({
+			amount = 60,
+			time = 0.5,
+			minpos = vector.subtract(dest_pos, {x = 0.5, y = 0.5, z = 0.5}),
+			maxpos = vector.add(dest_pos, {x = 0.5, y = 1.5, z = 0.5}),
+			minvel = {x = -2, y = -2, z = -2},
+			maxvel = {x = 2, y = 2, z = 2},
+			texture = "spark.png",
+			glow = 10,
+		})
+
+		minetest.sound_play("jumpdrive_engine", {pos = dest_pos, gain = 0.8, max_hear_distance = 30})
+		minetest.chat_send_player(pname, string.format("Quantum Recall successful! Teleported to [%s] (%dm).", target_name or "Vessel", math.floor(dist)))
+
+		-- Small wear on tool
+		itemstack:add_wear(65535 / 30) -- 30 uses
+		return itemstack
+	end,
+})

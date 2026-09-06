@@ -60,3 +60,23 @@ else
 		}
 	})
 end
+
+-- 5. Ship Transponder Beacon
+minetest.register_craft({
+	output = "jumpdrive_tweaks:beacon",
+	recipe = {
+		{"default:glass", "default:mese_crystal", "default:glass"},
+		{"default:copper_ingot", "jumpdrive:warp_device", "default:copper_ingot"},
+		{"default:steel_ingot", "default:gold_ingot", "default:steel_ingot"}
+	}
+})
+
+-- 6. Quantum Recall Tether
+minetest.register_craft({
+	output = "jumpdrive_tweaks:quantum_tether",
+	recipe = {
+		{"default:diamond", "default:mese_crystal", "default:diamond"},
+		{"default:gold_ingot", "jumpdrive_tweaks:beacon", "default:gold_ingot"},
+		{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
+	}
+})

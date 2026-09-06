@@ -40,4 +40,24 @@ if minetest.get_modpath("techage") then
 			{"techage:aluminium_ingot", "techage:steelmat", "techage:aluminium_ingot"}
 		}
 	})
+
+	-- EVA RCS Thruster Pack
+	minetest.register_craft({
+		output = "spacesuit_tweaks:eva_thruster",
+		recipe = {
+			{"techage:carbon_sheet", "techage:ta4_nozzle", "techage:carbon_sheet"},
+			{"techage:aluminium_ingot", "airtanks:steel_tank_air", "techage:aluminium_ingot"},
+			{"techage:ta4_chip", "techage:ta4_motor", "techage:ta4_chip"}
+		}
+	})
+else
+	-- Minetest Game fallback recipe for EVA Thruster
+	minetest.register_craft({
+		output = "spacesuit_tweaks:eva_thruster",
+		recipe = {
+			{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"},
+			{"default:steel_ingot", "spacesuit:airbottle", "default:steel_ingot"},
+			{"default:mese_crystal", "default:gold_ingot", "default:mese_crystal"}
+		}
+	})
 end
