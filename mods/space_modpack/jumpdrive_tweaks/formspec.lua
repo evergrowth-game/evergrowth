@@ -103,10 +103,10 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
 
-	-- Formspec Layout (Spacious 15.5x13.6 formspec_version[4] grid with dedicated inventory clearance)
+	-- Formspec Layout (Spacious 15.5x14.8 formspec_version[4] grid with full inventory clearance)
 	local formspec =
 		"formspec_version[4]" ..
-		"size[15.5,13.6]" ..
+		"size[15.5,14.8]" ..
 		"bgcolor[#0a0f18;true]" ..
 
 		-- Button Styles
@@ -150,8 +150,8 @@ jumpdrive.update_formspec = function(meta, pos)
 		"box[7.9,3.0;7.1,4.2;#132034]" ..
 		"label[8.2,3.4;DIRECTIONAL VECTOR NUDGE & BEACONS]" ..
 
-		"button[8.2,3.8;3.1,0.6;nudge_y_neg;-250m Descent (-Y)]" ..
-		"button[11.5,3.8;3.1,0.6;nudge_y_pos;+250m Ascent (+Y)]" ..
+		"button[8.2,3.8;3.1,0.6;nudge_y_neg;-250 Y (Down)]" ..
+		"button[11.5,3.8;3.1,0.6;nudge_y_pos;+250 Y (Up)]" ..
 
 		"button[8.2,4.5;1.5,0.6;nudge_x_neg;-500 X (W)]" ..
 		"button[9.9,4.5;1.5,0.6;nudge_x_pos;+500 X (E)]" ..
@@ -171,9 +171,9 @@ jumpdrive.update_formspec = function(meta, pos)
 		"listring[current_player;main]" ..
 
 		"button_exit[10.6,7.8;4.4,1.2;jump;ENGAGE JUMP DRIVE]" ..
-		"button[10.6,9.3;4.4,0.85;show;PROJECT BOUNDS]" ..
-		"button[10.6,10.45;4.4,0.85;reset;RESET COORDS]" ..
-		"button[10.6,11.6;4.4,0.85;save;SAVE SETTINGS]"
+		"button[10.6,9.4;4.4,0.9;show;PROJECT BOUNDS]" ..
+		"button[10.6,10.6;4.4,0.9;reset;RESET COORDS]" ..
+		"button[10.6,11.8;4.4,0.9;save;SAVE SETTINGS]"
 
 	meta:set_string("formspec", formspec)
 end
