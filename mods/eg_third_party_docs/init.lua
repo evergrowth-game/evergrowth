@@ -585,9 +585,9 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"• Enriched Asteroid Ores:\n" ..
 					"Asteroid cores contain dense deposits of Diamond, Mese Crystals, Gold, Egerum, Februm, Copper, Tin, Iron, and Coal.",
 				images = {
-					{ image = "other_worlds:moon_dust", imagetype = "item", caption = "Moon Regolith" },
-					{ image = "other_worlds:ore_dense_titanium", imagetype = "item", caption = "Dense Titanium Ore" },
-					{ image = "other_worlds:comet_ice", imagetype = "item", caption = "Comet Ice" },
+					{ image = "asteroid:dust", imagetype = "item", caption = "Asteroid Dust" },
+					{ image = "other_worlds_tweaks:rich_diamond_ore", imagetype = "item", caption = "Rich Diamond Ore" },
+					{ image = "other_worlds_tweaks:comet_ice", imagetype = "item", caption = "Comet Ice" },
 				},
 			},
 		})
@@ -611,7 +611,7 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"• Docking & Pipe Decoupling:\n" ..
 					"Connect to space stations using Starship Fuel Ports. When jumping, fuel ports automatically decouple safely without spilling liquids.",
 				images = {
-					{ image = "jumpdrive:jumpdrive", imagetype = "item", caption = "Jumpdrive Core" },
+					{ image = "jumpdrive:engine", imagetype = "item", caption = "Jumpdrive Core" },
 					{ image = "jumpdrive_tweaks:fuel_tank", imagetype = "item", caption = "Fuel Tank" },
 					{ image = "jumpdrive_tweaks:fuel_port", imagetype = "item", caption = "Fuel Port" },
 				},

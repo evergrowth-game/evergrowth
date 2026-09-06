@@ -236,6 +236,10 @@ local item_docs = {
 		longdesc = "An emergency recall device that teleports you back to a ship beacon.",
 		usagehelp = "Right-click to select a beacon channel. Sneak + right-click to teleport back to the ship beacon.",
 	},
+	["jumpdrive:engine"] = {
+		longdesc = "The central jump engine block of a starship. Computes destination coordinates, drains electrical power and jump fuel, and jumps the vessel and passengers across space.",
+		usagehelp = "Place inside your starship hull. Right-click to open the navigation console, enter coordinates, and initiate jumps.",
+	},
 	["jumpdrive_tweaks:fuel_tank"] = {
 		longdesc = "A heavy-duty cryogenic storage cylinder for starship propellants (Hydrogen or Petrochemicals). Must be installed on a vessel and filled to allow Jumpdrive jumps.",
 		usagehelp = "Place within your starship hull. Right-click with fuel canisters/cylinders to refill manually, or connect adjacent to a Starship Fuel Port to fill via a Techage pipe network.",
@@ -244,7 +248,7 @@ local item_docs = {
 		longdesc = "A specialized Starship Liquid Fuel Port that interfaces with Techage pipe networks. Automatically decouples safely upon starship jump without liquid spillage.",
 		usagehelp = "Mount on the starship hull or docking cradle. Connect Techage liquid pipes to transfer fuel into adjacent fuel tanks.",
 	},
-	["other_worlds:comet_ice"] = {
+	["other_worlds_tweaks:comet_ice"] = {
 		longdesc = "Pure frozen volatiles harvested from glacial asteroids in orbital space.",
 		usagehelp = "Can be processed in Techage electric furnaces or cooking apparatus into pure liquid water.",
 	},
