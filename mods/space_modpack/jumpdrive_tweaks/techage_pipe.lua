@@ -172,7 +172,7 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") then
 			end
 
 			local meta = minetest.get_meta(pos)
-			meta:set_string("infotext", string.format("Spacecraft Refueling Port (Filling: %d / %d units %s)", total_ship_fuel, total_ship_capa, name))
+			meta:set_string("infotext", string.format("Spacecraft Refueling Port: %d / %d (%s)", total_ship_fuel, total_ship_capa, name))
 			return remaining
 		end,
 		take = function(pos, indir, name, amount)

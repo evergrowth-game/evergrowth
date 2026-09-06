@@ -147,7 +147,7 @@ minetest.register_node("jumpdrive_tweaks:fuel_port", {
 	sounds = default.node_sound_metal_defaults(),
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", S("Spacecraft Refueling Port (Ready for Piped Fuel)"))
+		meta:set_string("infotext", S("Spacecraft Refueling Port"))
 	end,
 	can_dig = function(pos, player)
 		local player_name = player and player:get_player_name() or ""
