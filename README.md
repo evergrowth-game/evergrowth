@@ -2,13 +2,13 @@
 
 ![Evergrowth Screenshot](screenshot.png)
 
-Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foundation of Minetest Game. Set across diverse biomes and deep caverns, it places no limits on your ambition. Players can wander ancient ruins and fight hostile plunderers, collect and cultivate a wide variety of crops, establish towns and trade with hired NPC specialists, craft magical items of great power, build resource extraction and automation networks, or bypass the terrain entirely using ground, maritime, and aerial vehicles.
+Evergrowth is an open-ended sandbox game for Minetest (Luanti) built on the foundation of Minetest Game. Set across an expansive world with diverse biomes, deep caverns, and outer space, it places no limits on your ambition. Players can wander ancient ruins and fight hostile plunderers, collect and cultivate a wide variety of crops, establish towns and trade with hired NPC specialists, craft magical items of great power, build resource extraction and automation networks, traverse terrain using ground, maritime, and aerial vehicles, and explore the depths of both the oceans and outer space.
 
 ## Core Features
-- **Dynamic Settlements (`eg_settlers`)**: NPC and economy system that allows players to "hire" and trade with specialized settlers (such as guards, farmers, and blacksmiths), with future plans for community management structures, daily schedules, and more.
+- **Dynamic Settlements (`eg_settlers`)**: NPC and town management system featuring specialized professions (guards, farmers, blacksmiths, machinists), trade economies, hiring contracts, dual-tethered day/night schedules, and settlement management structures (Town Ledger, Granary, and Town Depot).
 - **Industry & Automation**: Technology infrastructure powered by the `techage` ecosystem, supporting automation, fluid dynamics, power generation, and advanced processing networks.
-- **Transportation**: Dynamic vehicle physics utilizing `airutils` (and its descendents), `automobiles_pck`, `motorboat`, and `jumpdrive` engines, bringing ground, maritime, aerial, and interstellar transport. This includes cars, ships, fixed-wing aircraft, helicopters, submarines, and jump-capable starships into active play.
-- **World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal`, subterranean layers through `caverealms`, and celestial orbital space / asteroid belts via `other_worlds`.
+- **Transportation**: Dynamic vehicle physics utilizing `airutils` (and its descendents), `automobiles_pck`, `motorboat`, and `jumpdrive` engines, bringing ground, maritime, aerial, and astronautical transport. This includes cars, ships, fixed-wing aircraft, helicopters, submarines, and custom-built starships into active play.
+- **World Gen & Biomes**: Multi-faceted exploration spanning custom surface environments via `ethereal`, subterranean layers through `caverealms`, and the depths of high orbit and outer space via `other_worlds`.
 - **Survival Mechanics**: Hunger and satiation mechanics integrated with HUD bars, armor progression, dynamic weather and wind (`climate`), and vacuum environmental hazards requiring sealed life support and spacesuits (`vacuum`, `spacesuit`).
 - **Combat & Hostile Mobs**: Defensive equipment and weapons from `bweapons_modpack`, item enchantment from `x_enchanting`, hostile NPCs from `raiders`, and natural predators from `mobs_water`.
 

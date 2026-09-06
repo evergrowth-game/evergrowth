@@ -71,7 +71,10 @@ jumpdrive.update_formspec = function(meta, pos)
 		minetest.get_voxel_manip():read_from_map(target_pos1, target_pos2)
 		local is_empty, empty_msg = jumpdrive.is_area_empty(target_pos1, target_pos2)
 
-		if is_empty then
+		if (pos.y < 1000 or target_pos.y < 1000) and (pos.x ~= target_pos.x or pos.z ~= target_pos.z) then
+			status_text = "ATMOSPHERIC LOCK: VERTICAL ONLY (Y<1000)"
+			status_color = "#f59e0b" -- Amber
+		elseif is_empty then
 			status_text = "CLEAR FOR TRANSIT"
 			status_color = "#10b981" -- Emerald green
 		elseif empty_msg == "uncharted" then

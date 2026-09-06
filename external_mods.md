@@ -6,7 +6,7 @@ To ensure that the Evergrowth game repository is entirely self-contained, stable
 
 ## Integrated Mods List
 
-The following 83 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
+The following 87 integrated community mods are packaged with this game. All links point directly to their most recent verified Luanti ContentDB release pages and upstream repositories:
 
 | Mod Name | Author / Creator | License | Upstream Source | Notes / Attributions |
 | :--- | :--- | :--- | :--- | :--- |

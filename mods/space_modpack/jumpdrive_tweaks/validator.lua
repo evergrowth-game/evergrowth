@@ -121,9 +121,17 @@ if jumpdrive and jumpdrive.execute_jump then
 	end
 end
 
--- Override jumpdrive.preflight_check to automatically charge engine from fuel tanks before jump
+-- Override jumpdrive.preflight_check to enforce atmospheric lock and charge engine from fuel tanks
 if jumpdrive then
 	jumpdrive.preflight_check = function(source, destination, radius, playername)
+		-- Atmospheric Navigation Lock: Prohibit horizontal jumps below Y=1,000
+		if (source.y < 1000 or destination.y < 1000) and (source.x ~= destination.x or source.z ~= destination.z) then
+			return {
+				success = false,
+				msg = "Atmospheric Navigation Lock: Horizontal hyperjumps are prohibited below Y=1,000. Ascend vertically to orbit (Y >= 1,000) before maneuvering."
+			}
+		end
+
 		local distance = vector.distance(source, destination)
 		local power_req = jumpdrive.calculate_power(radius, distance, source, destination)
 
