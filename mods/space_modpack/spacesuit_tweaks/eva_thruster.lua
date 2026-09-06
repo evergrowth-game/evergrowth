@@ -1,9 +1,8 @@
 -- spacesuit_tweaks/eva_thruster.lua
--- Handheld EVA Reaction Control System (RCS) Thruster with player_monoids 6-DOF Zero-G Flight
+-- Handheld EVA Reaction Control System (RCS) Thruster with player_monoids Dynamic Gravity Vectoring
 
 local S = minetest.get_translator("spacesuit_tweaks")
 
-local MONOID_FLY = "spacesuit_tweaks_eva_fly"
 local MONOID_SPEED = "spacesuit_tweaks_eva_speed"
 local MONOID_GRAVITY = "spacesuit_tweaks_eva_gravity"
 
@@ -82,7 +81,7 @@ end
 
 -- Register EVA Thruster Tool
 minetest.register_tool("spacesuit_tweaks:eva_thruster", {
-	description = S("EVA RCS Thruster Pack\nZero-g Maneuvering Unit\n[Hold Space]: Steady Vertical Ascent\n[Hold Shift]: Steady Vertical Descent\n[WASD]: 3D Vector Translation\n[Release Keys]: Inertial Dampening / Stationary Hover\n[Left-Click]: Instant Forward Boost Surge\nRequires Compressed Air or Hydrogen in inventory"),
+	description = S("EVA RCS Thruster Pack\nZero-g Maneuvering Unit\n[Hold Space]: Upward Thrust (Decelerates fall / climbs)\n[Hold Shift]: Downward Thrust (Descent)\n[WASD]: Horizontal Vector Glide\n[Left-Click]: Instant Forward Boost Surge\nRequires Compressed Air or Hydrogen in inventory"),
 	inventory_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
 	wield_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
 	stack_max = 1,
@@ -110,56 +109,27 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 	end,
 })
 
--- Player flight tracking state
-local active_eva_players = {}
+-- Player thruster tracking state
+local player_thrust_state = {} -- pname -> "up" | "down" | "neutral" | nil
+local player_speed_active = {}
 
-local function enable_eva_flight(player)
+local function cleanup_player(player)
 	local pname = player:get_player_name()
-	if active_eva_players[pname] then return end
-	active_eva_players[pname] = true
-
-	if player_monoids then
-		if player_monoids.fly then
-			player_monoids.fly:add_change(player, true, MONOID_FLY)
-		end
-		if player_monoids.speed then
-			player_monoids.speed:add_change(player, 1.4, MONOID_SPEED)
-		end
-		if player_monoids.gravity then
-			player_monoids.gravity:add_change(player, 0, MONOID_GRAVITY)
-		end
-	else
-		player:set_physics_override({
-			gravity = 0.0,
-			speed = 1.4,
-		})
-	end
-end
-
-local function disable_eva_flight(player)
-	local pname = player:get_player_name()
-	if not active_eva_players[pname] then return end
-	active_eva_players[pname] = nil
-
-	if player_monoids then
-		if player_monoids.fly then
-			player_monoids.fly:del_change(player, MONOID_FLY)
-		end
-		if player_monoids.speed then
-			player_monoids.speed:del_change(player, MONOID_SPEED)
-		end
-		if player_monoids.gravity then
+	if player_thrust_state[pname] then
+		player_thrust_state[pname] = nil
+		if player_monoids and player_monoids.gravity then
 			player_monoids.gravity:del_change(player, MONOID_GRAVITY)
 		end
-	else
-		player:set_physics_override({
-			gravity = 1.0,
-			speed = 1.0,
-		})
+	end
+	if player_speed_active[pname] then
+		player_speed_active[pname] = nil
+		if player_monoids and player_monoids.speed then
+			player_monoids.speed:del_change(player, MONOID_SPEED)
+		end
 	end
 end
 
--- Globalstep Loop for propellant consumption, effects, and flight mode management
+-- Globalstep Loop for dynamic thrust vectoring and effects
 local effect_timer = 0
 minetest.register_globalstep(function(dtime)
 	effect_timer = effect_timer + dtime
@@ -175,12 +145,43 @@ minetest.register_globalstep(function(dtime)
 		if ppos and ppos.y >= 1000 then
 			local wielded = player:get_wielded_item()
 			if wielded:get_name() == "spacesuit_tweaks:eva_thruster" then
-				enable_eva_flight(player)
+				-- Enable speed multiplier for space maneuvering
+				if not player_speed_active[pname] then
+					player_speed_active[pname] = true
+					if player_monoids and player_monoids.speed then
+						player_monoids.speed:add_change(player, 1.6, MONOID_SPEED)
+					end
+				end
 
+				local ctrl = player:get_player_control()
+				local target_state = "neutral"
+
+				if ctrl.jump then
+					target_state = "up"
+				elseif ctrl.sneak then
+					target_state = "down"
+				end
+
+				-- Update gravity monoid if thrust state changed
+				if player_thrust_state[pname] ~= target_state then
+					player_thrust_state[pname] = target_state
+					if player_monoids and player_monoids.gravity then
+						if target_state == "up" then
+							-- Invert gravity to produce upward acceleration (decelerating fall and climbing)
+							player_monoids.gravity:add_change(player, -3.5, MONOID_GRAVITY)
+						elseif target_state == "down" then
+							-- Increase downward gravity for rapid descent
+							player_monoids.gravity:add_change(player, 3.0, MONOID_GRAVITY)
+						else
+							-- Neutral: restore base low space gravity
+							player_monoids.gravity:del_change(player, MONOID_GRAVITY)
+						end
+					end
+				end
+
+				-- Audio, particles, and propellant
 				if step_effects then
-					local ctrl = player:get_player_control()
 					local is_moving = ctrl.jump or ctrl.sneak or ctrl.up or ctrl.down or ctrl.left or ctrl.right
-
 					if is_moving then
 						local particle_dir = {x = 0, y = 0, z = 0}
 						local yaw = player:get_look_horizontal()
@@ -208,15 +209,15 @@ minetest.register_globalstep(function(dtime)
 					end
 				end
 			else
-				disable_eva_flight(player)
+				cleanup_player(player)
 			end
 		else
-			disable_eva_flight(player)
+			cleanup_player(player)
 		end
 	end
 end)
 
 minetest.register_on_leaveplayer(function(player)
-	disable_eva_flight(player)
+	cleanup_player(player)
 	last_sound_time[player:get_player_name()] = nil
 end)
