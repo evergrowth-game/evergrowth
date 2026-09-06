@@ -22,6 +22,11 @@ end
 
 load_beacons()
 
+jumpdrive_tweaks = jumpdrive_tweaks or {}
+jumpdrive_tweaks.get_active_beacons = function()
+	return active_beacons
+end
+
 local function pos_to_key(pos)
 	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
 end
