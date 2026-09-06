@@ -31,19 +31,21 @@ local function get_space_solar_efficiency(y)
 	end
 end
 
--- Checks if a position is exposed to space sunlight (natural light >= 14 and transparent node)
+-- Checks if a position is exposed to space sunlight (unblocked by opaque nodes)
 local function is_sunlit_space(pos)
-	local light = minetest.get_natural_light(pos, 0.5) or 0
-	if light < 14 then
-		return false
-	end
 	local node = minetest.get_node(pos)
 	local nname = node.name
-	if nname == "air" or nname:find("^vacuum:air") or nname == "vacuum:vacuum" then
+	if nname == "air" or nname:find("^vacuum:air") or nname == "vacuum:vacuum" or nname == "ignore" then
 		return true
 	end
 	local def = minetest.registered_nodes[nname]
-	return (def and (def.sunlight_propagates or def.drawtype == "airlike")) or false
+	if not def then return true end
+	return def.sunlight_propagates == true or def.drawtype == "airlike" or def.walkable == false
+end
+
+local function get_param2(pos, side)
+	local dir = networks.side_to_outdir(pos, side)
+	return (dir + 1) % 4
 end
 
 -- Checks if solar module is present and sunlit
@@ -55,9 +57,11 @@ local function is_space_solar_module(base_pos, pos, side)
 			local above_pos = {x = pos1.x, y = pos1.y + 1, z = pos1.z}
 			if is_sunlit_space(above_pos) then
 				local meta = M(base_pos)
-				if side == "L" and node.param2 == meta:get_int("left_param2") then
-					return true
-				elseif side == "R" and node.param2 == meta:get_int("right_param2") then
+				local expected = (side == "L") and meta:get_int("left_param2") or meta:get_int("right_param2")
+				if expected == 0 then
+					expected = get_param2(base_pos, side)
+				end
+				if (node.param2 % 4) == (expected % 4) then
 					return true
 				end
 			end

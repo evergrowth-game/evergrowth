@@ -112,8 +112,20 @@ minetest.register_node("jumpdrive_tweaks:fuel_tank", {
 		return itemstack
 	end,
 	can_dig = function(pos, player)
+		local player_name = player and player:get_player_name() or ""
+		if minetest.is_protected(pos, player_name) then return false end
 		local meta = minetest.get_meta(pos)
 		return meta:get_int("fuel_amount") <= 0
+	end,
+	after_place_node = function(pos)
+		if techage and techage.LiquidPipe then
+			techage.LiquidPipe:after_place_node(pos)
+		end
+	end,
+	after_dig_node = function(pos)
+		if techage and techage.LiquidPipe then
+			techage.LiquidPipe:after_dig_node(pos)
+		end
 	end,
 })
 
@@ -135,7 +147,22 @@ minetest.register_node("jumpdrive_tweaks:fuel_port", {
 	sounds = default.node_sound_metal_defaults(),
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", S("Spacecraft Refueling Port (Docked / Standby)"))
+		meta:set_string("infotext", S("Spacecraft Refueling Port (Ready for Piped Fuel)"))
+	end,
+	can_dig = function(pos, player)
+		local player_name = player and player:get_player_name() or ""
+		if minetest.is_protected(pos, player_name) then return false end
+		return true
+	end,
+	after_place_node = function(pos)
+		if techage and techage.LiquidPipe then
+			techage.LiquidPipe:after_place_node(pos)
+		end
+	end,
+	after_dig_node = function(pos)
+		if techage and techage.LiquidPipe then
+			techage.LiquidPipe:after_dig_node(pos)
+		end
 	end,
 })
 

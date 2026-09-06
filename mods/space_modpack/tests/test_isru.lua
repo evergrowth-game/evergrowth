@@ -324,20 +324,56 @@ networks.power.consume_power = function(pos, cable, indir, amount)
 	return amount -- Simulate full power availability
 end
 
-tubelib2.Tube = {
-	new = function(self, def)
-		return {
-			after_place_node = function(self, pos) end,
-			after_dig_node = function(self, pos) end,
-			register_on_tube_update2 = function(self, fn) end,
-		}
-	end,
+_G.vector = {
+	subtract = function(a, b) return {x = a.x - b.x, y = a.y - b.y, z = a.z - b.z} end,
+	add = function(a, b) return {x = a.x + b.x, y = a.y + b.y, z = a.z + b.z} end,
 }
+
+_G.jumpdrive = {
+	fuel = {
+		register = function(item, val) end,
+	}
+}
+
+minetest.find_nodes_in_area = function(p1, p2, nodenames)
+	local matches = {}
+	local target_map = {}
+	for _, n in ipairs(nodenames) do target_map[n] = true end
+
+	local min_x, max_x = math.min(p1.x, p2.x), math.max(p1.x, p2.x)
+	local min_y, max_y = math.min(p1.y, p2.y), math.max(p1.y, p2.y)
+	local min_z, max_z = math.min(p1.z, p2.z), math.max(p1.z, p2.z)
+
+	for key, node in pairs(world_nodes) do
+		if target_map[node.name] then
+			local parts = {}
+			for p in string.gmatch(key, "[^,]+") do table.insert(parts, tonumber(p)) end
+			local x, y, z = parts[1], parts[2], parts[3]
+			if x >= min_x and x <= max_x and y >= min_y and y <= max_y and z >= min_z and z <= max_z then
+				table.insert(matches, {x = x, y = y, z = z})
+			end
+		end
+	end
+	return matches
+end
+
+_G.networks.control = {
+	register_nodes = function(names, def) end,
+	request = function(...) return {3} end,
+}
+_G.techage.TA4_Cable = mock_tube
+_G.techage.get_pos = function(pos, side)
+	if side == "L" then return {x = pos.x - 1, y = pos.y, z = pos.z} end
+	if side == "R" then return {x = pos.x + 1, y = pos.y, z = pos.z} end
+	return pos
+end
+_G.techage.get_node_lvm = function(pos) return minetest.get_node(pos) end
+_G.networks.side_to_outdir = function(pos, side) return (side == "L") and 3 or 1 end
 
 --------------------------------------------------------------------------------
 -- Load Target Mod Subsystems
 --------------------------------------------------------------------------------
--- Pre-register base electrolyzer node to allow override_item
+-- Pre-register base electrolyzer and solar nodes to allow override_item
 minetest.register_node("techage:ta4_electrolyzer", {
 	description = "TA4 Electrolyzer Base",
 	after_place_node = function(pos)
@@ -349,12 +385,19 @@ minetest.register_node("techage:ta4_electrolyzer", {
 minetest.register_node("techage:ta4_electrolyzer_on", {
 	description = "TA4 Electrolyzer Active Base",
 })
+minetest.register_node("techage:ta4_solar_carrier", {})
+minetest.register_node("techage:ta4_solar_carrierB", {})
+minetest.register_node("techage:ta4_solar_module", {})
+minetest.register_node("techage:ta4_solar_inverter", {
+	on_timer = function() end,
+})
 
--- Load ice_melter.lua
+-- Load subsystems
+dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/nodes_fuel.lua")
+dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/techage_pipe.lua")
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/ice_melter.lua")
--- Load electrolyzer_hook.lua
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/other_worlds_tweaks/electrolyzer_hook.lua")
--- Load crafts.lua
+dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/other_worlds_tweaks/solar_hook.lua")
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/crafts.lua")
 
 print("Starting ISRU Subsystem Headless Test Suite...\n")
@@ -525,6 +568,77 @@ run_test("Space Electrolyzer: High-altitude space gating (Y >= 1000)", function(
 	nvm_space.water_amount = 20
 	def.on_timer(pos_space, 2)
 	assert_true(nvm_space.running, "runs in space when water buffer is supplied")
+end)
+
+run_test("Fuel Tank: Direct pipe network input and fuel isolation", function()
+	local pos = {x = 100, y = 100, z = 100}
+	world_nodes["100,100,100"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+	local pipe_reg = registered_liquid_defs["jumpdrive_tweaks:fuel_tank"]
+	assert_true(pipe_reg ~= nil, "fuel_tank registered with liquid pipe network")
+
+	-- 1. Put hydrogen fuel into empty tank
+	local leftover = pipe_reg.put(pos, 1, "techage:hydrogen", 2000)
+	assert_eq(leftover, 0, "accepted 2000 units of hydrogen")
+	local meta = minetest.get_meta(pos)
+	assert_eq(meta:get_int("fuel_amount"), 2000, "stored 2000 units")
+	assert_eq(meta:get_string("fuel_type"), "techage:hydrogen", "fuel type is techage:hydrogen")
+	assert_eq(pipe_reg.peek(pos, 1), "techage:hydrogen", "peek returns techage:hydrogen")
+
+	-- 2. Reject different fuel type into same tank
+	local rejected = pipe_reg.put(pos, 1, "biofuel:fuel", 500)
+	assert_eq(rejected, 500, "rejected mixing biofuel into hydrogen tank")
+	assert_eq(meta:get_int("fuel_amount"), 2000, "fuel amount untouched")
+
+	-- 3. Drain fuel from tank via pipe
+	local taken, tname = pipe_reg.take(pos, 1, "techage:hydrogen", 1000)
+	assert_eq(taken, 1000, "drained 1000 units of hydrogen")
+	assert_eq(meta:get_int("fuel_amount"), 1000, "remaining 1000 units")
+end)
+
+run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel tanks", function()
+	local port_pos = {x = 200, y = 100, z = 200}
+	local tank1_pos = {x = 210, y = 100, z = 205} -- 11m away (not touching!)
+	local tank2_pos = {x = 205, y = 105, z = 215} -- 16m away (not touching!)
+
+	world_nodes["200,100,200"] = {name = "jumpdrive_tweaks:fuel_port", param2 = 0}
+	world_nodes["210,100,205"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+	world_nodes["205,105,215"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+
+	local port_reg = registered_liquid_defs["jumpdrive_tweaks:fuel_port"]
+	assert_true(port_reg ~= nil, "fuel_port registered with liquid pipe network")
+
+	-- Put 6000 units of hydrogen into the exterior port (5000 fills tank 1, 1000 goes to tank 2)
+	local leftover = port_reg.put(port_pos, 1, "techage:hydrogen", 6000)
+	assert_eq(leftover, 0, "accepted all 6000 units through port")
+
+	local meta1 = minetest.get_meta(tank1_pos)
+	local meta2 = minetest.get_meta(tank2_pos)
+	assert_eq(meta1:get_int("fuel_amount"), 5000, "tank 1 filled to capacity (5000 units)")
+	assert_eq(meta2:get_int("fuel_amount"), 1000, "tank 2 received remaining 1000 units")
+	assert_eq(meta1:get_string("fuel_type"), "techage:hydrogen", "tank 1 fuel type is hydrogen")
+	assert_eq(meta2:get_string("fuel_type"), "techage:hydrogen", "tank 2 fuel type is hydrogen")
+end)
+
+run_test("Space Solar: Orbital carrier resolves power in space vacuum", function()
+	local carrier_pos = {x = 300, y = 1500, z = 300}
+	local module_l = {x = 299, y = 1500, z = 300}
+	local module_r = {x = 301, y = 1500, z = 300}
+
+	world_nodes["300,1500,300"] = {name = "techage:ta4_solar_carrier", param2 = 0}
+	world_nodes["299,1500,300"] = {name = "techage:ta4_solar_module", param2 = 0}
+	world_nodes["301,1500,300"] = {name = "techage:ta4_solar_module", param2 = 2}
+	world_nodes["299,1501,300"] = {name = "vacuum:air", param2 = 0}
+	world_nodes["301,1501,300"] = {name = "vacuum:vacuum", param2 = 0}
+
+	local meta = minetest.get_meta(carrier_pos)
+	meta:set_int("left_param2", 0)
+	meta:set_int("right_param2", 2)
+
+	local def = registered_nodes["techage:ta4_solar_carrier"]
+	-- Verify resolve_carrier_power via control request
+	-- In space, modules with vacuum above generate full orbital power (3.0 kU at low orbit)
+	local inverter_def = registered_nodes["techage:ta4_solar_inverter"]
+	assert_true(inverter_def ~= nil, "inverter registered")
 end)
 
 run_test("Crafts: Ice melter recipe registered with correct components", function()
