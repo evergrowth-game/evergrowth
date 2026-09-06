@@ -80,3 +80,17 @@ minetest.register_craft({
 		{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
 	}
 })
+
+-- 7. Starship Thermal Ice Melter
+if minetest.get_modpath("techage") and minetest.get_modpath("networks") and minetest.get_modpath("basic_materials") then
+	minetest.register_craft({
+		output = "jumpdrive_tweaks:ice_melter",
+		recipe = {
+			{"default:steel_ingot", "default:glass", "default:steel_ingot"},
+			{"techage:electric_cableS", "basic_materials:heating_element", "techage:ta3_pipeS"},
+			{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
+		}
+	})
+end
+
+
