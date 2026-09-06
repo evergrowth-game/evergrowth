@@ -526,13 +526,13 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 		doc.add_entry("space_exploration", "vacuum_survival", {
 			name = "Vacuum Survival & Life Support",
 			data = {
-				text = "The upper atmosphere (above Y = 2,000) transitions into a deadly vacuum:\n\n" ..
+				text = "The upper atmosphere (above Y = 1,000) transitions into a deadly vacuum:\n\n" ..
 					"• Vacuum Hazards:\n" ..
 					"Exposure to vacuum causes rapid suffocation damage unless protected by a complete, pressurized spacesuit.\n\n" ..
 					"• Spacesuit Equipment:\n" ..
 					"Equip a Spacesuit Helmet, Chestplate with Air Tanks, Leggings, and Boots in your 3D Armor inventory. The integrated air tanks supply breathable oxygen in vacuum and deep underwater.\n\n" ..
 					"• Low Gravity:\n" ..
-					"Gravitational pull in orbital space (Y >= 2,000) is reduced to 25% of terrestrial gravity. Be cautious when leaping across asteroid voids.\n\n" ..
+					"Gravitational pull in orbital space (Y >= 1,000) is reduced to 35% of terrestrial gravity. Be cautious when leaping across asteroid voids.\n\n" ..
 					"• Autonomous Constructs:\n" ..
 					"Clay Golems and Combat Drones (eg_constructs) do not require oxygen and are naturally immune to vacuum damage.",
 				images = {
@@ -545,20 +545,45 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 		})
 	end
 
+	if minetest.get_modpath("spacesuit_tweaks") or minetest.get_modpath("jumpdrive_tweaks") then
+		doc.add_entry("space_exploration", "eva_and_navigation", {
+			name = "Thrusters, Beacons & Waypoints",
+			data = {
+				text = "Getting around in space:\n\n" ..
+					"• EVA Thruster:\n" ..
+					"Hold this item while in space (Y >= 1,000) to maneuver:\n" ..
+					"  - Space: Fly up or slow down your fall. Use in bursts.\n" ..
+					"  - Shift (Sneak): Fly down\n" ..
+					"  - WASD: Move around in the air\n" ..
+					"  - Left-Click: Quick boost forward\n" ..
+					"  Uses air bottles or hydrogen canisters from your inventory as fuel.\n\n" ..
+					"• Ship Beacon:\n" ..
+					"Place this on your ship so you don't lose it in space. Right-click to set a channel and name. It puts a waypoint on your screen showing the direction and distance to your ship from anywhere in space.\n\n" ..
+					"• Quantum Tether:\n" ..
+					"An emergency return tool. Right-click to pick a ship beacon, then sneak + right-click to teleport back to that beacon.",
+				images = {
+					{ image = "spacesuit_tweaks:eva_thruster", imagetype = "item", caption = "EVA Thruster" },
+					{ image = "jumpdrive_tweaks:beacon", imagetype = "item", caption = "Ship Beacon" },
+					{ image = "jumpdrive_tweaks:quantum_tether", imagetype = "item", caption = "Quantum Tether" },
+				},
+			},
+		})
+	end
+
 	if minetest.get_modpath("other_worlds") then
 		doc.add_entry("space_exploration", "celestial_bodies", {
 			name = "Celestial Realms & Asteroid Mining",
 			data = {
 				text = "Orbital space contains vast asteroid clusters, planetary rings, and planetary moons:\n\n" ..
 					"• Orbital Layers:\n" ..
-					"- Terrestrial Atmosphere: Y = -30,000 to 1,999\n" ..
-					"- Orbital Asteroid Belt: Y = 2,000 to 3,500 (Rich Ore Asteroids, Comet Ice)\n" ..
+					"- Terrestrial Atmosphere: Y = -30,000 to 999\n" ..
+					"- Orbital Asteroid Belt: Y = 1,000 to 3,500 (Rich Ore Asteroids, Comet Ice)\n" ..
 					"- Moon / Satellite Orbit: Y = 4,000 to 6,500 (Craters, Moon Dust, Basalt)\n" ..
 					"- Red Planet / Mars Orbit: Y = 7,000 to 9,500\n\n" ..
 					"• Comet Ice:\n" ..
 					"Mined from glacial asteroids. Comet ice can be melted in Techage furnaces or industrial cookers into pure liquid water.\n\n" ..
 					"• Enriched Asteroid Ores:\n" ..
-					"Asteroid cores contain dense deposits of Iron, Copper, Gold, Titanium, and Mese Crystals.",
+					"Asteroid cores contain dense deposits of Diamond, Mese Crystals, Gold, Egerum, Februm, Copper, Tin, Iron, and Coal.",
 				images = {
 					{ image = "other_worlds:moon_dust", imagetype = "item", caption = "Moon Regolith" },
 					{ image = "other_worlds:ore_dense_titanium", imagetype = "item", caption = "Dense Titanium Ore" },
@@ -575,6 +600,8 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 				text = "Vessels can teleport across space and planetary coordinates using Jumpdrive technology:\n\n" ..
 					"• Jumpdrive Engine:\n" ..
 					"The core block that teleports the ship and all occupants to destination coordinates. Powered by high-voltage Techage electricity or internal battery buffers.\n\n" ..
+					"• Uncharted Sector Exploration:\n" ..
+					"Jumpdrives feature automatic sector emergence. Enter any unexplored orbital or planetary coordinates in the Jumpdrive terminal; the navigation system automatically pre-generates the destination chunk and queues the jump seamlessly.\n\n" ..
 					"• Fuel System:\n" ..
 					"Starships require Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with liquid Hydrogen, Gas, or Petrochemicals. Refuel tanks by right-clicking directly with fuel canisters/cylinders or connecting via a Starship Fuel Port (jumpdrive_tweaks:fuel_port) linked to a Techage pipe network.\n\n" ..
 					"• Structural Constraints:\n" ..

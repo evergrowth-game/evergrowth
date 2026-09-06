@@ -213,7 +213,7 @@ local item_docs = {
 		usagehelp = "Equip in the 3D Armor inventory slot.",
 	},
 	["spacesuit:chestplate"] = {
-		longdesc = "A pressurized spacesuit chestpiece integrated with dual air tanks. Supplies oxygen in vacuum environments (Y >= 2,000) and underwater.",
+		longdesc = "A pressurized spacesuit chestpiece integrated with dual air tanks. Supplies oxygen in vacuum environments (Y >= 1,000) and underwater.",
 		usagehelp = "Equip in the 3D Armor inventory slot.",
 	},
 	["spacesuit:pants"] = {
@@ -223,6 +223,18 @@ local item_docs = {
 	["spacesuit:boots"] = {
 		longdesc = "Heavy magnetic boots providing traction and shielding in vacuum and low-gravity environments.",
 		usagehelp = "Equip in the 3D Armor inventory slot.",
+	},
+	["spacesuit_tweaks:eva_thruster"] = {
+		longdesc = "A handheld thruster for moving around in zero gravity.",
+		usagehelp = "Works in space (Y >= 1,000). Hold Space to fly up or slow a fall, hold Shift to fly down, and use WASD to glide around. Left-click for a quick boost forward. Consumes air bottles or hydrogen from your inventory.",
+	},
+	["jumpdrive_tweaks:beacon"] = {
+		longdesc = "A beacon marker that displays a waypoint on your screen so you can find your ship in space.",
+		usagehelp = "Place on a ship or base. Right-click to name it and set a channel frequency.",
+	},
+	["jumpdrive_tweaks:quantum_tether"] = {
+		longdesc = "An emergency recall device that teleports you back to a ship beacon.",
+		usagehelp = "Right-click to select a beacon channel. Sneak + right-click to teleport back to the ship beacon.",
 	},
 	["jumpdrive_tweaks:fuel_tank"] = {
 		longdesc = "A heavy-duty cryogenic storage cylinder for starship propellants (Hydrogen or Petrochemicals). Must be installed on a vessel and filled to allow Jumpdrive jumps.",
