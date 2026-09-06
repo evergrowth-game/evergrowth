@@ -31,6 +31,45 @@ local function pos_to_key(pos)
 	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
 end
 
+-- Update beacon positions when a ship executes a jump
+jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius)
+	if not source_pos or not target_pos then return end
+	local delta = vector.subtract(target_pos, source_pos)
+	local r = math.max(radius or 5, 25)
+	local updated = false
+
+	local to_remove = {}
+	local to_add = {}
+
+	for key, bdata in pairs(active_beacons) do
+		local bp = bdata.pos
+		if math.abs(bp.x - source_pos.x) <= r and
+		   math.abs(bp.y - source_pos.y) <= r and
+		   math.abs(bp.z - source_pos.z) <= r then
+			table.insert(to_remove, key)
+			local new_p = vector.add(bp, delta)
+			local new_key = pos_to_key(new_p)
+			to_add[new_key] = {
+				pos = new_p,
+				owner = bdata.owner,
+				name = bdata.name
+			}
+			updated = true
+		end
+	end
+
+	for _, k in ipairs(to_remove) do
+		active_beacons[k] = nil
+	end
+	for k, v in pairs(to_add) do
+		active_beacons[k] = v
+	end
+
+	if updated then
+		save_beacons()
+	end
+end
+
 -- 1. Ship Transponder Beacon Node
 local function get_beacon_formspec(ship_name)
 	return "size[6,3]" ..
@@ -53,7 +92,7 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 	light_source = 14,
 	sunlight_propagates = true,
 	is_ground_content = false,
-	groups = {cracky = 2, oddly_breakable_by_hand = 1},
+	groups = {cracky = 2, oddly_breakable_by_hand = 1, jumpdrive_ship_part = 1},
 	sounds = default.node_sound_metal_defaults(),
 
 	on_construct = function(pos)
@@ -138,7 +177,7 @@ minetest.register_globalstep(function(dtime)
 		local ppos = player:get_pos()
 
 		if ppos then
-			-- Find active beacon for this player (prefer owned, otherwise closest within 3500m)
+			-- Find active beacon for this player (prefer owned, otherwise closest)
 			local best_beacon = nil
 			local min_dist = math.huge
 
@@ -149,14 +188,14 @@ minetest.register_globalstep(function(dtime)
 						min_dist = dist
 						best_beacon = bdata
 					end
-				elseif not best_beacon and dist < 2500 then
+				elseif not best_beacon and dist < 10000 then
 					min_dist = dist
 					best_beacon = bdata
 				end
 			end
 
-			-- Only show in space / upper altitudes
-			if best_beacon and ppos.y >= 500 then
+			-- Show waypoint whenever valid beacon is tracked
+			if best_beacon then
 				local waypoint_name = string.format("[Ship: %s]", best_beacon.name or "Vessel")
 
 				if not player_beacon_huds[pname] then
@@ -192,30 +231,33 @@ local function execute_quantum_recall(itemstack, user)
 	local imeta = itemstack:get_meta()
 	local target_pos_str = imeta:get_string("target_pos")
 	local target_name = imeta:get_string("target_name")
+	local target_owner = imeta:get_string("target_owner")
 
-	if not target_pos_str or target_pos_str == "" then
-		minetest.chat_send_player(pname, "Quantum Tether not tuned! Shift+Right-Click your ship's Transponder Beacon to lock frequency.")
-		return itemstack
+	-- Resolve current location of beacon from active_beacons registry
+	local target_pos = nil
+	if target_name ~= "" and target_owner ~= "" then
+		for _, bdata in pairs(active_beacons) do
+			if bdata.owner == target_owner and bdata.name == target_name then
+				target_pos = bdata.pos
+				break
+			end
+		end
 	end
 
-	local target_pos = minetest.string_to_pos(target_pos_str)
+	if not target_pos and target_pos_str and target_pos_str ~= "" then
+		target_pos = minetest.string_to_pos(target_pos_str)
+	end
+
 	if not target_pos then
-		minetest.chat_send_player(pname, "Quantum Tether coordinate data corrupted. Shift+Right-Click beacon to re-tune.")
-		return itemstack
-	end
-
-	-- Verify target beacon node is still present
-	local node = minetest.get_node_or_nil(target_pos)
-	if node and node.name ~= "jumpdrive_tweaks:beacon" and node.name ~= "ignore" then
-		minetest.chat_send_player(pname, "Resonance signal lost: Target Beacon was destroyed or relocated.")
+		minetest.chat_send_player(pname, "Quantum Tether not tuned! Shift+Right-Click your ship's Transponder Beacon to lock frequency.")
 		return itemstack
 	end
 
 	local ppos = user:get_pos()
 	local dist = vector.distance(ppos, target_pos)
 
-	if dist > 3500 then
-		minetest.chat_send_player(pname, string.format("Out of quantum recall range (%dm > 3500m max).", math.floor(dist)))
+	if dist > 5000 then
+		minetest.chat_send_player(pname, string.format("Out of quantum recall range (%dm > 5000m max).", math.floor(dist)))
 		return itemstack
 	end
 
@@ -247,52 +289,56 @@ local function execute_quantum_recall(itemstack, user)
 		glow = 10,
 	})
 
-	minetest.sound_play("jumpdrive_engine", {pos = dest_pos, gain = 0.8, max_hear_distance = 30})
-	minetest.chat_send_player(pname, string.format("Quantum Recall successful: Returned to [%s] (%dm).", target_name or "Vessel", math.floor(dist)))
+	minetest.sound_play("telemosaic_arrival", {
+		pos = dest_pos,
+		gain = 1.0,
+		max_hear_distance = 25,
+	})
 
-	-- Small wear on tool
-	itemstack:add_wear(65535 / 30)
+	minetest.chat_send_player(pname, string.format("Quantum Recall successful: Re-anchored to [%s] at (%.0f, %.0f, %.0f).", target_name ~= "" and target_name or "Ship", dest_pos.x, dest_pos.y, dest_pos.z))
 	return itemstack
 end
 
--- 4. Quantum Recall Tether Tool Item
+-- 4. Register Quantum Recall Tether Tool
 minetest.register_tool("jumpdrive_tweaks:quantum_tether", {
-	description = S("Quantum Recall Tether\n[Shift+Right-Click Beacon]: Lock Frequency\n[Left/Right-Click in Space]: Recall Teleport to Ship"),
-	inventory_image = "jumpdrive_remote.png^[colorize:#00e5ff:90",
+	description = S("Quantum Recall Tether\nEmergency Return Beacon\n[Sneak + Right-Click on Beacon]: Tune to Vessel\n[Sneak + Right-Click in Void]: Teleport to Tuned Beacon (Range: 5000m)"),
+	inventory_image = "jumpdrive_quantumtether.png",
+	wield_image = "jumpdrive_quantumtether.png",
 	stack_max = 1,
-
-	on_use = function(itemstack, user, pointed_thing)
-		return execute_quantum_recall(itemstack, user)
-	end,
-
-	on_secondary_use = function(itemstack, user, pointed_thing)
-		return execute_quantum_recall(itemstack, user)
-	end,
 
 	on_place = function(itemstack, placer, pointed_thing)
 		if not placer or not placer:is_player() then return itemstack end
 		local pname = placer:get_player_name()
 
 		if pointed_thing.type == "node" then
-			local pos = pointed_thing.under
-			local node = minetest.get_node(pos)
-
+			local node = minetest.get_node(pointed_thing.under)
 			if node.name == "jumpdrive_tweaks:beacon" then
-				local meta = minetest.get_meta(pos)
+				local meta = minetest.get_meta(pointed_thing.under)
 				local ship_name = meta:get_string("ship_name")
 				if ship_name == "" then ship_name = "Vessel" end
+				local owner = meta:get_string("owner")
 
 				local imeta = itemstack:get_meta()
-				imeta:set_string("target_pos", minetest.pos_to_string(pos))
+				imeta:set_string("target_pos", minetest.pos_to_string(pointed_thing.under))
 				imeta:set_string("target_name", ship_name)
-				imeta:set_string("description", string.format("Quantum Recall Tether (Locked: [%s] at %s)", ship_name, minetest.pos_to_string(pos)))
+				imeta:set_string("target_owner", owner)
+				imeta:set_string("description", string.format("Quantum Recall Tether\n[Tuned to: %s @ (%d, %d, %d)]\n[Sneak + Right-Click]: Return to Vessel", ship_name, pointed_thing.under.x, pointed_thing.under.y, pointed_thing.under.z))
 
-				minetest.chat_send_player(pname, string.format("Quantum Tether locked to [%s] at %s", ship_name, minetest.pos_to_string(pos)))
-				minetest.sound_play("jumpdrive_remote", {to_player = pname, gain = 1.0})
+				minetest.sound_play("telemosaic_departure", {
+					pos = pointed_thing.under,
+					gain = 0.8,
+					max_hear_distance = 15,
+				})
+
+				minetest.chat_send_player(pname, string.format("Quantum Tether frequency locked to ship beacon: [%s]", ship_name))
 				return itemstack
 			end
 		end
 
 		return execute_quantum_recall(itemstack, placer)
+	end,
+
+	on_secondary_use = function(itemstack, user, pointed_thing)
+		return execute_quantum_recall(itemstack, user)
 	end,
 })

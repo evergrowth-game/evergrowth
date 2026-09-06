@@ -93,11 +93,16 @@ if jumpdrive and jumpdrive.execute_jump then
 			local function emerge_callback(blockpos, action, calls_remaining, data)
 				if calls_remaining == 0 then
 					local success, msg = orig_execute_jump(pos, player)
-					if playername ~= "" then
-						if success then
+					if success then
+						if jumpdrive_tweaks and jumpdrive_tweaks.on_ship_jump then
+							jumpdrive_tweaks.on_ship_jump(pos, targetPos, radius)
+						end
+						if playername ~= "" then
 							local time_millis = math.floor(msg / 1000)
 							minetest.chat_send_player(playername, "Jump executed in " .. time_millis .. " ms")
-						else
+						end
+					else
+						if playername ~= "" then
 							minetest.chat_send_player(playername, "Auto-jump aborted: " .. tostring(msg))
 						end
 					end
@@ -108,7 +113,11 @@ if jumpdrive and jumpdrive.execute_jump then
 			return false, "Charting sector in progress..."
 		end
 
-		return orig_execute_jump(pos, player)
+		local success, msg = orig_execute_jump(pos, player)
+		if success and jumpdrive_tweaks and jumpdrive_tweaks.on_ship_jump then
+			jumpdrive_tweaks.on_ship_jump(pos, targetPos, radius)
+		end
+		return success, msg
 	end
 end
 

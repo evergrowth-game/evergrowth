@@ -97,76 +97,73 @@ jumpdrive.update_formspec = function(meta, pos)
 	-- Optional Technic upgrades row
 	local technic_fs = ""
 	if has_technic then
-		technic_fs = "label[0.3,6.2;Upgrades:]" ..
-			"list[context;upgrade;1.6,6.0;4,1;]"
+		technic_fs = "label[8.9,11.9;HV Upgrades:]" ..
+			"list[context;upgrade;8.9,12.2;4,1;]"
 	end
 
-	-- Formspec Layout (Clean 13x11.6 grid with distinct functional panels)
+	-- Formspec Layout (Clean 14x13.2 formspec_version[4] grid with distinct functional panels)
 	local formspec =
-		"size[13,11.6;]" ..
-		"bgcolor[#0a0e17;true]" ..
+		"formspec_version[4]" ..
+		"size[14,13.2]" ..
+		"bgcolor[#0a0f18;true]" ..
 
 		-- 1. TOP TELEMETRY & DIAGNOSTICS HEADER
-		"box[0.3,0.3;12.4,2.3;#111827]" ..
-		"label[0.5,0.5;STARSHIP PROPULSION & NAVIGATION COMPUTER]" ..
-		"label[8.6,0.5;" .. minetest.colorize(status_color, status_text) .. "]" ..
+		"box[0.4,0.4;13.2,2.4;#101826]" ..
+		"label[0.7,0.8;STARSHIP PROPULSION & NAVIGATION CONSOLE]" ..
+		"label[8.6,0.8;" .. minetest.colorize(status_color, status_text) .. "]" ..
 
-		"label[0.5,1.1;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
-		"label[0.5,1.5;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
-		"label[0.5,1.9;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
+		"label[0.7,1.4;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
+		"label[0.7,1.9;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
+		"label[0.7,2.4;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
 
-		"label[6.8,1.1;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
-		"label[6.8,1.5;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
-		"label[6.8,1.9;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
+		"label[7.2,1.4;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
+		"label[7.2,1.9;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
+		"label[7.2,2.4;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
 
 		-- 2. MIDDLE LEFT: DESTINATION COORDINATES & PRESETS
-		"box[0.3,2.8;6.0,3.3;#131c2e]" ..
-		"label[0.5,3.0;DESTINATION COORDINATES]" ..
+		"box[0.4,3.1;6.4,3.5;#132034]" ..
+		"label[0.7,3.5;DESTINATION COORDINATES]" ..
 
-		"label[0.5,3.4;X:]" ..
-		"field[0.5,3.7;1.2,0.6;x;;" .. current_x .. "]" ..
-		"label[1.9,3.4;Y:]" ..
-		"field[1.9,3.7;1.2,0.6;y;;" .. current_y .. "]" ..
-		"label[3.3,3.4;Z:]" ..
-		"field[3.3,3.7;1.2,0.6;z;;" .. current_z .. "]" ..
-		"label[4.7,3.4;Radius:]" ..
-		"field[4.7,3.7;1.3,0.6;radius;;" .. radius .. "]" ..
+		"field[0.7,3.9;1.2,0.7;x;X;" .. current_x .. "]" ..
+		"field[2.1,3.9;1.2,0.7;y;Y;" .. current_y .. "]" ..
+		"field[3.5,3.9;1.2,0.7;z;Z;" .. current_z .. "]" ..
+		"field[4.9,3.9;1.6,0.7;radius;Radius;" .. radius .. "]" ..
 
-		"label[0.5,4.6;Altitude Presets:]" ..
-		"button[0.5,4.9;2.6,0.6;preset_surface;Surface (Y=20)]" ..
-		"button[3.3,4.9;2.7,0.6;preset_orbit;Low Orbit (1200)]" ..
-		"button[0.5,5.5;2.6,0.6;preset_asteroids;Asteroids (2500)]" ..
-		"button[3.3,5.5;2.7,0.6;preset_moon;Moon (5000)]" ..
+		"label[0.7,4.9;Orbital Waypoint Presets:]" ..
+		"button[0.7,5.2;2.8,0.6;preset_surface;Surface (Y=20)]" ..
+		"button[3.7,5.2;2.8,0.6;preset_orbit;Low Orbit (1200)]" ..
+		"button[0.7,5.9;2.8,0.6;preset_asteroids;Asteroids (2500)]" ..
+		"button[3.7,5.9;2.8,0.6;preset_moon;Moon (5000)]" ..
 
 		-- 3. MIDDLE RIGHT: VECTOR NUDGE & BEACONS
-		"box[6.6,2.8;6.1,3.3;#131c2e]" ..
-		"label[6.8,3.0;VECTOR NUDGE & TRANSPONDERS]" ..
-		"button[6.8,3.5;1.3,0.6;nudge_x_neg;-500 X]" ..
-		"button[8.2,3.5;1.3,0.6;nudge_x_pos;+500 X]" ..
-		"button[9.7,3.5;1.3,0.6;nudge_y_neg;-250 Y]" ..
-		"button[11.1,3.5;1.3,0.6;nudge_y_pos;+250 Y]" ..
+		"box[7.2,3.1;6.4,3.5;#132034]" ..
+		"label[7.5,3.5;VECTOR NUDGE & BEACONS]" ..
+		"button[7.5,3.9;1.3,0.6;nudge_x_neg;-500 X]" ..
+		"button[9.0,3.9;1.3,0.6;nudge_x_pos;+500 X]" ..
+		"button[10.5,3.9;1.3,0.6;nudge_y_neg;-250 Y]" ..
+		"button[12.0,3.9;1.3,0.6;nudge_y_pos;+250 Y]" ..
 
-		"button[6.8,4.2;1.3,0.6;nudge_z_neg;-500 Z]" ..
-		"button[8.2,4.2;1.3,0.6;nudge_z_pos;+500 Z]" ..
-		"button[9.7,4.2;2.7,0.6;preset_mars;Mars Orbit (8000)]" ..
+		"button[7.5,4.6;1.3,0.6;nudge_z_neg;-500 Z]" ..
+		"button[9.0,4.6;1.3,0.6;nudge_z_pos;+500 Z]" ..
+		"button[10.5,4.6;2.8,0.6;preset_mars;Mars Orbit (8000)]" ..
 
-		"label[6.8,4.9;Target Beacon:]" ..
-		"dropdown[6.8,5.3;4.3,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
-		"button[11.2,5.3;1.2,0.7;plot_beacon;Plot]" ..
+		"label[7.5,5.3;Lock Vessel Transponder:]" ..
+		"dropdown[7.5,5.6;4.6,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
+		"button[12.3,5.6;1.0,0.7;plot_beacon;Plot]" ..
 
 		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS
 		technic_fs ..
-		"label[0.3,6.8;Engine Buffer Inventory:]" ..
-		"list[context;main;0.3,7.1;8,1;]" ..
-		"label[0.3,8.2;Player Cargo Inventory:]" ..
-		"list[current_player;main;0.3,8.5;8,4;]" ..
+		"label[0.4,7.0;Engine Buffer Inventory:]" ..
+		"list[context;main;0.4,7.3;8,1;]" ..
+		"label[0.4,8.6;Player Cargo Inventory:]" ..
+		"list[current_player;main;0.4,8.9;8,4;]" ..
 		"listring[context;main]" ..
 		"listring[current_player;main]" ..
 
-		"button_exit[8.8,7.1;3.9,1.1;jump;ENGAGE JUMP]" ..
-		"button[8.8,8.5;3.9,0.8;show;PROJECT BOUNDS]" ..
-		"button[8.8,9.5;3.9,0.8;reset;RESET COORDS]" ..
-		"button[8.8,10.5;3.9,0.8;save;SAVE SETTINGS]"
+		"button_exit[8.9,7.3;4.7,1.2;jump;ENGAGE JUMP DRIVE]" ..
+		"button[8.9,8.9;4.7,0.8;show;PROJECT BOUNDS]" ..
+		"button[8.9,9.9;4.7,0.8;reset;RESET COORDS]" ..
+		"button[8.9,10.9;4.7,0.8;save;SAVE SETTINGS]"
 
 	meta:set_string("formspec", formspec)
 end
