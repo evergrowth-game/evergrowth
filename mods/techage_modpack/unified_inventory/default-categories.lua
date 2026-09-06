@@ -25,6 +25,10 @@ unified_inventory.register_category('lighting', {
 	symbol = "default:torch",
 	label = S("Lighting")
 })
+unified_inventory.register_category('space_modpack', {
+	symbol = "jumpdrive:engine",
+	label = S("Space Modpack")
+})
 
 local function register_automatic_categorization()
 	-- Add biome nodes to environment category
@@ -69,6 +73,18 @@ local function register_automatic_categorization()
 		end
 	end
 
+	local space_mods = ui.space_mods or {
+		jumpdrive = true,
+		jumpdrive_tweaks = true,
+		other_worlds = true,
+		other_worlds_tweaks = true,
+		spacesuit = true,
+		spacesuit_tweaks = true,
+		vacuum = true,
+		vacuum_tweaks = true,
+		asteroid = true,
+	}
+
 	-- Add items by item definition
 	for name, def in pairs(minetest.registered_items) do
 		local group = def.groups or {}
@@ -97,6 +113,12 @@ local function register_automatic_categorization()
 					 doors.registered_trapdoors and doors.registered_trapdoors[name]
 				   ) then
 				unified_inventory.add_category_item('building', name)
+			end
+
+			-- Automatically categorize all space_modpack items
+			local mod = name:match("^([^:]+)")
+			if space_mods[mod] or (def.mod_origin and space_mods[def.mod_origin]) then
+				unified_inventory.add_category_item('space_modpack', name)
 			end
 		end
 	end

@@ -4,6 +4,19 @@ local ui = unified_inventory
 
 local MIN_FORMSPEC_VERSION = 4
 
+ui.space_mods = {
+	jumpdrive = true,
+	jumpdrive_tweaks = true,
+	other_worlds = true,
+	other_worlds_tweaks = true,
+	spacesuit = true,
+	spacesuit_tweaks = true,
+	vacuum = true,
+	vacuum_tweaks = true,
+	asteroid = true,
+}
+local space_mods = ui.space_mods
+
 -- This pair of encoding functions is used where variable text must go in
 -- button names, where the text might contain formspec metacharacters.
 -- We can escape button names for the formspec, to avoid screwing up
@@ -364,8 +377,11 @@ function ui.apply_filter(player, filter)
 	end
 
 	local registered_items = minetest.registered_items
-	local lfilter = string.lower(filter)
+	local lfilter = string.lower(filter or "")
 	local ffilter
+
+	local is_space_modpack_search = (lfilter == "space_modpack" or lfilter == "spacemodpack" or lfilter == "space-modpack" or lfilter == "space modpack" or lfilter == "space_pack")
+	local space_prefix = lfilter:match("^space_modpack:(.+)") or lfilter:match("^spacemodpack:(.+)") or lfilter:match("^space%-modpack:(.+)")
 
 	if lfilter:sub(1, 6) == "group:" then
 		-- Group filter: all groups of the item must match
@@ -395,12 +411,27 @@ function ui.apply_filter(player, filter)
 				return false
 			end
 
+			local mod = name:match("^([^:]+)")
+			local is_space_item = space_mods[mod] or (def.mod_origin and space_mods[def.mod_origin])
+
+			if is_space_modpack_search then
+				return is_space_item
+			end
+
+			if space_prefix then
+				if not is_space_item then return false end
+				local lname = string.lower(name)
+				local ldesc = string.lower(def.description or "")
+				return string.find(lname, space_prefix, 1, true) or string.find(ldesc, space_prefix, 1, true)
+			end
+
 			local lname = string.lower(name)
-			local ldesc = string.lower(def.description)
+			local ldesc = string.lower(def.description or "")
 			local llocaldesc = minetest.get_translated_string
-				and string.lower(minetest.get_translated_string(lang, def.description))
+				and string.lower(minetest.get_translated_string(lang, def.description or ""))
 			return string.find(lname, lfilter, 1, true) or string.find(ldesc, lfilter, 1, true)
-				or llocaldesc and string.find(llocaldesc, lfilter, 1, true)
+				or (llocaldesc and string.find(llocaldesc, lfilter, 1, true))
+				or (is_space_item and (lfilter == "space" or lfilter == "space_modpack" or lfilter == "space modpack"))
 		end
 	end
 

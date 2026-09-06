@@ -6,5 +6,6 @@ dofile(modpath .. "/nodes.lua")
 dofile(modpath .. "/gravity.lua")
 dofile(modpath .. "/climate_hook.lua")
 dofile(modpath .. "/asteroid_mapgen.lua")
+dofile(modpath .. "/solar_hook.lua")
 
-minetest.log("action", "[other_worlds_tweaks] Loaded space worldgen tweaks, rich ores, gravity monoids, climate hooks, and balanced asteroid mapgen.")
+minetest.log("action", "[other_worlds_tweaks] Loaded space worldgen tweaks, rich ores, gravity monoids, climate hooks, balanced asteroid mapgen, and orbital solar power.")
