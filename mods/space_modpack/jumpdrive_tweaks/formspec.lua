@@ -72,7 +72,13 @@ jumpdrive.update_formspec = function(meta, pos)
 		local is_empty, empty_msg = jumpdrive.is_area_empty(target_pos1, target_pos2)
 
 		if (pos.y < 1000 or target_pos.y < 1000) and (pos.x ~= target_pos.x or pos.z ~= target_pos.z) then
-			status_text = "ATMOSPHERIC LOCK: VERTICAL ONLY (Y<1000)"
+			if pos.y < 1000 and target_pos.y < 1000 then
+				status_text = "ATMOSPHERIC LOCK: VERTICAL ONLY (Y<1000)"
+			elseif pos.y < 1000 then
+				status_text = "LAUNCH LOCK: VERTICAL ASCENT ONLY"
+			else
+				status_text = "ENTRY LOCK: ALIGN IN ORBIT BEFORE DESCENT"
+			end
 			status_color = "#f59e0b" -- Amber
 		elseif is_empty then
 			status_text = "CLEAR FOR TRANSIT"
@@ -97,75 +103,77 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
 
-	-- Formspec Layout (Clean 14x12.8 formspec_version[4] grid with distinct functional panels)
+	-- Formspec Layout (Spacious 15.5x13.6 formspec_version[4] grid with dedicated inventory clearance)
 	local formspec =
 		"formspec_version[4]" ..
-		"size[14,12.8]" ..
+		"size[15.5,13.6]" ..
 		"bgcolor[#0a0f18;true]" ..
 
 		-- Button Styles
 		"style[jump;bgcolor=#047857;textcolor=#ffffff]" ..
 		"style[show,reset,save;bgcolor=#1e293b;textcolor=#ffffff]" ..
-		"style[preset_surface,preset_orbit,preset_asteroids,preset_moon,preset_mars;bgcolor=#1e293b;textcolor=#38bdf8]" ..
+		"style[preset_surface,preset_orbit,preset_asteroids,preset_mars,preset_deep,preset_void;bgcolor=#1e293b;textcolor=#38bdf8]" ..
 		"style[nudge_x_neg,nudge_x_pos,nudge_y_neg,nudge_y_pos,nudge_z_neg,nudge_z_pos;bgcolor=#1e293b;textcolor=#f59e0b]" ..
 		"style[plot_beacon;bgcolor=#0284c7;textcolor=#ffffff]" ..
 
 		-- 1. TOP TELEMETRY & DIAGNOSTICS HEADER
-		"box[0.4,0.4;13.2,2.4;#101826]" ..
-		"label[0.7,0.8;STARSHIP PROPULSION & NAVIGATION CONSOLE]" ..
-		"label[8.6,0.8;" .. minetest.colorize(status_color, status_text) .. "]" ..
+		"box[0.5,0.4;14.5,2.4;#101826]" ..
+		"label[0.8,0.8;STARSHIP PROPULSION & NAVIGATION CONSOLE]" ..
+		"label[9.2,0.8;" .. minetest.colorize(status_color, status_text) .. "]" ..
 
-		"label[0.7,1.4;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
-		"label[0.7,1.9;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
-		"label[0.7,2.4;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
+		"label[0.8,1.4;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
+		"label[0.8,1.9;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
+		"label[0.8,2.4;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
 
-		"label[7.2,1.4;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
-		"label[7.2,1.9;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
-		"label[7.2,2.4;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
+		"label[8.0,1.4;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
+		"label[8.0,1.9;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
+		"label[8.0,2.4;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
 
 		-- 2. MIDDLE LEFT: DESTINATION COORDINATES & PRESETS
-		"box[0.4,3.1;6.4,3.5;#132034]" ..
-		"label[0.7,3.5;DESTINATION COORDINATES]" ..
+		"box[0.5,3.0;7.1,4.2;#132034]" ..
+		"label[0.8,3.4;DESTINATION COORDINATES & PRESETS]" ..
 
-		"field[0.7,3.9;1.2,0.7;x;X;" .. current_x .. "]" ..
-		"field[2.1,3.9;1.2,0.7;y;Y;" .. current_y .. "]" ..
-		"field[3.5,3.9;1.2,0.7;z;Z;" .. current_z .. "]" ..
-		"field[4.9,3.9;1.6,0.7;radius;Radius;" .. radius .. "]" ..
+		"field[0.8,3.8;1.3,0.7;x;X;" .. current_x .. "]" ..
+		"field[2.3,3.8;1.3,0.7;y;Y;" .. current_y .. "]" ..
+		"field[3.8,3.8;1.3,0.7;z;Z;" .. current_z .. "]" ..
+		"field[5.3,3.8;1.8,0.7;radius;Radius;" .. radius .. "]" ..
 
-		"label[0.7,4.9;Orbital Waypoint Presets:]" ..
-		"button[0.7,5.2;2.8,0.6;preset_surface;Surface (Y=20)]" ..
-		"button[3.7,5.2;2.8,0.6;preset_orbit;Low Orbit (1200)]" ..
-		"button[0.7,5.9;2.8,0.6;preset_asteroids;Asteroids (2500)]" ..
-		"button[3.7,5.9;2.8,0.6;preset_moon;Moon (5000)]" ..
+		"label[0.8,4.7;Orbital Waypoint Presets:]" ..
+		"button[0.8,5.0;3.1,0.6;preset_surface;Surface (Y=20)]" ..
+		"button[4.1,5.0;3.1,0.6;preset_orbit;Low Orbit (1200)]" ..
+		"button[0.8,5.7;3.1,0.6;preset_asteroids;Asteroids (5200)]" ..
+		"button[4.1,5.7;3.1,0.6;preset_mars;Mars Orbit (6200)]" ..
+		"button[0.8,6.4;3.1,0.6;preset_deep;Deep Space (10k)]" ..
+		"button[4.1,6.4;3.1,0.6;preset_void;Outer Void (20k)]" ..
 
-		-- 3. MIDDLE RIGHT: VECTOR NUDGE & BEACONS
-		"box[7.2,3.1;6.4,3.5;#132034]" ..
-		"label[7.5,3.5;VECTOR NUDGE & BEACONS]" ..
-		"button[7.5,3.9;1.3,0.6;nudge_x_neg;-500 X]" ..
-		"button[9.0,3.9;1.3,0.6;nudge_x_pos;+500 X]" ..
-		"button[10.5,3.9;1.3,0.6;nudge_y_neg;-250 Y]" ..
-		"button[12.0,3.9;1.3,0.6;nudge_y_pos;+250 Y]" ..
+		-- 3. MIDDLE RIGHT: DIRECTIONAL VECTOR NUDGE & BEACONS
+		"box[7.9,3.0;7.1,4.2;#132034]" ..
+		"label[8.2,3.4;DIRECTIONAL VECTOR NUDGE & BEACONS]" ..
 
-		"button[7.5,4.6;1.3,0.6;nudge_z_neg;-500 Z]" ..
-		"button[9.0,4.6;1.3,0.6;nudge_z_pos;+500 Z]" ..
-		"button[10.5,4.6;2.8,0.6;preset_mars;Mars Orbit (8000)]" ..
+		"button[8.2,3.8;3.1,0.6;nudge_y_neg;-250m Descent (-Y)]" ..
+		"button[11.5,3.8;3.1,0.6;nudge_y_pos;+250m Ascent (+Y)]" ..
 
-		"label[7.5,5.3;Lock Navigation Beacon:]" ..
-		"dropdown[7.5,5.6;4.6,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
-		"button[12.3,5.6;1.0,0.7;plot_beacon;Plot]" ..
+		"button[8.2,4.5;1.5,0.6;nudge_x_neg;-500 X (W)]" ..
+		"button[9.9,4.5;1.5,0.6;nudge_x_pos;+500 X (E)]" ..
+		"button[11.6,4.5;1.5,0.6;nudge_z_neg;-500 Z (S)]" ..
+		"button[13.3,4.5;1.5,0.6;nudge_z_pos;+500 Z (N)]" ..
 
-		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS
-		"label[0.4,6.8;Engine Buffer Inventory:]" ..
-		"list[context;main;0.4,7.1;8,1;]" ..
-		"label[0.4,8.1;Player Cargo Inventory:]" ..
-		"list[current_player;main;0.4,8.4;8,4;]" ..
+		"label[8.2,5.4;Lock Navigation Beacon:]" ..
+		"dropdown[8.2,5.7;5.0,0.7;beacon_select;" .. beacon_dropdown_str .. ";1]" ..
+		"button[13.4,5.7;1.2,0.7;plot_beacon;Plot]" ..
+
+		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS (Isolated columns to avoid overlap)
+		"label[0.5,7.5;Engine Buffer Inventory:]" ..
+		"list[context;main;0.5,7.8;8,1;]" ..
+		"label[0.5,9.0;Player Cargo Inventory:]" ..
+		"list[current_player;main;0.5,9.3;8,4;]" ..
 		"listring[context;main]" ..
 		"listring[current_player;main]" ..
 
-		"button_exit[8.9,7.1;4.7,1.1;jump;ENGAGE JUMP DRIVE]" ..
-		"button[8.9,8.4;4.7,0.8;show;PROJECT BOUNDS]" ..
-		"button[8.9,9.4;4.7,0.8;reset;RESET COORDS]" ..
-		"button[8.9,10.4;4.7,0.8;save;SAVE SETTINGS]"
+		"button_exit[10.6,7.8;4.4,1.2;jump;ENGAGE JUMP DRIVE]" ..
+		"button[10.6,9.3;4.4,0.85;show;PROJECT BOUNDS]" ..
+		"button[10.6,10.45;4.4,0.85;reset;RESET COORDS]" ..
+		"button[10.6,11.6;4.4,0.85;save;SAVE SETTINGS]"
 
 	meta:set_string("formspec", formspec)
 end
@@ -204,28 +212,61 @@ minetest.register_on_mods_loaded(function()
 		on_receive_fields = function(pos, formname, fields, sender)
 			local meta = minetest.get_meta(pos)
 
+			-- Handle Reset Button (aligns destination coords with ship position)
+			if fields.reset then
+				meta:set_int("x", pos.x)
+				meta:set_int("y", pos.y)
+				meta:set_int("z", pos.z)
+				jumpdrive.update_formspec(meta, pos)
+				return
+			end
+
 			-- Always sync any modified coordinate text fields first
 			sync_coords_from_fields(meta, fields)
 
 			-- Handle orbital presets
 			if fields.preset_surface then
+				meta:set_int("x", pos.x)
 				meta:set_int("y", 20)
+				meta:set_int("z", pos.z)
 				jumpdrive.update_formspec(meta, pos)
 				return
 			elseif fields.preset_orbit then
+				meta:set_int("x", pos.x)
 				meta:set_int("y", 1200)
+				meta:set_int("z", pos.z)
 				jumpdrive.update_formspec(meta, pos)
 				return
 			elseif fields.preset_asteroids then
-				meta:set_int("y", 2500)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_moon then
-				meta:set_int("y", 5000)
+				if pos.y < 1000 then
+					meta:set_int("x", pos.x)
+					meta:set_int("z", pos.z)
+				end
+				meta:set_int("y", 5200)
 				jumpdrive.update_formspec(meta, pos)
 				return
 			elseif fields.preset_mars then
-				meta:set_int("y", 8000)
+				if pos.y < 1000 then
+					meta:set_int("x", pos.x)
+					meta:set_int("z", pos.z)
+				end
+				meta:set_int("y", 6200)
+				jumpdrive.update_formspec(meta, pos)
+				return
+			elseif fields.preset_deep then
+				if pos.y < 1000 then
+					meta:set_int("x", pos.x)
+					meta:set_int("z", pos.z)
+				end
+				meta:set_int("y", 10000)
+				jumpdrive.update_formspec(meta, pos)
+				return
+			elseif fields.preset_void then
+				if pos.y < 1000 then
+					meta:set_int("x", pos.x)
+					meta:set_int("z", pos.z)
+				end
+				meta:set_int("y", 20000)
 				jumpdrive.update_formspec(meta, pos)
 				return
 			end

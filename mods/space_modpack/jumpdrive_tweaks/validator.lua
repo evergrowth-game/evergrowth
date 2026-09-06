@@ -126,10 +126,22 @@ if jumpdrive then
 	jumpdrive.preflight_check = function(source, destination, radius, playername)
 		-- Atmospheric Navigation Lock: Prohibit horizontal jumps below Y=1,000
 		if (source.y < 1000 or destination.y < 1000) and (source.x ~= destination.x or source.z ~= destination.z) then
-			return {
-				success = false,
-				msg = "Atmospheric Navigation Lock: Horizontal hyperjumps are prohibited below Y=1,000. Ascend vertically to orbit (Y >= 1,000) before maneuvering."
-			}
+			if source.y < 1000 and destination.y < 1000 then
+				return {
+					success = false,
+					msg = "Atmospheric Lock: Surface-to-surface horizontal hyperjumps are prohibited below Y=1,000. Ascend vertically to orbit (Y >= 1,000) first."
+				}
+			elseif source.y < 1000 then
+				return {
+					success = false,
+					msg = "Atmospheric Launch Lock: Oblique atmospheric ascents are prohibited below Y=1,000. Ascend vertically to orbit (Y >= 1,000) before maneuvering."
+				}
+			else
+				return {
+					success = false,
+					msg = string.format("Atmospheric Entry Lock: Oblique atmospheric reentry is prohibited. Cruise in orbit to align horizontally with destination (%d, 1200, %d) before vertical descent.", destination.x, destination.z)
+				}
+			end
 		end
 
 		local distance = vector.distance(source, destination)
