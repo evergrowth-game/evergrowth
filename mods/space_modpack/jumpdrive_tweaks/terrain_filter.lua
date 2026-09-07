@@ -2,6 +2,8 @@
 -- Selective Spatial Filtering: Transports only verified spacecraft components (via backbone proximity mask),
 -- leaving background terrain, planetary landscape, and disconnected structures untouched.
 
+jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
+
 local c_air = minetest.get_content_id("air")
 
 -- Override move_mapdata to copy ONLY verified spacecraft blocks

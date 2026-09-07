@@ -2,6 +2,8 @@
 
 local modpath = minetest.get_modpath("jumpdrive_tweaks")
 
+jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
+
 dofile(modpath .. "/nodes_fuel.lua")
 dofile(modpath .. "/techage_pipe.lua")
 dofile(modpath .. "/ship_tracker.lua")

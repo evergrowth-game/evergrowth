@@ -1,6 +1,8 @@
 -- jumpdrive_tweaks/validator.lua
 -- Dynamic Backbone-Proximity Spacecraft Validation, Tank Charging, Protection Gating, and Jump Execution
 
+jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
+
 local FUEL_TO_EU_RATIO = 50 -- 1 unit of propellant = 50 EU of jump power
 
 -- Helper: Drain fuel strictly from tanks attached to the spacecraft

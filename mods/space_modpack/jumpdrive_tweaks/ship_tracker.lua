@@ -1,6 +1,8 @@
 -- jumpdrive_tweaks/ship_tracker.lua
 -- Dynamic Backbone-Proximity Spacecraft Discovery and Spatial Geometry Resolution
 
+jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
+
 local c_ignore = minetest.get_content_id("ignore")
 local terrain_cache = {}
 local buildable_to_cache = {}
