@@ -194,15 +194,17 @@ minetest.register_globalstep(function(dtime)
 			local min_dist = math.huge
 
 			for key, bdata in pairs(active_beacons) do
-				local dist = vector.distance(ppos, bdata.pos)
-				if bdata.owner == pname then
-					if dist < min_dist then
+				if bdata.pos and bdata.pos.y >= 1000 then
+					local dist = vector.distance(ppos, bdata.pos)
+					if bdata.owner == pname then
+						if dist < min_dist then
+							min_dist = dist
+							best_beacon = bdata
+						end
+					elseif not best_beacon and dist < 10000 then
 						min_dist = dist
 						best_beacon = bdata
 					end
-				elseif not best_beacon and dist < 10000 then
-					min_dist = dist
-					best_beacon = bdata
 				end
 			end
 

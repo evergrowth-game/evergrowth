@@ -871,6 +871,42 @@ run_test("Beacon Migration: Beacon coordinates migrate during ship jump", functi
 	assert_eq(active_beacons["11,6200,30"].owner, "Astronaut", "Beacon owner preserved")
 end)
 
+-- Test 19: Terrestrial Beacon Altitude Filter (Ignore ground beacons in space HUD)
+run_test("Beacon Altitude Filter: Ground beacons (Y < 1000) are excluded from orbital HUD candidates", function()
+	local active_beacons = jumpdrive_tweaks.get_active_beacons()
+	active_beacons["0,10,0"] = {
+		pos = {x = 0, y = 10, z = 0},
+		name = "GroundBase",
+		owner = "Astronaut",
+	}
+	active_beacons["0,5000,0"] = {
+		pos = {x = 0, y = 5000, z = 0},
+		name = "OrbitalStation",
+		owner = "Astronaut",
+	}
+
+	local ppos = {x = 0, y = 1200, z = 0}
+	local pname = "Astronaut"
+	local best_beacon = nil
+	local min_dist = math.huge
+
+	for key, bdata in pairs(active_beacons) do
+		if bdata.pos and bdata.pos.y >= 1000 then
+			local dist = vector.distance(ppos, bdata.pos)
+			if bdata.owner == pname then
+				if dist < min_dist then
+					min_dist = dist
+					best_beacon = bdata
+				end
+			end
+		end
+	end
+
+	assert_true(best_beacon ~= nil, "Orbital beacon identified")
+	assert_eq(best_beacon.name, "OrbitalStation", "Ground beacon ignored in favor of orbital beacon")
+	assert_eq(best_beacon.pos.y, 5000, "Orbital beacon altitude matches")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then
