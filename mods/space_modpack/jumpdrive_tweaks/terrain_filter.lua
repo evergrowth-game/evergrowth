@@ -139,6 +139,7 @@ function jumpdrive.move_metadata(source_pos1, source_pos2, delta_vector)
 	local mask = jumpdrive_tweaks.active_ship_mask
 
 	local meta_pos_list = minetest.find_nodes_with_meta(source_pos1, source_pos2)
+	local processed_positions = {}
 	for _, source_pos in pairs(meta_pos_list) do
 		local shash = minetest.hash_node_position(source_pos)
 		if not mask or mask[shash] then
@@ -156,6 +157,38 @@ function jumpdrive.move_metadata(source_pos1, source_pos2, delta_vector)
 				target_meta:from_table(source_table)
 				jumpdrive.node_compat(node.name, source_pos, target_pos, source_pos1, source_pos2, delta_vector)
 				source_meta:from_table(nil)
+
+				if jumpdrive_tweaks.migrate_techage_node then
+					jumpdrive_tweaks.migrate_techage_node(source_pos, target_pos)
+					processed_positions[shash] = true
+				end
+			end
+		end
+	end
+
+	-- Ensure NVM migration for any ship nodes without standard NodeMeta
+	if jumpdrive_tweaks.migrate_techage_node then
+		local nodes = jumpdrive_tweaks.active_ship_nodes
+		if nodes then
+			for _, from_pos in ipairs(nodes) do
+				local fhash = minetest.hash_node_position(from_pos)
+				if not processed_positions[fhash] then
+					local target_pos = vector.add(from_pos, delta_vector)
+					jumpdrive_tweaks.migrate_techage_node(from_pos, target_pos)
+				end
+			end
+		elseif mask then
+			for z = source_pos1.z, source_pos2.z do
+			for y = source_pos1.y, source_pos2.y do
+			for x = source_pos1.x, source_pos2.x do
+				local from_pos = vector.new(x, y, z)
+				local fhash = minetest.hash_node_position(from_pos)
+				if mask[fhash] and not processed_positions[fhash] then
+					local target_pos = vector.add(from_pos, delta_vector)
+					jumpdrive_tweaks.migrate_techage_node(from_pos, target_pos)
+				end
+			end
+			end
 			end
 		end
 	end
@@ -165,8 +198,26 @@ end
 
 -- Override move_nodetimers to only move timers for active ship nodes
 function jumpdrive.move_nodetimers(source_pos1, source_pos2, delta_vector)
-	local mask = jumpdrive_tweaks.active_ship_mask
+	local nodes = jumpdrive_tweaks.active_ship_nodes
+	if nodes then
+		for _, from_pos in ipairs(nodes) do
+			local timer = minetest.get_node_timer(from_pos)
+			if timer and timer:is_started() then
+				local timeout = timer:get_timeout()
+				local elapsed = timer:get_elapsed()
+				timer:stop()
 
+				local to_pos = vector.add(from_pos, delta_vector)
+				local target_timer = minetest.get_node_timer(to_pos)
+				if target_timer then
+					target_timer:set(timeout, elapsed)
+				end
+			end
+		end
+		return
+	end
+
+	local mask = jumpdrive_tweaks.active_ship_mask
 	for z = source_pos1.z, source_pos2.z do
 	for y = source_pos1.y, source_pos2.y do
 	for x = source_pos1.x, source_pos2.x do

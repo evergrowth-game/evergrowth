@@ -57,11 +57,63 @@ local registered_nodes = {
 	["default:stonebrick"] = {description = "Stone Brick", groups = {stone = 1}},
 	["default:cobble"] = {description = "Cobblestone", groups = {stone = 1}},
 	["techage:ta4_solar_gen"] = {description = "Solar"},
+	["techage:ta4_tank"] = {description = "Liquid Tank"},
+	["techage:ta4_solar_inverter"] = {description = "Solar Inverter", cycle_time = 2.0},
+	["techage:ta3_akku"] = {description = "Battery Accu", cycle_time = 2.0},
 	["default:dirt"] = {description = "Dirt", is_ground_content = true},
 	["default:stone"] = {description = "Stone", is_ground_content = true, groups = {stone = 1}},
 }
 
 minetest.registered_nodes = registered_nodes
+
+local techage_nvm_store = {}
+local networks_updated = {}
+
+_G.techage = {
+	RUNNING = 1,
+	BLOCKED = 2,
+	STANDBY = 3,
+	NOPOWER = 4,
+	FAULT = 5,
+	STOPPED = 6,
+	ElectricCable = {tube_type = "electric_cable"},
+	peek_nvm = function(pos)
+		local h = minetest.hash_node_position(pos)
+		return techage_nvm_store[h] or {}
+	end,
+	get_nvm = function(pos)
+		local h = minetest.hash_node_position(pos)
+		if not techage_nvm_store[h] then
+			techage_nvm_store[h] = {}
+		end
+		return techage_nvm_store[h]
+	end,
+	has_nvm = function(pos)
+		local h = minetest.hash_node_position(pos)
+		return techage_nvm_store[h] ~= nil
+	end,
+	del_mem = function(pos)
+		local h = minetest.hash_node_position(pos)
+		techage_nvm_store[h] = nil
+	end,
+	is_running = function(nvm)
+		return nvm.techage_state == 1 or nvm.running == true
+	end,
+}
+
+_G.networks = {
+	registered_networks = {
+		power = {["electric_cable"] = {tube_type = "electric_cable"}},
+		liquid = {["liquid_pipe"] = {tube_type = "liquid_pipe"}}
+	},
+	update_network = function(pos, outdir, tlib2)
+		local h = minetest.hash_node_position(pos)
+		networks_updated[h] = (networks_updated[h] or 0) + 1
+	end,
+	power = {
+		start_storage_calc = function(pos, cable, outdir) end
+	}
+}
 
 minetest.get_translator = function()
 	return function(str) return str end
@@ -96,6 +148,9 @@ local content_ids = {
 	["default:stonebrick"] = 14,
 	["default:cobble"] = 15,
 	["techage:ta4_solar_gen"] = 16,
+	["techage:ta4_tank"] = 17,
+	["techage:ta4_solar_inverter"] = 18,
+	["techage:ta3_akku"] = 19,
 	["default:dirt"] = 20,
 	["default:stone"] = 21,
 }
@@ -179,6 +234,7 @@ minetest.get_node_timer = function(pos)
 		get_elapsed = function(self) return node_timers[h] and node_timers[h].elapsed or 0 end,
 		stop = function(self) node_timers[h] = nil end,
 		set = function(self, timeout, elapsed) node_timers[h] = {timeout = timeout, elapsed = elapsed} end,
+		start = function(self, timeout) node_timers[h] = {timeout = timeout, elapsed = 0} end,
 	}
 end
 
@@ -266,6 +322,7 @@ end
 
 -- Load modules
 dofile("mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/techage_compat.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/validator.lua")
 
@@ -614,6 +671,120 @@ run_test("Fuel Tank Discovery: scan_spacecraft populates fuel_tanks table during
 	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
 	assert_true(scan.fuel_tanks ~= nil, "scan has fuel_tanks table")
 	assert_eq(#scan.fuel_tanks, 2, "2 fuel tanks discovered directly in scan")
+end)
+
+-- Test 14: TechAge Liquid Tank NVM State Migration
+run_test("TechAge Tank Migration: Liquid contents migrate to jump destination and origin NVM is purged", function()
+	world_nodes = {}
+	techage_nvm_store = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	local tank_pos = {x = 1, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(tank_pos, {name = "techage:ta4_tank"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 0)
+	meta:set_int("y", 1200)
+	meta:set_int("z", 0)
+	meta:set_int("powerstorage", 100000)
+
+	-- Populate source tank NVM
+	local src_nvm = techage.get_nvm(tank_pos)
+	src_nvm.liquid = {name = "techage:hydrogen", amount = 8500}
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
+
+	local dest_tank_pos = {x = 1, y = 1200, z = 0}
+	assert_eq(minetest.get_node(dest_tank_pos).name, "techage:ta4_tank", "Tank exists at destination")
+
+	local dst_nvm = techage.get_nvm(dest_tank_pos)
+	assert_true(dst_nvm.liquid ~= nil, "Destination tank retains liquid table")
+	assert_eq(dst_nvm.liquid.name, "techage:hydrogen", "Destination tank liquid type is hydrogen")
+	assert_eq(dst_nvm.liquid.amount, 8500, "Destination tank liquid amount is 8500")
+
+	-- Origin NVM is completely purged
+	assert_false(techage.has_nvm(tank_pos), "Origin tank NVM memory purged")
+end)
+
+-- Test 15: TechAge Active Inverter & Battery Continuity
+run_test("TechAge Machine Continuity: Active inverters and battery accumulators retain state and restart timers", function()
+	world_nodes = {}
+	techage_nvm_store = {}
+	node_timers = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	local inv_pos = {x = 1, y = 1000, z = 0}
+	local accu_pos = {x = 2, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(inv_pos, {name = "techage:ta4_solar_inverter"})
+	minetest.set_node(accu_pos, {name = "techage:ta3_akku"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 0)
+	meta:set_int("y", 1500)
+	meta:set_int("z", 0)
+	meta:set_int("powerstorage", 100000)
+
+	-- Set inverter and accumulator active NVM
+	local inv_nvm = techage.get_nvm(inv_pos)
+	inv_nvm.techage_state = techage.RUNNING
+	inv_nvm.max_power = 100
+	inv_nvm.provided = 80
+
+	local accu_nvm = techage.get_nvm(accu_pos)
+	accu_nvm.running = true
+	accu_nvm.capa = 1500
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
+
+	local dest_inv_pos = {x = 1, y = 1500, z = 0}
+	local dest_accu_pos = {x = 2, y = 1500, z = 0}
+
+	local dst_inv_nvm = techage.get_nvm(dest_inv_pos)
+	assert_eq(dst_inv_nvm.techage_state, techage.RUNNING, "Inverter state remains RUNNING")
+	assert_eq(dst_inv_nvm.max_power, 100, "Inverter max power retained")
+
+	local dst_accu_nvm = techage.get_nvm(dest_accu_pos)
+	assert_eq(dst_accu_nvm.running, true, "Accu running state retained")
+	assert_eq(dst_accu_nvm.capa, 1500, "Accu capa retained")
+
+	-- Node timer started at destination
+	local inv_timer = minetest.get_node_timer(dest_inv_pos)
+	assert_true(inv_timer:is_started(), "Inverter node timer started at destination")
+end)
+
+-- Test 16: TechAge Network Cache Invalidation at Origin & Gated Destination Update
+run_test("TechAge Network Invalidation: Origin network caches cleared across directions and destination gated", function()
+	world_nodes = {}
+	techage_nvm_store = {}
+	networks_updated = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	local cable_pos = {x = 1, y = 1000, z = 0}
+	local glass_pos = {x = 2, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(cable_pos, {name = "techage:ta4_solar_inverter"})
+	minetest.set_node(glass_pos, {name = "default:glass"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 0)
+	meta:set_int("y", 1200)
+	meta:set_int("z", 0)
+	meta:set_int("powerstorage", 100000)
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds")
+
+	local origin_hash = minetest.hash_node_position(cable_pos)
+	local dest_cable_hash = minetest.hash_node_position({x = 1, y = 1200, z = 0})
+	local dest_glass_hash = minetest.hash_node_position({x = 2, y = 1200, z = 0})
+
+	-- Origin invalidated across all direction indices 0..6 (7 calls per registered network)
+	assert_true(networks_updated[origin_hash] ~= nil and networks_updated[origin_hash] >= 7, "Origin network cache invalidated across 0..6")
+	-- Destination network refreshed for cable/inverter
+	assert_true(networks_updated[dest_cable_hash] ~= nil and networks_updated[dest_cable_hash] > 0, "Destination network cache refreshed")
+	-- Destination generic glass node NOT updated to avoid metadata pollution
+	assert_true(networks_updated[dest_glass_hash] == nil, "Destination non-network node ignored by network updater")
 end)
 
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))

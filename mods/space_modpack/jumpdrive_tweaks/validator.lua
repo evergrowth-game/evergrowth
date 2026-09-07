@@ -137,14 +137,16 @@ if jumpdrive then
 
 			local t0 = minetest.get_us_time()
 
-			-- Activate ship mask for selective transfer
+			-- Activate ship mask and node list for selective transfer
 			jumpdrive_tweaks.active_ship_mask = ship_scan.mask
+			jumpdrive_tweaks.active_ship_nodes = ship_scan.nodes
 
 			-- Execute selective move inside pcall to guarantee cleanup
 			local ok, err = pcall(jumpdrive.move, ship_scan.min_pos, ship_scan.max_pos, target_pos1, target_pos2)
 
-			-- Always clear active ship mask
+			-- Always clear active ship mask and node list
 			jumpdrive_tweaks.active_ship_mask = nil
+			jumpdrive_tweaks.active_ship_nodes = nil
 
 			if not ok then
 				return false, "Jump movement error: " .. tostring(err)
@@ -183,12 +185,17 @@ if jumpdrive then
 			new_meta:set_int("z", new_engine_pos.z)
 			jumpdrive.update_infotext(new_meta, new_engine_pos)
 
+			-- Reconnect TechAge networks and restart active machine loops
+			if jumpdrive_tweaks.reconnect_techage_networks then
+				jumpdrive_tweaks.reconnect_techage_networks(ship_scan, delta_vector)
+			end
+
 			-- Trigger callbacks
 			if jumpdrive.execute_jump_callbacks then
 				jumpdrive.execute_jump_callbacks(pos, delta_vector, target_pos1, target_pos2)
 			end
 
-			return true
+			return true, time_micros
 		end
 
 		-- If target is uncharted, attempt map emergence first
@@ -211,7 +218,13 @@ if jumpdrive then
 
 						local recheck, recheck_msg = jumpdrive_tweaks.is_ship_target_empty(ship_scan, delta_vector)
 						if recheck then
-							do_jump_movement()
+							local ok, res = do_jump_movement()
+							if not ok then
+								minetest.log("warning", "[jumpdrive_tweaks] Deferred jump movement failed: " .. tostring(res))
+								if player and player:is_player() then
+									minetest.chat_send_player(playername, "Jump failed: " .. tostring(res))
+								end
+							end
 						else
 							minetest.log("warning", "[jumpdrive_tweaks] Post-emergence target obstructed: " .. tostring(recheck_msg))
 							if player and player:is_player() then

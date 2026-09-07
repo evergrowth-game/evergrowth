@@ -7,6 +7,7 @@ jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
 dofile(modpath .. "/nodes_fuel.lua")
 dofile(modpath .. "/techage_pipe.lua")
 dofile(modpath .. "/ship_tracker.lua")
+dofile(modpath .. "/techage_compat.lua")
 dofile(modpath .. "/terrain_filter.lua")
 dofile(modpath .. "/validator.lua")
 dofile(modpath .. "/decouple.lua")
