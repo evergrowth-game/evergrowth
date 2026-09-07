@@ -26,9 +26,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "jumpdrive:engine",
 		recipe = {
-			{"jumpdrive:backbone", "techage:ta4_chip", "jumpdrive:backbone"},
-			{"jumpdrive:warp_device", "techage:ta4_battery", "jumpdrive:warp_device"},
-			{"techage:aluminium_ingot", "techage:ta4_motor", "techage:aluminium_ingot"}
+			{"jumpdrive:backbone", "techage:ta4_wlanchip", "jumpdrive:backbone"},
+			{"jumpdrive:warp_device", "techage:ta3_akku", "jumpdrive:warp_device"},
+			{"techage:aluminum", "basic_materials:motor", "techage:aluminum"}
 		}
 	})
 
@@ -36,9 +36,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "jumpdrive:fleet_controller",
 		recipe = {
-			{"techage:carbon_sheet", "techage:ta4_chip", "techage:carbon_sheet"},
-			{"jumpdrive:backbone", "techage:screen_large", "jumpdrive:backbone"},
-			{"techage:aluminium_ingot", "jumpdrive:engine", "techage:aluminium_ingot"}
+			{"basic_materials:plastic_sheet", "techage:ta4_wlanchip", "basic_materials:plastic_sheet"},
+			{"jumpdrive:backbone", "techage:ta4_terminal", "jumpdrive:backbone"},
+			{"techage:aluminum", "jumpdrive:engine", "techage:aluminum"}
 		}
 	})
 else

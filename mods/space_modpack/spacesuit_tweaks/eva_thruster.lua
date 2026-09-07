@@ -82,8 +82,8 @@ end
 -- Register EVA Thruster Tool
 minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 	description = S("EVA RCS Thruster Pack\nZero-g Maneuvering Unit\n[Hold Space]: Upward Thrust (Decelerates fall / climbs)\n[Hold Shift]: Downward Thrust (Descent)\n[WASD]: Horizontal Vector Glide\n[Left-Click]: Instant Forward Boost Surge\nRequires Compressed Air or Hydrogen in inventory"),
-	inventory_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
-	wield_image = "default_tool_steelpick.png^[colorize:#00ffff:90",
+	inventory_image = "spacesuit_eva_thruster.png",
+	wield_image = "spacesuit_eva_thruster.png",
 	stack_max = 1,
 	groups = {tool = 1},
 

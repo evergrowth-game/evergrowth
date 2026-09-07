@@ -6,9 +6,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "spacesuit:helmet",
 		recipe = {
-			{"techage:plastic_sheet", "default:glass", "techage:plastic_sheet"},
-			{"techage:aluminium_ingot", "airtanks:steel_tank_empty", "techage:aluminium_ingot"},
-			{"techage:rubber", "techage:epoxy_resin", "techage:rubber"}
+			{"basic_materials:plastic_sheet", "default:glass", "basic_materials:plastic_sheet"},
+			{"techage:aluminum", "airtanks:steel_tank_empty", "techage:aluminum"},
+			{"techage:steelmat", "techage:epoxy", "techage:steelmat"}
 		}
 	})
 
@@ -16,9 +16,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "spacesuit:chestplate",
 		recipe = {
-			{"techage:plastic_sheet", "airtanks:steel_tank_air", "techage:plastic_sheet"},
-			{"techage:aluminium_ingot", "techage:ta4_chip", "techage:aluminium_ingot"},
-			{"techage:plastic_sheet", "techage:rubber", "techage:plastic_sheet"}
+			{"basic_materials:plastic_sheet", "airtanks:steel_tank_air", "basic_materials:plastic_sheet"},
+			{"techage:aluminum", "techage:ta4_wlanchip", "techage:aluminum"},
+			{"basic_materials:plastic_sheet", "techage:steelmat", "basic_materials:plastic_sheet"}
 		}
 	})
 
@@ -26,9 +26,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "spacesuit:pants",
 		recipe = {
-			{"techage:plastic_sheet", "techage:rubber", "techage:plastic_sheet"},
-			{"techage:aluminium_ingot", "", "techage:aluminium_ingot"},
-			{"techage:plastic_sheet", "", "techage:plastic_sheet"}
+			{"basic_materials:plastic_sheet", "techage:steelmat", "basic_materials:plastic_sheet"},
+			{"techage:aluminum", "", "techage:aluminum"},
+			{"basic_materials:plastic_sheet", "", "basic_materials:plastic_sheet"}
 		}
 	})
 
@@ -36,8 +36,8 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "spacesuit:boots",
 		recipe = {
-			{"techage:rubber", "", "techage:rubber"},
-			{"techage:aluminium_ingot", "techage:steelmat", "techage:aluminium_ingot"}
+			{"techage:steelmat", "", "techage:steelmat"},
+			{"techage:aluminum", "techage:steelmat", "techage:aluminum"}
 		}
 	})
 
@@ -45,9 +45,9 @@ if minetest.get_modpath("techage") then
 	minetest.register_craft({
 		output = "spacesuit_tweaks:eva_thruster",
 		recipe = {
-			{"techage:carbon_sheet", "techage:ta4_nozzle", "techage:carbon_sheet"},
-			{"techage:aluminium_ingot", "airtanks:steel_tank_air", "techage:aluminium_ingot"},
-			{"techage:ta4_chip", "techage:ta4_motor", "techage:ta4_chip"}
+			{"basic_materials:plastic_sheet", "techage:ta3_pipeS", "basic_materials:plastic_sheet"},
+			{"techage:aluminum", "airtanks:steel_tank_air", "techage:aluminum"},
+			{"techage:ta4_wlanchip", "basic_materials:motor", "techage:ta4_wlanchip"}
 		}
 	})
 else
