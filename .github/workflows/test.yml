@@ -2,7 +2,19 @@ name: Test
 on: [push, pull_request]
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify no ContentDB release keys in config files
+        run: |
+          if git grep -nE '^[[:space:]]*release[[:space:]]*=' -- '*.conf'; then
+            echo "Error: ContentDB 'release' key found in configuration files. Strip them before committing."
+            exit 1
+          fi
+
   test:
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -17,3 +29,4 @@ jobs:
     - run: ./utils/test/run.sh
       env:
         DOCKER_IMAGE: "${{ matrix.cfg.image }}"
+

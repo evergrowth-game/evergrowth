@@ -539,6 +539,22 @@ do_sync() {
         --exclude='.luacheckrc' \
         "$upstream_mod_root/" "$local_mod_path/"
 
+    # Strip any ContentDB-injected release keys from synced configuration files
+    python3 -c "
+import os, re
+pattern = re.compile(r'^[ \t]*release[ \t]*=.*(?:\r?\n)?', re.MULTILINE)
+for root, _, files in os.walk('$local_mod_path'):
+    for file in files:
+        if file.endswith('.conf'):
+            p = os.path.join(root, file)
+            with open(p, 'r', encoding='utf-8', errors='ignore') as f:
+                c = f.read()
+            nc = pattern.sub('', c)
+            if nc != c:
+                with open(p, 'w', encoding='utf-8') as f:
+                    f.write(nc)
+"
+
     echo "✅ Successfully synced '$mod_name' to upstream HEAD."
 }
 
