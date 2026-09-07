@@ -225,8 +225,8 @@ local item_docs = {
 		usagehelp = "Equip in the 3D Armor inventory slot.",
 	},
 	["spacesuit_tweaks:eva_thruster"] = {
-		longdesc = "A handheld thruster for moving around in zero gravity.",
-		usagehelp = "Works in space (Y >= 1,000). Hold Space to fly up or slow a fall, hold Shift to fly down, and use WASD to glide around. Left-click for a quick boost forward. Consumes air bottles or hydrogen from your inventory.",
+		longdesc = "A handheld thruster for maneuvering and velocity stabilization in zero-g orbital space.",
+		usagehelp = "Works in space (Y >= 1,000). Hold Space to fly up or slow a fall, hold Shift to fly down, and use WASD to glide around. Left-click for a quick boost forward. Sneak + Right-Click to toggle Inertial Station-Keeping Lock for hands-free exterior ship construction. Consumes internal propellant or inventory Compressed Air (Air Bottles, Air Tanks). Right-click to refuel from inventory, or combine with an Air Bottle or Air Tank in the crafting grid.",
 	},
 	["jumpdrive_tweaks:beacon"] = {
 		longdesc = "A beacon marker that displays a waypoint on your screen so you can find your ship in space.",

@@ -556,7 +556,10 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"  - Shift (Sneak): Fly down\n" ..
 					"  - WASD: Move around in the air\n" ..
 					"  - Left-Click: Quick boost forward\n" ..
-					"  Uses air bottles or hydrogen canisters from your inventory as fuel.\n\n" ..
+					"  - Sneak + Right-Click: Toggle Inertial Station-Keeping Lock (locks 3D position for hands-free exterior ship construction without drifting or falling)\n" ..
+					"  - Right-Click: Refuel propellant tank from inventory using Compressed Air (Air Bottles or Air Tanks).\n" ..
+					"  - Crafting Grid: Place worn thruster + Air Bottle or Air Tank in crafting grid to recharge.\n" ..
+					"  Auto-refuels from inventory when depleted if air bottles or air tanks are present.\n\n" ..
 					"• Ship Beacon:\n" ..
 					"Place this on your ship so you don't lose it in space. Right-click to set a channel and name. It puts a waypoint on your screen showing the direction and distance to your ship from anywhere in space.\n\n" ..
 					"• Quantum Tether:\n" ..
