@@ -3,25 +3,10 @@
 
 -- 1. Register inventory items as Jumpdrive fuel
 if jumpdrive and jumpdrive.fuel and jumpdrive.fuel.register then
-	-- High efficiency: Techage Hydrogen
+	-- Canonical propellant: Techage Hydrogen
 	jumpdrive.fuel.register("techage:cylinder_large_hydrogen", 5000)
 	jumpdrive.fuel.register("techage:cylinder_small_hydrogen", 1000)
 	jumpdrive.fuel.register("techage:hydrogen", 50)
-
-	-- Medium efficiency: Petrochemicals & Refined Fuel
-	jumpdrive.fuel.register("techage:cylinder_large_gas", 5000)
-	jumpdrive.fuel.register("techage:ta3_cylinder_large_gas", 5000)
-	jumpdrive.fuel.register("techage:ta4_cylinder_large_isobutane", 5000)
-	jumpdrive.fuel.register("techage:fuel", 2500)
-	jumpdrive.fuel.register("techage:diesel", 2000)
-	jumpdrive.fuel.register("techage:petroleum", 1500)
-
-	-- Auxiliary: Biofuel Canisters
-	if minetest.get_modpath("biofuel") then
-		jumpdrive.fuel.register("biofuel:canister_fuel", 1200)
-		jumpdrive.fuel.register("biofuel:bottle_fuel", 300)
-		jumpdrive.fuel.register("biofuel:biofuel", 100)
-	end
 end
 
 -- 2. Register fuel tank & port into Techage Liquid Network
@@ -31,13 +16,6 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") then
 
 	local VALID_FUELS = {
 		["techage:hydrogen"] = true,
-		["techage:fuel"] = true,
-		["techage:diesel"] = true,
-		["techage:petroleum"] = true,
-		["techage:gas"] = true,
-		["techage:isobutane"] = true,
-		["biofuel:fuel"] = true,
-		["biofuel:biofuel"] = true,
 	}
 
 	-- A. Onboard Fuel Tank Pipe Interface (Direct connection)

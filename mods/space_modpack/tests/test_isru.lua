@@ -96,6 +96,9 @@ minetest.get_translator = function(mod)
 	return function(str) return str end
 end
 minetest.log = function(...) end
+minetest.chat_send_player = function(name, msg) end
+minetest.sound_play = function(...) end
+minetest.add_item = function(pos, item) end
 
 _G.default.gui_bg = ""
 _G.default.gui_bg_img = ""
@@ -123,6 +126,11 @@ local function create_inv()
 		set_stack = function(self, list, idx, stack)
 			lists[list] = lists[list] or {}
 			lists[list][idx] = stack
+		end,
+		add_item = function(self, list, stack)
+			lists[list] = lists[list] or {}
+			table.insert(lists[list], stack)
+			return ItemStack("")
 		end,
 	}
 end
@@ -618,15 +626,61 @@ run_test("Fuel Tank: Direct pipe network input and fuel isolation", function()
 	assert_eq(meta:get_string("fuel_type"), "techage:hydrogen", "fuel type is techage:hydrogen")
 	assert_eq(pipe_reg.peek(pos, 1), "techage:hydrogen", "peek returns techage:hydrogen")
 
-	-- 2. Reject different fuel type into same tank
-	local rejected = pipe_reg.put(pos, 1, "biofuel:fuel", 500)
-	assert_eq(rejected, 500, "rejected mixing biofuel into hydrogen tank")
+	-- 2. Reject non-hydrogen fuels into tank
+	local rejected_bio = pipe_reg.put(pos, 1, "biofuel:fuel", 500)
+	assert_eq(rejected_bio, 500, "rejected biofuel into hydrogen tank")
+	local rejected_gas = pipe_reg.put(pos, 1, "techage:gas", 500)
+	assert_eq(rejected_gas, 500, "rejected propane gas into hydrogen tank")
+	local rejected_iso = pipe_reg.put(pos, 1, "techage:isobutane", 500)
+	assert_eq(rejected_iso, 500, "rejected isobutane into hydrogen tank")
+	local rejected_pet = pipe_reg.put(pos, 1, "techage:gasoline", 500)
+	assert_eq(rejected_pet, 500, "rejected gasoline into hydrogen tank")
 	assert_eq(meta:get_int("fuel_amount"), 2000, "fuel amount untouched")
 
 	-- 3. Drain fuel from tank via pipe
 	local taken, tname = pipe_reg.take(pos, 1, "techage:hydrogen", 1000)
 	assert_eq(taken, 1000, "drained 1000 units of hydrogen")
 	assert_eq(meta:get_int("fuel_amount"), 1000, "remaining 1000 units")
+end)
+
+run_test("Fuel Tank: Manual canister refueling supports only hydrogen cylinders", function()
+	local pos = {x = 105, y = 100, z = 105}
+	world_nodes["105,100,105"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+	local def = registered_nodes["jumpdrive_tweaks:fuel_tank"]
+	assert_true(def.on_rightclick ~= nil, "on_rightclick handler exists")
+
+	local mock_player = {
+		get_player_name = function() return "Astronaut" end,
+		get_inventory = function(self) return self.inv end,
+	}
+	mock_player.inv = create_inv()
+
+	-- 1. Right click with small hydrogen cylinder (1,000 units)
+	local small_h2 = ItemStack("techage:cylinder_small_hydrogen 1")
+	def.on_rightclick(pos, nil, mock_player, small_h2, nil)
+	local meta = minetest.get_meta(pos)
+	assert_eq(meta:get_int("fuel_amount"), 1000, "tank received 1000 units from small cylinder")
+	assert_eq(meta:get_string("fuel_type"), "techage:hydrogen", "fuel type set to hydrogen")
+	assert_eq(small_h2:get_count(), 0, "consumed small hydrogen cylinder")
+	assert_eq(mock_player.inv:get_stack("main", 1):get_name(), "techage:ta3_cylinder_small", "returned empty small cylinder")
+
+	-- 2. Right click with incompatible canisters (rejected)
+	local propane_stack = ItemStack("techage:ta3_cylinder_large_gas 1")
+	def.on_rightclick(pos, nil, mock_player, propane_stack, nil)
+	assert_eq(propane_stack:get_count(), 1, "propane cylinder not consumed")
+	assert_eq(meta:get_int("fuel_amount"), 1000, "fuel amount untouched")
+
+	local bio_stack = ItemStack("biofuel:canister_fuel 1")
+	def.on_rightclick(pos, nil, mock_player, bio_stack, nil)
+	assert_eq(bio_stack:get_count(), 1, "biofuel canister not consumed")
+	assert_eq(meta:get_int("fuel_amount"), 1000, "fuel amount untouched")
+
+	-- 3. Right click with large hydrogen cylinder (5,000 units -> fills to capacity 5000)
+	local large_h2 = ItemStack("techage:cylinder_large_hydrogen 1")
+	def.on_rightclick(pos, nil, mock_player, large_h2, nil)
+	assert_eq(meta:get_int("fuel_amount"), 5000, "tank filled to 5000 max capacity")
+	assert_eq(large_h2:get_count(), 0, "consumed large hydrogen cylinder")
+	assert_eq(mock_player.inv:get_stack("main", 2):get_name(), "techage:ta3_cylinder_large", "returned empty large cylinder")
 end)
 
 run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel tanks via backbone", function()
@@ -672,39 +726,6 @@ run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel t
 	assert_eq(port_meta:get_int("fuel_amount"), 0, "port node itself stores 0 units in meta")
 end)
 
-run_test("Fuel Port: Multi-fluid extraction isolation prevents mixed fluid draw", function()
-	local port_pos = {x = 400, y = 100, z = 400}
-	local tank1_pos = {x = 401, y = 100, z = 400}
-	local tank2_pos = {x = 402, y = 100, z = 400}
-
-	world_nodes["400,100,400"] = {name = "jumpdrive_tweaks:fuel_port", param2 = 0}
-	world_nodes["401,100,400"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
-	world_nodes["402,100,400"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
-
-	local meta1 = minetest.get_meta(tank1_pos)
-	meta1:set_int("fuel_amount", 1000)
-	meta1:set_string("fuel_type", "techage:hydrogen")
-
-	local meta2 = minetest.get_meta(tank2_pos)
-	meta2:set_int("fuel_amount", 2000)
-	meta2:set_string("fuel_type", "biofuel:fuel")
-
-	local port_reg = registered_liquid_defs["jumpdrive_tweaks:fuel_port"]
-
-	-- Generic draw (name = nil) requesting 1500 units should only draw from first fluid type encountered, never mixing
-	local taken_amt, taken_type = port_reg.take(port_pos, 1, nil, 1500)
-	assert_true(taken_type == "techage:hydrogen" or taken_type == "biofuel:fuel", "valid fluid type returned")
-
-	if taken_type == "techage:hydrogen" then
-		assert_eq(taken_amt, 1000, "extracted only available hydrogen")
-		assert_eq(meta1:get_int("fuel_amount"), 0, "hydrogen tank emptied")
-		assert_eq(meta2:get_int("fuel_amount"), 2000, "biofuel tank untouched")
-	else
-		assert_eq(taken_amt, 1500, "extracted 1500 biofuel")
-		assert_eq(meta2:get_int("fuel_amount"), 500, "biofuel tank reduced")
-		assert_eq(meta1:get_int("fuel_amount"), 1000, "hydrogen tank untouched")
-	end
-end)
 
 run_test("Space Solar: Orbital carrier resolves power in space vacuum", function()
 	local carrier_pos = {x = 300, y = 1500, z = 300}

@@ -4,7 +4,7 @@
 local S = minetest.get_translator("jumpdrive_tweaks")
 
 local MANUAL_CANISTERS = {
-	-- Techage Gas Cylinders & Petrochemicals
+	-- Techage Hydrogen Cylinders
 	["techage:cylinder_large_hydrogen"] = {
 		liquid = "techage:hydrogen",
 		amount = 5000,
@@ -16,31 +16,6 @@ local MANUAL_CANISTERS = {
 		amount = 1000,
 		empty = "techage:ta3_cylinder_small",
 		label = "Hydrogen"
-	},
-	["techage:ta3_cylinder_large_gas"] = {
-		liquid = "techage:gas",
-		amount = 5000,
-		empty = "techage:ta3_cylinder_large",
-		label = "Petroleum Gas"
-	},
-	["techage:ta4_cylinder_large_isobutane"] = {
-		liquid = "techage:isobutane",
-		amount = 5000,
-		empty = "techage:ta3_cylinder_large",
-		label = "Isobutane"
-	},
-	-- Biofuel Canisters & Bottles
-	["biofuel:canister_fuel"] = {
-		liquid = "biofuel:fuel",
-		amount = 2500,
-		empty = "biofuel:canister_empty",
-		label = "Biofuel"
-	},
-	["biofuel:bottle_fuel"] = {
-		liquid = "biofuel:fuel",
-		amount = 500,
-		empty = "vessels:glass_bottle",
-		label = "Biofuel"
 	},
 }
 
@@ -75,7 +50,8 @@ minetest.register_node("jumpdrive_tweaks:fuel_tank", {
 
 		local meta = minetest.get_meta(pos)
 		local current = meta:get_int("fuel_amount")
-		local capacity = meta:get_int("capacity") or 5000
+		local capacity = meta:get_int("capacity")
+		if capacity <= 0 then capacity = 5000 end
 		local current_type = meta:get_string("fuel_type")
 
 		if current >= capacity then
