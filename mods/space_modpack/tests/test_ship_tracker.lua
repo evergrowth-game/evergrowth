@@ -320,10 +320,29 @@ jumpdrive.move = function(source_pos1, source_pos2, target_pos1, target_pos2)
 	jumpdrive.clear_area(source_pos1, source_pos2)
 end
 
+local mod_storage_store = {}
+minetest.get_mod_storage = function()
+	return {
+		get_string = function(self, k) return mod_storage_store[k] or "" end,
+		set_string = function(self, k, v) mod_storage_store[k] = v end,
+	}
+end
+minetest.serialize = function(t) return "" end
+minetest.deserialize = function(s) return {} end
+minetest.register_node = function() end
+minetest.register_tool = function() end
+minetest.register_craft = function() end
+minetest.register_on_player_receive_fields = function() end
+minetest.register_globalstep = function() end
+minetest.register_on_dieplayer = function() end
+minetest.register_on_leaveplayer = function() end
+default = {node_sound_metal_defaults = function() return {} end}
+
 -- Load modules
 dofile("mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/techage_compat.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/beacon.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/validator.lua")
 
 --------------------------------------------------------------------------------
@@ -817,6 +836,39 @@ run_test("Uncharted Emergence: Returns false with descriptive status, triggers e
 	assert_true(string.find(msg, "uncharted") ~= nil, "msg explains uncharted sector")
 	assert_true(emergence_callback_called, "emergence callback executed")
 	assert_eq(minetest.get_node(dest_pos).name, "jumpdrive:engine", "deferred jump movement placed engine at destination")
+end)
+
+-- Test 18: Beacon Coordinate Migration on Jump
+run_test("Beacon Migration: Beacon coordinates migrate during ship jump", function()
+	world_nodes = {}
+	local engine_pos = {x = 10, y = 20, z = 30}
+	local beacon_pos = {x = 11, y = 20, z = 30}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(beacon_pos, {name = "jumpdrive_tweaks:beacon"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 10)
+	meta:set_int("y", 6200)
+	meta:set_int("z", 30)
+	meta:set_int("radius", 5)
+	meta:set_int("powerstorage", 500000)
+
+	local active_beacons = jumpdrive_tweaks.get_active_beacons()
+	active_beacons["11,20,30"] = {
+		pos = {x = 11, y = 20, z = 30},
+		name = "OrbitalVessel",
+		owner = "Astronaut",
+	}
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
+
+	-- Origin beacon location removed
+	assert_true(active_beacons["11,20,30"] == nil, "Origin beacon coordinate purged")
+	-- Destination beacon location registered at Y=6200
+	assert_true(active_beacons["11,6200,30"] ~= nil, "Destination beacon coordinate registered")
+	assert_eq(active_beacons["11,6200,30"].name, "OrbitalVessel", "Beacon name preserved")
+	assert_eq(active_beacons["11,6200,30"].owner, "Astronaut", "Beacon owner preserved")
 end)
 
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))

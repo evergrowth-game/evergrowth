@@ -59,6 +59,7 @@ minetest = {
 		table.insert(registered_globalsteps, fn)
 	end,
 	register_on_leaveplayer = function() end,
+	register_on_player_hpchange = function() end,
 	registered_items = registered_items,
 	get_connected_players = function() return connected_players end,
 }
@@ -278,42 +279,5 @@ end
 assert_true(found_vacuum_craft, "Found shapeless refuel craft with vacuum:air_bottle")
 assert_true(found_airtank_craft, "Found shapeless refuel craft with airtanks:steel_tank")
 assert_true(not found_invalid_fuel_craft, "No hydrogen or biofuel refuel craft recipes exist")
-
-print("[TEST 9] Testing Inertial Station-Keeping Lock (Sneak + Right Click)...")
-local builder, builder_inv = create_mock_player("SpacewalkBuilder", {})
-local builder_thruster = ItemStack("spacesuit_tweaks:eva_thruster")
-builder:set_wielded_item(builder_thruster)
-builder:set_velocity({x = 5, y = -2, z = 3})
-
--- Sneak + Right Click engages station lock
-builder:set_player_control({sneak = true})
-thruster_def.on_place(builder_thruster, builder, nil)
-assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] ~= nil, "Station-keeping lock engaged")
-assert_eq(builder:get_velocity().x, 0, "Velocity X zeroed upon lock")
-assert_eq(builder:get_velocity().y, 0, "Velocity Y zeroed upon lock")
-assert_eq(builder:get_velocity().z, 0, "Velocity Z zeroed upon lock")
-assert_eq(player_monoids.gravity:get_change(builder, "spacesuit_tweaks_station_lock_gravity"), 0, "Station lock gravity change is 0")
-
--- Switch wielded item to Pickaxe / Steel Block (hands-free construction)
-builder:set_wielded_item(ItemStack("default:steelblock"))
-builder:set_player_control({sneak = false})
-builder:set_velocity({x = 0.1, y = -0.5, z = 0}) -- simulate residual drift
-
--- Run globalstep
-for _, step in ipairs(registered_globalsteps) do
-	step(0.1)
-end
-
-assert_eq(builder:get_velocity().x, 0, "Globalstep dampened drift X to 0 while wielding construction block")
-assert_eq(builder:get_velocity().y, 0, "Globalstep dampened drift Y to 0 while wielding construction block")
-assert_eq(builder:get_velocity().z, 0, "Globalstep dampened drift Z to 0 while wielding construction block")
-assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] ~= nil, "Station-keeping lock persists across held items")
-
--- Switch back to EVA Thruster and Sneak + Right Click to disengage
-builder:set_wielded_item(builder_thruster)
-builder:set_player_control({sneak = true})
-thruster_def.on_place(builder_thruster, builder, nil)
-assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] == nil, "Station-keeping lock disengaged")
-assert_true(player_monoids.gravity:get_change(builder, "spacesuit_tweaks_station_lock_gravity") == nil, "Station lock gravity change removed")
 
 print("ALL EVA THRUSTER TESTS PASSED SUCCESSFULLY!")

@@ -32,7 +32,7 @@ local function pos_to_key(pos)
 end
 
 -- Update beacon positions when a ship executes a jump
-jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius)
+jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius, ship_scan)
 	if not source_pos or not target_pos then return end
 	local delta = vector.subtract(target_pos, source_pos)
 	local r = math.max(radius or 5, 25)
@@ -43,9 +43,20 @@ jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius)
 
 	for key, bdata in pairs(active_beacons) do
 		local bp = bdata.pos
-		if math.abs(bp.x - source_pos.x) <= r and
+		local is_on_ship = false
+		if ship_scan and ship_scan.nodes then
+			local bkey = pos_to_key(bp)
+			if ship_scan.nodes[bkey] then
+				is_on_ship = true
+			end
+		end
+		if not is_on_ship and math.abs(bp.x - source_pos.x) <= r and
 		   math.abs(bp.y - source_pos.y) <= r and
 		   math.abs(bp.z - source_pos.z) <= r then
+			is_on_ship = true
+		end
+
+		if is_on_ship then
 			table.insert(to_remove, key)
 			local new_p = vector.add(bp, delta)
 			local new_key = pos_to_key(new_p)
@@ -176,7 +187,8 @@ minetest.register_globalstep(function(dtime)
 		local pname = player:get_player_name()
 		local ppos = player:get_pos()
 
-		if ppos then
+		-- Only display ship waypoint HUD when player is actively in orbital space (Y >= 1,000)
+		if ppos and ppos.y >= 1000 then
 			-- Find active beacon for this player (prefer owned, otherwise closest)
 			local best_beacon = nil
 			local min_dist = math.huge
@@ -194,7 +206,7 @@ minetest.register_globalstep(function(dtime)
 				end
 			end
 
-			-- Show waypoint whenever valid beacon is tracked
+			-- Show waypoint whenever valid beacon is tracked in space
 			if best_beacon then
 				local waypoint_name = string.format("[Ship: %s]", best_beacon.name or "Vessel")
 
@@ -216,7 +228,21 @@ minetest.register_globalstep(function(dtime)
 					player_beacon_huds[pname] = nil
 				end
 			end
+		else
+			-- Not in space (on Earth surface, respawned on ground, or dead): clear waypoint HUD
+			if player_beacon_huds[pname] then
+				player:hud_remove(player_beacon_huds[pname])
+				player_beacon_huds[pname] = nil
+			end
 		end
+	end
+end)
+
+minetest.register_on_dieplayer(function(player)
+	local pname = player:get_player_name()
+	if player_beacon_huds[pname] then
+		player:hud_remove(player_beacon_huds[pname])
+		player_beacon_huds[pname] = nil
 	end
 end)
 

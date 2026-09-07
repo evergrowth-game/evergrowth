@@ -556,7 +556,6 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"  - Shift (Sneak): Fly down\n" ..
 					"  - WASD: Move around in the air\n" ..
 					"  - Left-Click: Quick boost forward\n" ..
-					"  - Sneak + Right-Click: Toggle Inertial Station-Keeping Lock (locks 3D position for hands-free exterior ship construction without drifting or falling)\n" ..
 					"  - Right-Click: Refuel propellant tank from inventory using Compressed Air (Air Bottles or Air Tanks).\n" ..
 					"  - Crafting Grid: Place worn thruster + Air Bottle or Air Tank in crafting grid to recharge.\n" ..
 					"  Auto-refuels from inventory when depleted if air bottles or air tanks are present.\n\n" ..

@@ -190,6 +190,11 @@ if jumpdrive then
 				jumpdrive_tweaks.reconnect_techage_networks(ship_scan, delta_vector)
 			end
 
+			-- Migrate beacon positions with vessel jump
+			if jumpdrive_tweaks.on_ship_jump then
+				jumpdrive_tweaks.on_ship_jump(pos, new_engine_pos, r, ship_scan)
+			end
+
 			-- Trigger callbacks
 			if jumpdrive.execute_jump_callbacks then
 				jumpdrive.execute_jump_callbacks(pos, delta_vector, target_pos1, target_pos2)
