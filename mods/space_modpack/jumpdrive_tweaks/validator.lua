@@ -219,7 +219,12 @@ if jumpdrive then
 						local recheck, recheck_msg = jumpdrive_tweaks.is_ship_target_empty(ship_scan, delta_vector)
 						if recheck then
 							local ok, res = do_jump_movement()
-							if not ok then
+							if ok then
+								if player and player:is_player() then
+									local time_millis = math.floor((res or 0) / 1000)
+									minetest.chat_send_player(playername, string.format("Emergence complete: Jump executed in %d ms", time_millis))
+								end
+							else
 								minetest.log("warning", "[jumpdrive_tweaks] Deferred jump movement failed: " .. tostring(res))
 								if player and player:is_player() then
 									minetest.chat_send_player(playername, "Jump failed: " .. tostring(res))
@@ -233,7 +238,7 @@ if jumpdrive then
 						end
 					end
 				end)
-				return true
+				return false, "Destination uncharted. Sector emergence initiated—vessel will jump upon emergence."
 			end
 		end
 

@@ -240,6 +240,10 @@ local item_docs = {
 		longdesc = "The central jump engine block of a starship. Computes destination coordinates, drains electrical power and jump fuel, and jumps the vessel and passengers across space.",
 		usagehelp = "Place inside your starship hull. Right-click to open the navigation console, enter coordinates, and initiate jumps.",
 	},
+	["jumpdrive:backbone"] = {
+		longdesc = "A high-tensile structural backbone block. Forms the structural spine of starships and extends the 3-meter jump envelope to distant hull sections, booms, and wings.",
+		usagehelp = "Build in continuous lines connected directly or indirectly to the Jumpdrive Engine. All ship components must remain within 3 meters of a backbone block.",
+	},
 	["jumpdrive_tweaks:fuel_tank"] = {
 		longdesc = "A heavy-duty cryogenic storage cylinder for starship propellants (Hydrogen or Petrochemicals). Must be installed on a vessel and filled to allow Jumpdrive jumps.",
 		usagehelp = "Place within your starship hull. Right-click with fuel canisters/cylinders to refill manually, or connect adjacent to a Starship Fuel Port to fill via a Techage pipe network.",
@@ -248,9 +252,13 @@ local item_docs = {
 		longdesc = "A specialized Starship Liquid Fuel Port that interfaces with Techage pipe networks. Automatically decouples safely upon starship jump without liquid spillage.",
 		usagehelp = "Mount on the starship hull or docking cradle. Connect Techage liquid pipes to transfer fuel into adjacent fuel tanks.",
 	},
+	["jumpdrive_tweaks:ice_melter"] = {
+		longdesc = "An onboard thermal melting device that processes harvested comet ice into pure liquid water for starship life support and fuel electrolyzers.",
+		usagehelp = "Place within the starship and insert comet ice into the upper input slot. Connect a Techage liquid pipe to draw output water into connected storage tanks or electrolyzers.",
+	},
 	["other_worlds_tweaks:comet_ice"] = {
 		longdesc = "Pure frozen volatiles harvested from glacial asteroids in orbital space.",
-		usagehelp = "Can be processed in Techage electric furnaces or cooking apparatus into pure liquid water.",
+		usagehelp = "Can be processed in the Starship Thermal Ice Melter or TechAge furnaces into pure liquid water.",
 	},
 }
 

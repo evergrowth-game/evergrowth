@@ -787,6 +787,38 @@ run_test("TechAge Network Invalidation: Origin network caches cleared across dir
 	assert_true(networks_updated[dest_glass_hash] == nil, "Destination non-network node ignored by network updater")
 end)
 
+-- Test 17: Uncharted Sector Emergence Return Contract
+run_test("Uncharted Emergence: Returns false with descriptive status, triggers emergence, and executes deferred jump", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 0)
+	meta:set_int("y", 2000)
+	meta:set_int("z", 0)
+	meta:set_int("powerstorage", 100000)
+
+	-- Destination node is 'ignore' (uncharted)
+	local dest_pos = {x = 0, y = 2000, z = 0}
+	minetest.set_node(dest_pos, {name = "ignore"})
+
+	local emergence_callback_called = false
+	minetest.emerge_area = function(p1, p2, cb)
+		-- Simulate background map emergence replacing ignore with air
+		minetest.set_node(dest_pos, {name = "air"})
+		cb(p1, 0, 0, nil)
+		emergence_callback_called = true
+	end
+
+	local ok, msg = jumpdrive.execute_jump(engine_pos, nil)
+	assert_false(ok, "execute_jump returns false on uncharted destination")
+	assert_true(type(msg) == "string", "msg is a string, preventing arithmetic errors in engine.lua")
+	assert_true(string.find(msg, "uncharted") ~= nil, "msg explains uncharted sector")
+	assert_true(emergence_callback_called, "emergence callback executed")
+	assert_eq(minetest.get_node(dest_pos).name, "jumpdrive:engine", "deferred jump movement placed engine at destination")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then

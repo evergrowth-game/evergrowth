@@ -594,26 +594,67 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 	end
 
 	if minetest.get_modpath("jumpdrive") then
-		doc.add_entry("space_exploration", "starships", {
-			name = "Starships & Jumpdrive Engineering",
+		doc.add_entry("space_exploration", "starship_construction", {
+			name = "Spacecraft Materials & Hull Spine",
 			data = {
-				text = "Vessels can teleport across space and planetary coordinates using Jumpdrive technology:\n\n" ..
-					"• Jumpdrive Engine:\n" ..
-					"The core block that teleports the ship and all occupants to destination coordinates. Powered by high-voltage Techage electricity or internal battery buffers.\n\n" ..
-					"• Uncharted Sector Exploration:\n" ..
-					"Jumpdrives feature automatic sector emergence. Enter any unexplored orbital or planetary coordinates in the Jumpdrive terminal; the navigation system automatically pre-generates the destination chunk and queues the jump seamlessly.\n\n" ..
-					"• Fuel System:\n" ..
-					"Starships require Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with liquid Hydrogen, Gas, or Petrochemicals. Refuel tanks by right-clicking directly with fuel canisters/cylinders or connecting via a Starship Fuel Port (jumpdrive_tweaks:fuel_port) linked to a Techage pipe network.\n\n" ..
-					"• Structural Constraints:\n" ..
-					"- Ships must form a continuous structure anchored by structural hull blocks (steel, carbon, composites).\n" ..
-					"- Unanchored loose nodes further than 3 meters from the hull backbone are rejected by the drive.\n" ..
-					"- Natural planetary terrain (dirt, stone, water) cannot be jumped.\n\n" ..
-					"• Docking & Pipe Decoupling:\n" ..
-					"Connect to space stations using Starship Fuel Ports. When jumping, fuel ports automatically decouple safely without spilling liquids.",
+				text = "Starships are built around a central structural backbone and validated dynamically upon hyperjump:\n\n" ..
+					"• Backbone Proximity Envelope:\n" ..
+					"All spacecraft blocks must be within 3 meters (D <= 3) of at least one connected Jumpdrive Backbone, Engine, or Fuel Port. Run structural backbone lines along wings, booms, and extended hulls to keep distant sections connected.\n\n" ..
+					"• Acceptable Building Materials:\n" ..
+					"  - Metals & Structural Blocks: Steel, copper, bronze, gold, tin, obsidian blocks (*_block), building_blocks, and basic_materials.\n" ..
+					"  - Masonry: Stone bricks (*brick), cobblestone (*cobble), stairs, and walls.\n" ..
+					"  - Transparency: Glass (*glass), obsidian glass, and window panes (group:pane).\n" ..
+					"  - Timber & Interior: Crafted wood planks (*_wood, *_plank, *_floor), doors, gates, chests, beds, vessels, carpets, and wool.\n" ..
+					"  - Space & Industrial Systems: All Jumpdrive components, TechAge machines, solar panels, inverters, accumulators, cables, pipes, and tanks.\n\n" ..
+					"• Excluded Planetary Terrain (Left Behind on Surface):\n" ..
+					"Natural raw stone, dirt, sand, gravel, clay, wild tree logs (groups.tree), leaves, natural ice, surface water, and lava cannot be jumped and are safely filtered out, allowing starships to land on planetary terrain without cutting chunks out of the planet.",
+				images = {
+					{ image = "jumpdrive:engine", imagetype = "item", caption = "Jumpdrive Engine" },
+					{ image = "jumpdrive:backbone", imagetype = "item", caption = "Structural Backbone" },
+					{ image = "default:steelblock", imagetype = "item", caption = "Metal Hull Plating" },
+					{ image = "default:glass", imagetype = "item", caption = "Reinforced Glass" },
+				},
+			},
+		})
+
+		doc.add_entry("space_exploration", "jumpdrive_navigation", {
+			name = "Flight Protocols & Jump Navigation",
+			data = {
+				text = "Operating starships and navigating interplanetary space:\n\n" ..
+					"• Propellant & Power Scaling:\n" ..
+					"Jump power scales with vessel mass and jump distance. The drive draws fuel exclusively from connected Starship Fuel Tanks (jumpdrive_tweaks:fuel_tank) filled with Hydrogen or Petrochemicals. Tanks can be filled manually with canisters or refueled through external Fuel Ports.\n\n" ..
+					"• Atmospheric Navigation Locks:\n" ..
+					"Hyperjumps below Y = 1,000 are restricted to vertical-only trajectories to prevent low-altitude atmospheric shearing:\n" ..
+					"  - Launch Protocol: Ascend vertically from the planetary surface to orbit (Y >= 1,000) before initiating horizontal maneuvers.\n" ..
+					"  - Entry Protocol: Cruise horizontally in orbit to align coordinates directly above your landing site, then execute a vertical descent.\n\n" ..
+					"• Uncharted Sector Emergence:\n" ..
+					"Entering coordinates in unexplored orbital sectors automatically triggers background sector emergence. Once generation completes, the vessel executes the jump automatically.\n\n" ..
+					"• Automatic Docking Decoupling:\n" ..
+					"Station docking lines connected to Starship Fuel Ports decouple automatically during hyperjump without fluid spillage or pipe damage.",
 				images = {
 					{ image = "jumpdrive:engine", imagetype = "item", caption = "Jumpdrive Core" },
 					{ image = "jumpdrive_tweaks:fuel_tank", imagetype = "item", caption = "Fuel Tank" },
 					{ image = "jumpdrive_tweaks:fuel_port", imagetype = "item", caption = "Fuel Port" },
+					{ image = "jumpdrive_tweaks:beacon", imagetype = "item", caption = "Ship Beacon" },
+				},
+			},
+		})
+
+		doc.add_entry("space_exploration", "techage_continuity_isru", {
+			name = "Power Grid, TechAge Continuity & Life Support",
+			data = {
+				text = "Industrial automation and resource extraction aboard starships:\n\n" ..
+					"• TechAge State & Grid Continuity:\n" ..
+					"TechAge machines, liquid tanks, battery accumulators, and solar inverters retain their full operational states, fluid inventories, and energy buffers through hyperjumps. Cable and pipe networks automatically reconnect to adjacent ship components upon arrival.\n\n" ..
+					"• Orbital Solar Power:\n" ..
+					"TA4 solar generators operate at full capacity in orbital space vacuum (Y >= 1,000) regardless of atmospheric light diffusion.\n\n" ..
+					"• Starship Thermal Ice Melter:\n" ..
+					"Mined comet ice can be loaded into the Starship Thermal Ice Melter (jumpdrive_tweaks:ice_melter) to produce pure liquid water, supplying life support systems and feeding electrolyzers for onboard Hydrogen fuel production.",
+				images = {
+					{ image = "techage:ta4_solar_gen", imagetype = "item", caption = "TA4 Solar Array" },
+					{ image = "techage:ta4_tank", imagetype = "item", caption = "Liquid Tank" },
+					{ image = "jumpdrive_tweaks:ice_melter", imagetype = "item", caption = "Thermal Ice Melter" },
+					{ image = "techage:ta3_akku", imagetype = "item", caption = "Battery Accumulator" },
 				},
 			},
 		})
