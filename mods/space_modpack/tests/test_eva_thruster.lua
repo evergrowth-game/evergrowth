@@ -105,6 +105,10 @@ vector = {
 		if len == 0 then return {x=0, y=0, z=0} end
 		return {x = v.x / len, y = v.y / len, z = v.z / len}
 	end,
+	distance = function(a, b)
+		local dx, dy, dz = a.x - b.x, a.y - b.y, a.z - b.z
+		return math.sqrt(dx * dx + dy * dy + dz * dz)
+	end,
 }
 
 -- Mock ItemStack
@@ -284,7 +288,7 @@ builder:set_velocity({x = 5, y = -2, z = 3})
 -- Sneak + Right Click engages station lock
 builder:set_player_control({sneak = true})
 thruster_def.on_place(builder_thruster, builder, nil)
-assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] == true, "Station-keeping lock engaged")
+assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] ~= nil, "Station-keeping lock engaged")
 assert_eq(builder:get_velocity().x, 0, "Velocity X zeroed upon lock")
 assert_eq(builder:get_velocity().y, 0, "Velocity Y zeroed upon lock")
 assert_eq(builder:get_velocity().z, 0, "Velocity Z zeroed upon lock")
@@ -303,7 +307,7 @@ end
 assert_eq(builder:get_velocity().x, 0, "Globalstep dampened drift X to 0 while wielding construction block")
 assert_eq(builder:get_velocity().y, 0, "Globalstep dampened drift Y to 0 while wielding construction block")
 assert_eq(builder:get_velocity().z, 0, "Globalstep dampened drift Z to 0 while wielding construction block")
-assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] == true, "Station-keeping lock persists across held items")
+assert_true(spacesuit_tweaks.player_station_lock["SpacewalkBuilder"] ~= nil, "Station-keeping lock persists across held items")
 
 -- Switch back to EVA Thruster and Sneak + Right Click to disengage
 builder:set_wielded_item(builder_thruster)

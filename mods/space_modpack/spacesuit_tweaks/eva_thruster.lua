@@ -7,6 +7,8 @@ local S = minetest.get_translator("spacesuit_tweaks")
 local MONOID_SPEED = "spacesuit_tweaks_eva_speed"
 local MONOID_GRAVITY = "spacesuit_tweaks_eva_gravity"
 local MONOID_LOCK_GRAVITY = "spacesuit_tweaks_station_lock_gravity"
+local MONOID_LOCK_SPEED = "spacesuit_tweaks_station_lock_speed"
+local MONOID_LOCK_JUMP = "spacesuit_tweaks_station_lock_jump"
 
 -- Propellant definition registry (Compressed Air Only)
 spacesuit_tweaks = spacesuit_tweaks or {}
@@ -64,7 +66,7 @@ spacesuit_tweaks.PROPELLANTS = {
 	},
 }
 
--- Station-keeping tracking state: pname -> true
+-- Station-keeping tracking state: pname -> locked_pos vector
 local player_station_lock = {}
 spacesuit_tweaks.player_station_lock = player_station_lock
 
@@ -232,20 +234,41 @@ local function handle_thruster_action(itemstack, user)
 		if player_station_lock[pname] then
 			-- Disengage Station-Keeping Lock
 			player_station_lock[pname] = nil
-			if player_monoids and player_monoids.gravity then
-				player_monoids.gravity:del_change(user, MONOID_LOCK_GRAVITY)
+			if player_monoids then
+				if player_monoids.gravity then
+					player_monoids.gravity:del_change(user, MONOID_LOCK_GRAVITY)
+				end
+				if player_monoids.speed then
+					player_monoids.speed:del_change(user, MONOID_LOCK_SPEED)
+				end
+				if player_monoids.jump then
+					player_monoids.jump:del_change(user, MONOID_LOCK_JUMP)
+				end
 			end
 			play_unlock_sound(ppos)
 			minetest.chat_send_player(pname, "[EVA Thruster] Inertial Station-Keeping: DISENGAGED. (Free-float active)")
 		else
-			-- Engage Station-Keeping Lock
-			player_station_lock[pname] = true
+			-- Engage Station-Keeping Lock (snap velocity and lock coordinates)
+			player_station_lock[pname] = {x = ppos.x, y = ppos.y, z = ppos.z}
+			local v = user:get_velocity()
+			if v then
+				user:add_velocity({x = -v.x, y = -v.y, z = -v.z})
+			end
 			user:set_velocity({x = 0, y = 0, z = 0})
-			if player_monoids and player_monoids.gravity then
-				player_monoids.gravity:add_change(user, 0, MONOID_LOCK_GRAVITY)
+			user:set_pos(ppos)
+			if player_monoids then
+				if player_monoids.gravity then
+					player_monoids.gravity:add_change(user, 0, MONOID_LOCK_GRAVITY)
+				end
+				if player_monoids.speed then
+					player_monoids.speed:add_change(user, 0, MONOID_LOCK_SPEED)
+				end
+				if player_monoids.jump then
+					player_monoids.jump:add_change(user, 0, MONOID_LOCK_JUMP)
+				end
 			end
 			play_lock_sound(ppos)
-			minetest.chat_send_player(pname, "[EVA Thruster] Inertial Station-Keeping: LOCKED. (Zero-drift hands-free construction enabled)")
+			minetest.chat_send_player(pname, "[EVA Thruster] Inertial Station-Keeping: LOCKED. (Stationary anchor active)")
 		end
 		return itemstack
 	else
@@ -285,8 +308,16 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 		-- Disengage station lock if boosting
 		if player_station_lock[pname] then
 			player_station_lock[pname] = nil
-			if player_monoids and player_monoids.gravity then
-				player_monoids.gravity:del_change(user, MONOID_LOCK_GRAVITY)
+			if player_monoids then
+				if player_monoids.gravity then
+					player_monoids.gravity:del_change(user, MONOID_LOCK_GRAVITY)
+				end
+				if player_monoids.speed then
+					player_monoids.speed:del_change(user, MONOID_LOCK_SPEED)
+				end
+				if player_monoids.jump then
+					player_monoids.jump:del_change(user, MONOID_LOCK_JUMP)
+				end
 			end
 		end
 
@@ -317,8 +348,16 @@ local function cleanup_player(player)
 	local pname = player:get_player_name()
 	if player_station_lock[pname] then
 		player_station_lock[pname] = nil
-		if player_monoids and player_monoids.gravity then
-			player_monoids.gravity:del_change(player, MONOID_LOCK_GRAVITY)
+		if player_monoids then
+			if player_monoids.gravity then
+				player_monoids.gravity:del_change(player, MONOID_LOCK_GRAVITY)
+			end
+			if player_monoids.speed then
+				player_monoids.speed:del_change(player, MONOID_LOCK_SPEED)
+			end
+			if player_monoids.jump then
+				player_monoids.jump:del_change(player, MONOID_LOCK_JUMP)
+			end
 		end
 	end
 	if player_thrust_state[pname] then
@@ -351,22 +390,34 @@ minetest.register_globalstep(function(dtime)
 		if ppos and ppos.y >= 1000 then
 			-- 1. Hands-free Station-Keeping Lock Handler (active regardless of wielded item)
 			if player_station_lock[pname] then
-				if player_monoids and player_monoids.gravity then
-					player_monoids.gravity:add_change(player, 0, MONOID_LOCK_GRAVITY)
-				end
-				local ctrl = player:get_player_control()
-				local is_moving = ctrl and (ctrl.jump or ctrl.sneak or ctrl.up or ctrl.down or ctrl.left or ctrl.right)
-				if not is_moving then
-					local vel = player:get_velocity()
-					if vel and (math.abs(vel.x) > 0.001 or math.abs(vel.y) > 0.001 or math.abs(vel.z) > 0.001) then
-						player:set_velocity({x = 0, y = 0, z = 0})
+				local lock_pos = player_station_lock[pname]
+				-- Maintain zero-physics overrides to prevent all drift and client momentum
+				if player_monoids then
+					if player_monoids.gravity then
+						player_monoids.gravity:add_change(player, 0, MONOID_LOCK_GRAVITY)
 					end
+					if player_monoids.speed then
+						player_monoids.speed:add_change(player, 0, MONOID_LOCK_SPEED)
+					end
+					if player_monoids.jump then
+						player_monoids.jump:add_change(player, 0, MONOID_LOCK_JUMP)
+					end
+				end
+
+				local vel = player:get_velocity()
+				if vel and (math.abs(vel.x) > 0.001 or math.abs(vel.y) > 0.001 or math.abs(vel.z) > 0.001) then
+					player:add_velocity({x = -vel.x, y = -vel.y, z = -vel.z})
+					player:set_velocity({x = 0, y = 0, z = 0})
+				end
+				local dist = vector.distance and vector.distance(ppos, lock_pos) or vector.length(vector.subtract(ppos, lock_pos))
+				if dist > 0.02 then
+					player:set_pos(lock_pos)
 				end
 			end
 
 			-- 2. Handheld EVA Thruster Dynamic Vectoring
 			local wielded = player:get_wielded_item()
-			if wielded:get_name() == "spacesuit_tweaks:eva_thruster" then
+			if wielded:get_name() == "spacesuit_tweaks:eva_thruster" and not player_station_lock[pname] then
 				local has_propellant = (wielded:get_wear() < 65534)
 				if not has_propellant then
 					-- Check if auto-refuel is possible before shutting off thrust
@@ -390,14 +441,14 @@ minetest.register_globalstep(function(dtime)
 
 					if ctrl.jump then
 						target_state = "up"
-					elseif ctrl.sneak and not player_station_lock[pname] then
+					elseif ctrl.sneak then
 						target_state = "down"
 					end
 
 					-- Update gravity monoid if thrust state changed
 					if player_thrust_state[pname] ~= target_state then
 						player_thrust_state[pname] = target_state
-						if player_monoids and player_monoids.gravity and not player_station_lock[pname] then
+						if player_monoids and player_monoids.gravity then
 							if target_state == "up" then
 								-- Invert gravity to produce upward acceleration (decelerating fall and climbing)
 								player_monoids.gravity:add_change(player, -3.5, MONOID_GRAVITY)
@@ -420,7 +471,7 @@ minetest.register_globalstep(function(dtime)
 
 							if ctrl.jump then
 								particle_dir.y = 1
-							elseif ctrl.sneak and not player_station_lock[pname] then
+							elseif ctrl.sneak then
 								particle_dir.y = -1
 							end
 
@@ -443,7 +494,7 @@ minetest.register_globalstep(function(dtime)
 				else
 					if player_thrust_state[pname] then
 						player_thrust_state[pname] = nil
-						if player_monoids and player_monoids.gravity and not player_station_lock[pname] then
+						if player_monoids and player_monoids.gravity then
 							player_monoids.gravity:del_change(player, MONOID_GRAVITY)
 						end
 					end
@@ -464,7 +515,7 @@ minetest.register_globalstep(function(dtime)
 				end
 				if player_speed_active[pname] then
 					player_speed_active[pname] = nil
-					if player_monoids and player_monoids.speed then
+					if player_monoids and player_monoids.speed and not player_station_lock[pname] then
 						player_monoids.speed:del_change(player, MONOID_SPEED)
 					end
 				end
