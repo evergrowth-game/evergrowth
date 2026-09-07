@@ -391,8 +391,42 @@ minetest.register_node("techage:ta4_solar_module", {})
 minetest.register_node("techage:ta4_solar_inverter", {
 	on_timer = function() end,
 })
+-- Mock node content IDs and hashing for ship tracker integration
+local content_ids = {
+	["air"] = 0,
+	["ignore"] = 1,
+	["vacuum:vacuum"] = 2,
+	["jumpdrive:engine"] = 10,
+	["jumpdrive:backbone"] = 11,
+	["jumpdrive_tweaks:fuel_tank"] = 12,
+	["jumpdrive_tweaks:fuel_port"] = 13,
+	["techage:ta4_electrolyzer"] = 14,
+	["techage:ta4_electrolyzer_on"] = 15,
+	["techage:ta4_solar_carrier"] = 16,
+	["techage:ta4_solar_carrierB"] = 17,
+	["techage:ta4_solar_module"] = 18,
+	["techage:ta4_solar_inverter"] = 19,
+	["jumpdrive_tweaks:ice_melter"] = 20,
+	["jumpdrive_tweaks:ice_melter_active"] = 21,
+}
+local id_to_names = {}
+for k, v in pairs(content_ids) do id_to_names[v] = k end
+
+minetest.hash_node_position = function(pos)
+	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
+end
+minetest.get_content_id = function(name)
+	return content_ids[name] or 99
+end
+minetest.get_name_from_content_id = function(id)
+	return id_to_names[id] or "unknown"
+end
+minetest.get_node_or_nil = minetest.get_node
 
 -- Load subsystems
+_G.jumpdrive_tweaks = _G.jumpdrive_tweaks or {}
+dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
+dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/nodes_fuel.lua")
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/techage_pipe.lua")
 dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/ice_melter.lua")
@@ -595,10 +629,16 @@ run_test("Fuel Tank: Direct pipe network input and fuel isolation", function()
 	assert_eq(meta:get_int("fuel_amount"), 1000, "remaining 1000 units")
 end)
 
-run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel tanks", function()
+run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel tanks via backbone", function()
 	local port_pos = {x = 200, y = 100, z = 200}
-	local tank1_pos = {x = 210, y = 100, z = 205} -- 11m away (not touching!)
-	local tank2_pos = {x = 205, y = 105, z = 215} -- 16m away (not touching!)
+	local tank1_pos = {x = 210, y = 100, z = 205} -- Connected via backbone spine
+	local tank2_pos = {x = 205, y = 105, z = 215} -- Connected via backbone spine
+
+	-- Backbone spine linking port and fuel tanks
+	for x = 200, 210 do world_nodes[x .. ",100,200"] = {name = "jumpdrive:backbone", param2 = 0} end
+	for z = 200, 205 do world_nodes["210,100," .. z] = {name = "jumpdrive:backbone", param2 = 0} end
+	for z = 200, 215 do world_nodes["205,100," .. z] = {name = "jumpdrive:backbone", param2 = 0} end
+	for y = 100, 105 do world_nodes["205," .. y .. ",215"] = {name = "jumpdrive:backbone", param2 = 0} end
 
 	world_nodes["200,100,200"] = {name = "jumpdrive_tweaks:fuel_port", param2 = 0}
 	world_nodes["210,100,205"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
@@ -613,10 +653,57 @@ run_test("Fuel Port: Exterior port routes piped fuel to non-touching ship fuel t
 
 	local meta1 = minetest.get_meta(tank1_pos)
 	local meta2 = minetest.get_meta(tank2_pos)
-	assert_eq(meta1:get_int("fuel_amount"), 5000, "tank 1 filled to capacity (5000 units)")
-	assert_eq(meta2:get_int("fuel_amount"), 1000, "tank 2 received remaining 1000 units")
+	local f1 = meta1:get_int("fuel_amount")
+	local f2 = meta2:get_int("fuel_amount")
+	assert_eq(f1 + f2, 6000, "total 6000 units distributed across tanks")
+	assert_true(f1 == 5000 or f2 == 5000, "one tank filled to capacity (5000 units)")
+	assert_true(f1 == 1000 or f2 == 1000, "other tank received remaining 1000 units")
 	assert_eq(meta1:get_string("fuel_type"), "techage:hydrogen", "tank 1 fuel type is hydrogen")
 	assert_eq(meta2:get_string("fuel_type"), "techage:hydrogen", "tank 2 fuel type is hydrogen")
+
+	-- Take 1000 units from port, then untake (return) 500 units through port
+	local taken_amt = port_reg.take(port_pos, 1, "techage:hydrogen", 1000)
+	assert_eq(taken_amt, 1000, "took 1000 units through port")
+	local untaken_leftover = port_reg.untake(port_pos, 1, "techage:hydrogen", 500)
+	assert_eq(untaken_leftover, 0, "untake accepted 500 units back through port")
+
+	-- Verify port metadata has 0 fuel stored (routed to tanks, not trapped in port)
+	local port_meta = minetest.get_meta(port_pos)
+	assert_eq(port_meta:get_int("fuel_amount"), 0, "port node itself stores 0 units in meta")
+end)
+
+run_test("Fuel Port: Multi-fluid extraction isolation prevents mixed fluid draw", function()
+	local port_pos = {x = 400, y = 100, z = 400}
+	local tank1_pos = {x = 401, y = 100, z = 400}
+	local tank2_pos = {x = 402, y = 100, z = 400}
+
+	world_nodes["400,100,400"] = {name = "jumpdrive_tweaks:fuel_port", param2 = 0}
+	world_nodes["401,100,400"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+	world_nodes["402,100,400"] = {name = "jumpdrive_tweaks:fuel_tank", param2 = 0}
+
+	local meta1 = minetest.get_meta(tank1_pos)
+	meta1:set_int("fuel_amount", 1000)
+	meta1:set_string("fuel_type", "techage:hydrogen")
+
+	local meta2 = minetest.get_meta(tank2_pos)
+	meta2:set_int("fuel_amount", 2000)
+	meta2:set_string("fuel_type", "biofuel:fuel")
+
+	local port_reg = registered_liquid_defs["jumpdrive_tweaks:fuel_port"]
+
+	-- Generic draw (name = nil) requesting 1500 units should only draw from first fluid type encountered, never mixing
+	local taken_amt, taken_type = port_reg.take(port_pos, 1, nil, 1500)
+	assert_true(taken_type == "techage:hydrogen" or taken_type == "biofuel:fuel", "valid fluid type returned")
+
+	if taken_type == "techage:hydrogen" then
+		assert_eq(taken_amt, 1000, "extracted only available hydrogen")
+		assert_eq(meta1:get_int("fuel_amount"), 0, "hydrogen tank emptied")
+		assert_eq(meta2:get_int("fuel_amount"), 2000, "biofuel tank untouched")
+	else
+		assert_eq(taken_amt, 1500, "extracted 1500 biofuel")
+		assert_eq(meta2:get_int("fuel_amount"), 500, "biofuel tank reduced")
+		assert_eq(meta1:get_int("fuel_amount"), 1000, "hydrogen tank untouched")
+	end
 end)
 
 run_test("Space Solar: Orbital carrier resolves power in space vacuum", function()

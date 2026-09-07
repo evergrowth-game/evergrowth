@@ -106,21 +106,38 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") then
 			end
 			local space = capacity - current
 			local to_add = math.min(space, amount)
-			meta:set_int("fuel_amount", current + to_add)
+			local new_amount = current + to_add
+			meta:set_int("fuel_amount", new_amount)
 			meta:set_string("fuel_type", name)
+			meta:set_string("infotext", string.format("Spacecraft Fuel Tank: %d / %d (%s)", new_amount, capacity, name))
 			return amount - to_add
 		end,
 	}
 
-	-- Helper: Find all ship fuel tanks within 25m radius of the refueling port
+	-- Helper: Find all fuel tanks attached to the spacecraft connected to this refueling port
 	local function get_ship_fuel_tanks(port_pos)
+		if jumpdrive_tweaks and jumpdrive_tweaks.scan_spacecraft then
+			local ship_scan = jumpdrive_tweaks.scan_spacecraft(port_pos)
+			if ship_scan.fuel_tanks then
+				return ship_scan.fuel_tanks
+			end
+			local tanks = {}
+			for _, pos in ipairs(ship_scan.nodes) do
+				local node = minetest.get_node(pos)
+				if node.name == "jumpdrive_tweaks:fuel_tank" then
+					table.insert(tanks, pos)
+				end
+			end
+			return tanks
+		end
 		local p1 = vector.subtract(port_pos, {x = 25, y = 25, z = 25})
 		local p2 = vector.add(port_pos, {x = 25, y = 25, z = 25})
 		return minetest.find_nodes_in_area(p1, p2, {"jumpdrive_tweaks:fuel_tank"})
 	end
 
 	-- B. Exterior Refueling Port Interface (Routes fluid to ship tanks without needing to touch)
-	local port_liquid_def = {
+	local port_liquid_def
+	port_liquid_def = {
 		capa = 5000,
 		peek = function(pos, indir)
 			local tank_positions = get_ship_fuel_tanks(pos)
@@ -185,8 +202,8 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") then
 				local tmeta = minetest.get_meta(tpos)
 				local current = tmeta:get_int("fuel_amount")
 				local current_type = tmeta:get_string("fuel_type")
-				if current > 0 and (not name or current_type == name) then
-					taken_type = current_type
+				if current > 0 and (not taken_type or current_type == taken_type) and (not name or current_type == name) then
+					taken_type = taken_type or current_type
 					local capacity = tmeta:get_int("capacity")
 					if capacity <= 0 then capacity = 5000 end
 					local take_from_tank = math.min(current, remaining_to_take)
@@ -205,7 +222,7 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") then
 			return amount - remaining_to_take, taken_type
 		end,
 		untake = function(pos, indir, name, amount)
-			return tank_liquid_def.put(pos, indir, name, amount)
+			return port_liquid_def.put(pos, indir, name, amount)
 		end,
 	}
 

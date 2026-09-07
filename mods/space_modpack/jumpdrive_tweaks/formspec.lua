@@ -6,20 +6,27 @@ local has_technic = minetest.get_modpath("technic")
 
 jumpdrive_tweaks = jumpdrive_tweaks or {}
 
--- Helper to scan nearby tanks for fuel readout (searches full ship volume)
-local function get_fuel_telemetry(engine_pos, radius)
-	if not engine_pos then return 0, 0, "None" end
-	local search_r = math.max(radius or 5, 25)
-	local p1 = vector.subtract(engine_pos, {x = search_r, y = search_r, z = search_r})
-	local p2 = vector.add(engine_pos, {x = search_r, y = search_r, z = search_r})
-	local tank_positions = minetest.find_nodes_in_area(p1, p2, {"jumpdrive_tweaks:fuel_tank"})
+-- Helper to scan tanks for fuel readout (restricted to spacecraft nodes)
+local function get_fuel_telemetry(ship_scan)
+	if not ship_scan or not ship_scan.nodes then return 0, 0, "None" end
 
 	local total_fuel = 0
 	local total_cap = 0
 	local fuel_type = "None"
+	local tank_positions = ship_scan.fuel_tanks
 
-	for _, tpos in ipairs(tank_positions) do
-		local tmeta = minetest.get_meta(tpos)
+	if not tank_positions then
+		tank_positions = {}
+		for _, pos in ipairs(ship_scan.nodes) do
+			local node = minetest.get_node(pos)
+			if node.name == "jumpdrive_tweaks:fuel_tank" then
+				table.insert(tank_positions, pos)
+			end
+		end
+	end
+
+	for _, pos in ipairs(tank_positions) do
+		local tmeta = minetest.get_meta(pos)
 		local amt = tmeta:get_int("fuel_amount")
 		local cap = tmeta:get_int("capacity") or 5000
 		local ftype = tmeta:get_string("fuel_type")
@@ -50,26 +57,33 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	local power_pct = math.min(100, math.floor((powerstorage / max_powerstorage) * 100))
 
-	-- Fuel telemetry across ship
-	local fuel_amount, fuel_cap, fuel_type = get_fuel_telemetry(pos, radius)
+	-- Dynamic Spacecraft Structure & Telemetry
+	local ship_scan = pos and jumpdrive_tweaks.scan_spacecraft(pos) or {
+		node_count = 1,
+		backbone_count = 1,
+		nodes = pos and {pos} or {},
+		size = {x = radius * 2 + 1, y = radius * 2 + 1, z = radius * 2 + 1},
+		effective_radius = radius,
+		min_pos = pos and vector.subtract(pos, {x = radius, y = radius, z = radius}) or {x = 0, y = 0, z = 0},
+		max_pos = pos and vector.add(pos, {x = radius, y = radius, z = radius}) or {x = 0, y = 0, z = 0},
+	}
+
+	-- Fuel telemetry strictly from ship's tanks
+	local fuel_amount, fuel_cap, fuel_type = get_fuel_telemetry(ship_scan)
 	local fuel_pct = (fuel_cap > 0) and math.min(100, math.floor((fuel_amount / fuel_cap) * 100)) or 0
 
 	-- Target calculation
 	local target_pos = {x = current_x, y = current_y, z = current_z}
 	local distance = pos and math.floor(vector.distance(pos, target_pos)) or 0
-	local power_req = (pos and jumpdrive.calculate_power) and math.floor(jumpdrive.calculate_power(radius, distance, pos, target_pos)) or 0
+	local power_req = (pos and jumpdrive_tweaks.calculate_ship_power) and math.floor(jumpdrive_tweaks.calculate_ship_power(ship_scan, distance)) or 0
 
 	-- Area safety check
 	local status_text = "STATUS: STANDBY"
 	local status_color = "#38bdf8" -- Cyan
 
 	if pos then
-		local radius_vec = vector.new(radius, radius, radius)
-		local target_pos1 = vector.subtract(target_pos, radius_vec)
-		local target_pos2 = vector.add(target_pos, radius_vec)
-
-		minetest.get_voxel_manip():read_from_map(target_pos1, target_pos2)
-		local is_empty, empty_msg = jumpdrive.is_area_empty(target_pos1, target_pos2)
+		local delta_vec = vector.subtract(target_pos, pos)
+		local is_empty, empty_msg = jumpdrive_tweaks.is_ship_target_empty(ship_scan, delta_vec)
 
 		if (pos.y < 1000 or target_pos.y < 1000) and (pos.x ~= target_pos.x or pos.z ~= target_pos.z) then
 			if pos.y < 1000 and target_pos.y < 1000 then
@@ -123,11 +137,11 @@ jumpdrive.update_formspec = function(meta, pos)
 
 		"label[0.8,1.4;Power Storage: " .. minetest.colorize("#38bdf8", string.format("%d / %d EU (%d%%)", powerstorage, max_powerstorage, power_pct)) .. "]" ..
 		"label[0.8,1.9;Propellant Tanks: " .. minetest.colorize("#38bdf8", string.format("%d / %d units [%s] (%d%%)", fuel_amount, fuel_cap, fuel_type, fuel_pct)) .. "]" ..
-		"label[0.8,2.4;Jump Radius: " .. minetest.colorize("#f59e0b", string.format("%dm", radius)) .. "]" ..
+		"label[0.8,2.4;Hull Structure: " .. minetest.colorize("#38bdf8", string.format("%d Nodes (%d Backbone)", ship_scan.node_count, ship_scan.backbone_count)) .. "]" ..
 
 		"label[8.0,1.4;Target Distance: " .. minetest.colorize("#38bdf8", string.format("%dm", distance)) .. "]" ..
-		"label[8.0,1.9;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU", power_req)) .. "]" ..
-		"label[8.0,2.4;Transponder Channel: " .. minetest.colorize("#9ca3af", (meta:get_string("channel") ~= "" and meta:get_string("channel") or "None")) .. "]" ..
+		"label[8.0,1.9;Energy Required: " .. minetest.colorize("#38bdf8", string.format("%d EU (Rating: R=%d)", power_req, ship_scan.effective_radius)) .. "]" ..
+		"label[8.0,2.4;Hull Geometry: " .. minetest.colorize("#f59e0b", string.format("Span %d×%d×%d", ship_scan.size.x, ship_scan.size.y, ship_scan.size.z)) .. "]" ..
 
 		-- 2. MIDDLE LEFT: DESTINATION COORDINATES & PRESETS
 		"box[0.5,3.0;7.1,4.2;#132034]" ..
@@ -218,6 +232,28 @@ minetest.register_on_mods_loaded(function()
 				meta:set_int("y", pos.y)
 				meta:set_int("z", pos.z)
 				jumpdrive.update_formspec(meta, pos)
+				return
+			end
+
+			-- Handle Show / Project Bounds Button
+			if fields.show then
+				local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
+				local target_pos = {x = meta:get_int("x"), y = meta:get_int("y"), z = meta:get_int("z")}
+				local delta_vec = vector.subtract(target_pos, pos)
+				local target_min = vector.add(ship_scan.min_pos, delta_vec)
+				local target_max = vector.add(ship_scan.max_pos, delta_vec)
+
+				if minetest.get_modpath("vizlib") and vizlib and type(vizlib.draw_box) == "function" then
+					vizlib.draw_box(ship_scan.min_pos, ship_scan.max_pos, { color = "#00ff00", player = sender })
+					vizlib.draw_box(target_min, target_max, { color = "#ff0000", player = sender })
+				end
+				if sender and sender.is_player and sender:is_player() then
+					minetest.chat_send_player(sender:get_player_name(), string.format("Spacecraft Bounds: %d nodes (%d backbone) spanning [%d,%d,%d] to [%d,%d,%d] (%d×%d×%d)",
+						ship_scan.node_count, ship_scan.backbone_count,
+						ship_scan.min_pos.x, ship_scan.min_pos.y, ship_scan.min_pos.z,
+						ship_scan.max_pos.x, ship_scan.max_pos.y, ship_scan.max_pos.z,
+						ship_scan.size.x, ship_scan.size.y, ship_scan.size.z))
+				end
 				return
 			end
 
