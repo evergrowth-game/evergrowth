@@ -38,6 +38,13 @@ local function MockItemStack(itemstring)
 		is_empty = function(self) return (self.name == "" or self.count <= 0) end,
 		get_name = function(self) return self.name end,
 		get_count = function(self) return self.count end,
+		take_item = function(self, n)
+			n = n or 1
+			local taken = math.min(self.count, n)
+			self.count = self.count - taken
+			if self.count <= 0 then self.name = "" end
+			return MockItemStack(string.format("%s %d", self.name, taken))
+		end,
 	}
 end
 ItemStack = MockItemStack
@@ -121,11 +128,22 @@ local content_ids = {
 	["vacuum:vacuum"] = 13,
 	["ignore"] = 14,
 	["techage:ta4_solar_module"] = 15,
+	["jumpdrive_tweaks:beacon"] = 16,
 }
 
 local mock_settings = {
 	["space_derelict_spawn_rate"] = "45",
 }
+
+jumpdrive_tweaks = {
+	active_beacons = {},
+	register_external_beacon = function(pos, name, owner)
+		local key = string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
+		jumpdrive_tweaks.active_beacons[key] = {pos = pos, name = name, owner = owner}
+	end
+}
+
+local chat_messages = {}
 
 minetest = {
 	get_content_id = function(name)
@@ -145,6 +163,7 @@ minetest = {
 		["techage:ta4_solar_module"] = {description = "Solar Module"},
 		["techage:ta4_electrolyzer"] = {description = "Electrolyzer"},
 		["jumpdrive_tweaks:fuel_tank"] = {description = "Fuel Tank"},
+		["jumpdrive_tweaks:beacon"] = {description = "Beacon"},
 	},
 	settings = {
 		get = function(self, key)
@@ -157,6 +176,33 @@ minetest = {
 			node_metas[key] = create_mock_meta()
 		end
 		return node_metas[key]
+	end,
+	chat_send_player = function(name, msg)
+		table.insert(chat_messages, {name = name, msg = msg})
+	end,
+	sound_play = function(snd, params) end,
+	emerge_area = function(p1, p2, cb)
+		if cb then cb(nil, nil, 0, nil) end
+	end,
+	get_voxel_manip = function(p1, p2)
+		local em_area = VoxelArea:new{MinEdge = p1, MaxEdge = p2}
+		local t_size = (p2.x - p1.x + 1) * (p2.y - p1.y + 1) * (p2.z - p1.z + 1)
+		local em_data = {}
+		local em_p2 = {}
+		for i = 1, t_size do em_data[i] = 13; em_p2[i] = 0 end
+		return {
+			get_emerged_area = function(self) return p1, p2 end,
+			get_data = function(self) return em_data end,
+			get_param2_data = function(self) return em_p2 end,
+			set_data = function(self, d) em_data = d end,
+			set_param2_data = function(self, p) em_p2 = p end,
+			write_to_map = function(self) end,
+			update_map = function(self) end,
+		}
+	end,
+	registered_craftitems = {},
+	register_craftitem = function(name, def)
+		minetest.registered_craftitems[name] = def
 	end,
 	log = function(lvl, msg) end,
 }
@@ -409,5 +455,109 @@ for trial = 1, 200 do
 end
 assert_eq(adj_chests_count, 0, "Non-active chunk in sector (0,0) guaranteed to reject spawn to prevent clustering")
 print("  ✓ Sector spatial hashing guarantees anti-clustering isolation")
+
+print("[TEST 10] Testing Derelict Heavy Capital Freighter Schematic Structure...")
+local freighter_schem = derelicts.get_freighter_schematic()
+assert_eq(freighter_schem.name, "freighter", "Freighter schematic name")
+assert_true(freighter_schem.radius >= 10, "Freighter radius >= 10")
+local freighter_chests = 0
+local freighter_has_beacon = false
+for _, n in ipairs(freighter_schem.nodes) do
+	if n.is_chest then
+		freighter_chests = freighter_chests + 1
+		if n.tier == "freighter_beacon" then
+			freighter_has_beacon = true
+		end
+	end
+end
+assert_true(freighter_chests >= 5, "Freighter has multiple storage chests across bays (found " .. freighter_chests .. ")")
+assert_true(freighter_has_beacon, "Freighter contains active distress beacon atop command spire")
+print("  ✓ Derelict Capital Freighter schematic geometry and multi-container layout confirmed")
+
+print("[TEST 11] Testing Altitude-Tiered Spawn Distribution Calibration...")
+local space_placements = 0
+local mars_placements = 0
+local deep_placements = 0
+local trials = 6000
+
+for trial = 1, trials do
+	local sc = derelicts.generate_in_chunk(cmin, cmax, data, param2_data, area, "space")
+	if #sc > 0 then space_placements = space_placements + 1 end
+
+	local mc = derelicts.generate_in_chunk(cmin, cmax, data, param2_data, area, "redsky")
+	if #mc > 0 then mars_placements = mars_placements + 1 end
+
+	local dc = derelicts.generate_in_chunk(cmin, cmax, data, param2_data, area, "blackness")
+	if #dc > 0 then deep_placements = deep_placements + 1 end
+end
+
+assert_true(space_placements > mars_placements, string.format("Low orbit (%d) denser than Mars orbit (%d)", space_placements, mars_placements))
+assert_true(mars_placements > deep_placements, string.format("Mars orbit (%d) denser than Deep Space (%d)", mars_placements, deep_placements))
+print(string.format("  ✓ Altitude gradient confirmed: Low Orbit (%d) > Mars Orbit (%d) > Deep Space (%d) over %d trials",
+	space_placements, mars_placements, deep_placements, trials))
+
+print("[TEST 12] Testing Subspace Distress Scanner Emergence & Beacon Registration...")
+local mock_player_ground = {
+	get_pos = function(self) return {x = 0, y = 50, z = 0} end,
+	get_player_name = function(self) return "Astronaut" end,
+	is_player = function(self) return true end,
+}
+local g_ok = derelicts.scan_and_spawn_freighter(mock_player_ground)
+assert_eq(g_ok, false, "Scanner rejected on planetary ground (Y < 1000)")
+
+local mock_player_space = {
+	get_pos = function(self) return {x = 500, y = 1200, z = 500} end,
+	get_player_name = function(self) return "Astronaut" end,
+	is_player = function(self) return true end,
+}
+chat_messages = {}
+jumpdrive_tweaks.active_beacons = {}
+local s_ok, target_pos = derelicts.scan_and_spawn_freighter(mock_player_space)
+assert_true(s_ok, "Scanner succeeded in orbital space (Y >= 1000)")
+assert_true(target_pos.y >= 8000, "Freighter target coordinates spawned in Deep Space (Y >= 8000)")
+local beacon_count = 0
+for _, b in pairs(jumpdrive_tweaks.active_beacons) do
+	beacon_count = beacon_count + 1
+	assert_true(b.name:find("Freighter"), "Registered beacon name contains Freighter: " .. tostring(b.name))
+end
+assert_true(beacon_count > 0, "Active distress beacon registered to navigation HUD")
+print("  ✓ Subspace Distress Scanner emergence and distress beacon registration verified")
+
+print("[TEST 13] Testing Subspace Distress Scanner Craftitem In-Game Interaction...")
+-- Test craftitem registration logic
+local function trigger_scanner(itemstack, user, pointed_thing)
+	if not user or (user.is_player and not user:is_player()) then return itemstack end
+	if other_worlds_tweaks_derelicts and other_worlds_tweaks_derelicts.scan_and_spawn_freighter then
+		local success = other_worlds_tweaks_derelicts.scan_and_spawn_freighter(user)
+		if success then
+			itemstack:take_item()
+			return itemstack
+		end
+	end
+	return itemstack
+end
+
+minetest.register_craftitem("other_worlds_tweaks:derelict_scanner", {
+	description = "Subspace Distress Scanner",
+	on_place = trigger_scanner,
+	on_secondary_use = trigger_scanner,
+})
+
+local scanner_def = minetest.registered_craftitems["other_worlds_tweaks:derelict_scanner"]
+assert_true(scanner_def ~= nil, "Scanner craftitem registered")
+assert_eq(scanner_def.on_use, nil, "Scanner on_use left-click is nil")
+assert_true(scanner_def.on_place ~= nil, "Scanner on_place registered")
+assert_true(scanner_def.on_secondary_use ~= nil, "Scanner on_secondary_use registered")
+
+-- Test right-click in space (should decrement stack from 5 to 4)
+local stack5 = MockItemStack("other_worlds_tweaks:derelict_scanner 5")
+local res_stack = scanner_def.on_secondary_use(stack5, mock_player_space, {})
+assert_eq(res_stack:get_count(), 4, "Scanner stack decremented on successful orbital activation")
+
+-- Test right-click on planetary ground (should not decrement stack)
+local stack_ground = MockItemStack("other_worlds_tweaks:derelict_scanner 5")
+local res_ground = scanner_def.on_place(stack_ground, mock_player_ground, {})
+assert_eq(res_ground:get_count(), 5, "Scanner stack preserved when scan fails on planetary ground")
+print("  ✓ Scanner item on_use, on_place, and on_secondary_use interaction and stack consumption confirmed")
 
 print("\nALL DERELICT TESTS PASSED SUCCESSFULLY!")

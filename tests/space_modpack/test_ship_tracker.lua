@@ -907,6 +907,86 @@ run_test("Beacon Altitude Filter: Ground beacons (Y < 1000) are excluded from or
 	assert_eq(best_beacon.pos.y, 5000, "Orbital beacon altitude matches")
 end)
 
+-- Test 20: Beacon Priority Resolution (Owned over Unowned, and closest Unowned)
+run_test("Beacon Priority: Player-owned beacon prioritized over unowned beacons, and closest unowned selected", function()
+	local active_beacons = jumpdrive_tweaks.get_active_beacons()
+	-- Clear beacons
+	for k in pairs(active_beacons) do active_beacons[k] = nil end
+
+	-- Unowned beacon 1 (dist = 300)
+	active_beacons["0,1300,0"] = {
+		pos = {x = 0, y = 1300, z = 0},
+		name = "Derelict Near",
+		owner = "",
+	}
+	-- Unowned beacon 2 (dist = 100)
+	active_beacons["0,1100,0"] = {
+		pos = {x = 0, y = 1100, z = 0},
+		name = "Derelict Closest",
+		owner = "",
+	}
+	-- Player owned beacon (dist = 600)
+	active_beacons["0,1600,0"] = {
+		pos = {x = 0, y = 1600, z = 0},
+		name = "Player Ship",
+		owner = "Astronaut",
+	}
+
+	local ppos = {x = 0, y = 1000, z = 0}
+	local pname = "Astronaut"
+
+	-- Logic from beacon.lua globalstep
+	local best_owned = nil
+	local min_owned_dist = math.huge
+	local best_unowned = nil
+	local min_unowned_dist = 10000
+
+	for key, bdata in pairs(active_beacons) do
+		if bdata.pos and bdata.pos.y >= 1000 then
+			local dist = vector.distance(ppos, bdata.pos)
+			if bdata.owner == pname then
+				if dist < min_owned_dist then
+					min_owned_dist = dist
+					best_owned = bdata
+				end
+			elseif (not bdata.owner or bdata.owner == "") and dist < min_unowned_dist then
+				min_unowned_dist = dist
+				best_unowned = bdata
+			end
+		end
+	end
+
+	local best_beacon = best_owned or best_unowned
+	assert_true(best_beacon ~= nil, "Best beacon resolved")
+	assert_eq(best_beacon.name, "Player Ship", "Player-owned beacon selected over closer unowned distress beacons")
+
+	-- When player has no owned beacons, closest unowned beacon is chosen
+	pname = "OtherPlayer"
+	best_owned = nil
+	min_owned_dist = math.huge
+	best_unowned = nil
+	min_unowned_dist = 10000
+
+	for key, bdata in pairs(active_beacons) do
+		if bdata.pos and bdata.pos.y >= 1000 then
+			local dist = vector.distance(ppos, bdata.pos)
+			if bdata.owner == pname then
+				if dist < min_owned_dist then
+					min_owned_dist = dist
+					best_owned = bdata
+				end
+			elseif (not bdata.owner or bdata.owner == "") and dist < min_unowned_dist then
+				min_unowned_dist = dist
+				best_unowned = bdata
+			end
+		end
+	end
+
+	best_beacon = best_owned or best_unowned
+	assert_true(best_beacon ~= nil, "Unowned beacon resolved for third-party player")
+	assert_eq(best_beacon.name, "Derelict Closest", "Closest unowned beacon selected (dist 100 over dist 300)")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then

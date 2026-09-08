@@ -31,6 +31,16 @@ local function pos_to_key(pos)
 	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
 end
 
+jumpdrive_tweaks.register_external_beacon = function(pos, name, owner)
+	local key = pos_to_key(pos)
+	active_beacons[key] = {
+		pos = {x = pos.x, y = pos.y, z = pos.z},
+		owner = owner or "",
+		name = name or "Beacon"
+	}
+	save_beacons()
+end
+
 -- Update beacon positions when a ship executes a jump
 jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius, ship_scan)
 	if not source_pos or not target_pos then return end
@@ -189,24 +199,28 @@ minetest.register_globalstep(function(dtime)
 
 		-- Only display ship waypoint HUD when player is actively in orbital space (Y >= 1,000)
 		if ppos and ppos.y >= 1000 then
-			-- Find active beacon for this player (prefer owned, otherwise closest)
-			local best_beacon = nil
-			local min_dist = math.huge
+			-- Find active beacon for this player (prefer owned, otherwise closest unowned)
+			local best_owned = nil
+			local min_owned_dist = math.huge
+			local best_unowned = nil
+			local min_unowned_dist = 10000
 
 			for key, bdata in pairs(active_beacons) do
 				if bdata.pos and bdata.pos.y >= 1000 then
 					local dist = vector.distance(ppos, bdata.pos)
 					if bdata.owner == pname then
-						if dist < min_dist then
-							min_dist = dist
-							best_beacon = bdata
+						if dist < min_owned_dist then
+							min_owned_dist = dist
+							best_owned = bdata
 						end
-					elseif not best_beacon and dist < 10000 then
-						min_dist = dist
-						best_beacon = bdata
+					elseif (not bdata.owner or bdata.owner == "") and dist < min_unowned_dist then
+						min_unowned_dist = dist
+						best_unowned = bdata
 					end
 				end
 			end
+
+			local best_beacon = best_owned or best_unowned
 
 			-- Show waypoint whenever valid beacon is tracked in space
 			if best_beacon then

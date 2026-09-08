@@ -22,6 +22,7 @@ local c_solar_module
 local c_solar_carrier
 local c_electrolyzer
 local c_fuel_tank
+local c_beacon
 
 local function init_content_ids()
 	c_air = minetest.get_content_id("air")
@@ -55,6 +56,9 @@ local function init_content_ids()
 
 	c_fuel_tank = (has_jumpdrive and minetest.registered_nodes["jumpdrive_tweaks:fuel_tank"])
 		and minetest.get_content_id("jumpdrive_tweaks:fuel_tank") or c_steelblock
+
+	c_beacon = (has_jumpdrive and minetest.registered_nodes["jumpdrive_tweaks:beacon"])
+		and minetest.get_content_id("jumpdrive_tweaks:beacon") or c_copperblock
 end
 
 -- -------------------------------------------------------------------------
@@ -223,6 +227,98 @@ local function get_lab_schematic()
 		nodes = nodes
 	}
 end
+
+local function get_freighter_schematic()
+	if not c_air then init_content_ids() end
+	-- Derelict Heavy Capital Freighter (~15x9x25, radius 13)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- 1. Main Deck Floor and Upper Ceiling (-4 to 4 X, -10 to 10 Z)
+	for z = -10, 10 do
+		local width = (z >= 8) and 2 or ((z <= -8) and 3 or 4)
+		for x = -width, width do
+			add(x, 0, z, c_steelblock)
+			add(x, 4, z, (math.abs(x) == width or z == 10 or z == -10) and c_steelblock or c_obsidian_glass)
+		end
+	end
+
+	-- 2. Outer Hull Walls & Armor Plating
+	for z = -10, 10 do
+		local width = (z >= 8) and 2 or ((z <= -8) and 3 or 4)
+		for y = 1, 3 do
+			-- Hull breaches on flank (z == 2 or z == -4)
+			if not ((z == 2 or z == -4) and y >= 2) then
+				add(-width, y, z, c_steelblock)
+				add(width, y, z, c_steelblock)
+			end
+		end
+	end
+
+	-- 3. Command Bridge (Z = 8 to 11, X = -2 to 2)
+	for x = -1, 1 do
+		add(x, 1, 11, c_bronzeblock)
+		add(x, 2, 11, c_obsidian_glass)
+		add(x, 3, 11, c_obsidian_glass)
+	end
+	add(0, 1, 9, c_solar_carrier)
+	add(1, 1, 8, c_chest_ta4, 0, true, "lab")
+
+	-- 4. Cargo Holds & Storage Bays (Z = 0 to 7)
+	-- Left Bay
+	add(-2, 1, 4, c_chest_ta3, 0, true, "shuttle")
+	add(-2, 1, 5, c_chest_ta4, 0, true, "lab")
+	add(-3, 1, 3, c_fuel_tank)
+	add(-3, 2, 3, c_fuel_tank)
+
+	-- Right Bay
+	add(2, 1, 4, c_chest_ta3, 0, true, "shuttle")
+	add(2, 1, 5, c_chest_ta4, 0, true, "shuttle")
+	add(3, 1, 3, c_fuel_tank)
+	add(3, 2, 3, c_fuel_tank)
+
+	-- 5. Engineering & Reactor Core (Z = -2 to -7)
+	for x = -2, 2 do
+		for y = 1, 3 do
+			if math.abs(x) == 2 then
+				add(x, y, -2, c_steelblock)
+				add(x, y, -7, c_steelblock)
+			end
+		end
+	end
+	add(0, 1, -5, c_electrolyzer)
+	add(0, 2, -5, c_copperblock)
+	add(1, 1, -5, c_fuel_tank)
+	add(-1, 1, -5, c_fuel_tank)
+	add(0, 1, -4, c_chest_ta4, 0, true, "lab")
+	add(0, 1, -6, c_chest_ta4, 0, true, "lab")
+
+	-- 6. Rear Twin Thruster Nacelles (X = -5 and +5, Z = -8 to -12)
+	for _, sx in ipairs({-5, 5}) do
+		for z = -12, -8 do
+			for y = 0, 2 do
+				add(sx, y, z, c_steelblock)
+			end
+		end
+		add(sx, 1, -13, c_copperblock)
+		add(sx, 1, -14, c_bronzeblock)
+		add(sx, 1, -8, c_fuel_tank)
+	end
+
+	-- 7. Command Spire & Active Distress Beacon (0, 6, 0)
+	add(0, 5, 0, c_copperblock)
+	add(0, 6, 0, c_beacon, 0, true, "freighter_beacon")
+
+	return {
+		name = "freighter",
+		size = {x = 15, y = 9, z = 25},
+		radius = 13,
+		nodes = nodes
+	}
+end
+derelicts.get_freighter_schematic = get_freighter_schematic
 
 -- -------------------------------------------------------------------------
 -- 2. LOOT POPULATION ENGINE
@@ -482,21 +578,34 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 		return {}
 	end
 
-	-- Configurable spawn rate roll (default: 1 in 45 chunks)
-	local base_rate = 45
-	if minetest.settings and minetest.settings.get then
-		base_rate = tonumber(minetest.settings:get("space_derelict_spawn_rate")) or 45
-	end
-	base_rate = math.max(1, base_rate)
-	local spawn_chance = math.max(1, (layer_type == "blackness") and base_rate or floor(base_rate * 1.2))
-	if random(1, spawn_chance) ~= 1 then
-		return {}
+	-- Altitude-banded natural spawn rate & archetype weighting
+	-- Low Orbit (space / Y < 5000): base 6 (effective 1-in-24 chunks, ~4.2%). Probes (70%), Shuttles (30%)
+	-- Mars Orbit (redsky / 6000 <= Y < 7000): base 12 (effective 1-in-48 chunks, ~2.1%). Probes (50%), Shuttles (50%)
+	-- Deep Space (blackness / Y >= 7000): base 25 (effective 1-in-100 chunks, ~1.0%). Labs (80%), Shuttles (20%)
+	local base_divider
+	local archetypes
+	if layer_type == "blackness" then
+		base_divider = 25
+		archetypes = {get_lab_schematic(), get_lab_schematic(), get_lab_schematic(), get_lab_schematic(), get_shuttle_schematic()}
+	elseif layer_type == "redsky" then
+		base_divider = 12
+		archetypes = {get_probe_schematic(), get_shuttle_schematic()}
+	else -- space / low orbit
+		base_divider = 6
+		archetypes = {get_probe_schematic(), get_probe_schematic(), get_probe_schematic(), get_shuttle_schematic()}
 	end
 
-	-- Select archetype based on layer
-	local archetypes = {get_probe_schematic(), get_shuttle_schematic()}
-	if layer_type == "blackness" or random(1, 3) == 1 then
-		table.insert(archetypes, get_lab_schematic())
+	-- Server setting multiplier override if configured
+	if minetest.settings and minetest.settings.get then
+		local custom_rate = tonumber(minetest.settings:get("space_derelict_spawn_rate"))
+		if custom_rate and custom_rate > 0 then
+			base_divider = math.max(1, floor(base_divider * (custom_rate / 45)))
+		end
+	end
+	base_divider = math.max(1, base_divider)
+
+	if random(1, base_divider) ~= 1 then
+		return {}
 	end
 
 	local schematic = archetypes[random(1, #archetypes)]
@@ -560,6 +669,80 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 	end
 
 	return chests
+end
+
+-- -------------------------------------------------------------------------
+-- 5. ON-DEMAND SUBSPACE DISTRESS SCANNER & FREIGHTER EMERGENCE
+-- -------------------------------------------------------------------------
+
+function derelicts.scan_and_spawn_freighter(player)
+	if not player or not player.get_pos then return false end
+	local pos = player:get_pos()
+	local name = player:get_player_name()
+
+	if pos.y < 1000 then
+		minetest.chat_send_player(name, "[Subspace Scanner] Signal blocked by planetary atmosphere. Must be in orbital space (Y >= 1,000).")
+		return false
+	end
+
+	-- Pick random coordinates 350-500m away in deep space (Y >= 8000)
+	local angle = random() * math.pi * 2
+	local dist = random(350, 500)
+	local tx = floor(pos.x + math.cos(angle) * dist)
+	local tz = floor(pos.z + math.sin(angle) * dist)
+	local ty = random(8000, 9500)
+	local target_pos = {x = tx, y = ty, z = tz}
+
+	minetest.chat_send_player(name, string.format("[Subspace Scanner] Detected faint emergency distress signal at (%d, %d, %d). Triangulating...", tx, ty, tz))
+	if minetest.sound_play then
+		minetest.sound_play("techage_ping", {to_player = name, gain = 1.0})
+	end
+
+	local p1 = {x = tx - 16, y = ty - 10, z = tz - 16}
+	local p2 = {x = tx + 16, y = ty + 10, z = tz + 16}
+
+	if minetest.emerge_area then
+		minetest.emerge_area(p1, p2, function(blockpos, action, calls_remaining, param)
+			if (minetest.EMERGE_CANCELLED and action == minetest.EMERGE_CANCELLED) or
+			   (minetest.EMERGE_ERRORED and action == minetest.EMERGE_ERRORED) then
+				return
+			end
+			if calls_remaining == 0 then
+				local vm = minetest.get_voxel_manip(p1, p2)
+				local emin, emax = vm:get_emerged_area()
+				local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
+				local data = vm:get_data()
+				local param2_data = vm:get_param2_data()
+
+				local schematic = get_freighter_schematic()
+				local rot = random(0, 3)
+				local chests = derelicts.place_schematic(target_pos, schematic, rot, data, param2_data, area)
+
+				vm:set_data(data)
+				vm:set_param2_data(param2_data)
+				vm:write_to_map()
+				vm:update_map()
+
+				for _, c in ipairs(chests) do
+					if c.tier == "freighter_beacon" then
+						local bmeta = minetest.get_meta(c.pos)
+						bmeta:set_string("ship_name", "Derelict Heavy Freighter [DISTRESS]")
+						bmeta:set_string("owner", "")
+						bmeta:set_string("infotext", "Navigation Beacon: [Derelict Heavy Freighter [DISTRESS]]")
+						if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
+							jumpdrive_tweaks.register_external_beacon(c.pos, "Derelict Heavy Freighter [DISTRESS]", "")
+						end
+					else
+						derelicts.populate_chest(c.pos, c.tier)
+					end
+				end
+
+				minetest.chat_send_player(name, string.format("[Subspace Scanner] Signal locked! 3D distress waypoint registered at (%d, %d, %d).", tx, ty, tz))
+			end
+		end)
+	end
+
+	return true, target_pos
 end
 
 return derelicts
