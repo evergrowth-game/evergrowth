@@ -23,7 +23,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `bweapons_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/bweapons_modpack/) &bull; [Source](https://github.com/mt-historical/bweapons_modpack) |  |
 | `carpets` | bell07 | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/bell07/carpets/) &bull; [Source](https://github.com/minetest-mods/carpets) |  |
 | `castle_gates` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/castle_gates/) &bull; [Source](https://github.com/minetest-mods/castle_gates) |  |
-| `caverealms` | Shara | FreeBSD | [ContentDB](https://content.luanti.org/packages/Shara/caverealms/) &bull; [Source](https://github.com/minetest-mods/caverealms_lite) | Caverealms Lite fork |
+| `caverealms` | Shara | FreeBSD | [ContentDB](https://content.luanti.org/packages/Shara/caverealms/) &bull; [Source](https://github.com/Ezhh/caverealms_lite) | Caverealms Lite fork |
 | `cheese` | Annalysa | LGPL-2.1-only for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/Annalysa/cheese/) &bull; [Source](https://github.com/AnnalysaTheMinetester/cheese.git) |  |
 | `cinematic_zoom` | Fennelfox | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/Fennelfox/cinematic_zoom/) &bull; [Source](https://github.com/fennelfox/cinematic_zoom) |  |
 | `climate` | TestificateMods | LGPL-3.0-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TestificateMods/climate/) &bull; [Source](https://github.com/t-affeldt/climate) |  |
@@ -40,11 +40,11 @@ The following 83 integrated community mods are packaged with this game. All link
 | `farming` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/farming/) &bull; [Source](https://codeberg.org/tenplus1/farming) |  |
 | `farmtools` | camelia | LGPL-3.0-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/camelia/farmtools/) &bull; [Source](https://codeberg.org/camelia/farmtools) |  |
 | `flowerpot` | sofar | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/sofar/flowerpot/) &bull; [Source](https://github.com/minetest-mods/flowerpot) |  |
-| `gadgets_modpack` | Aurailus | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Aurailus/aurora_tech/) &bull; [Source](https://github.com/Aurailus-Minetest/AuroraTech) |  |
-| `guidebooks` | PolySaken | CC-BY-SA-4.0 | [ContentDB](https://content.luanti.org/packages/PolySaken/guidebooks/) &bull; [Source](https://github.com/PolySaken/guidebooks) | Physical written books support |
+| `gadgets_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/gadgets_modpack/) &bull; [Source](https://github.com/mt-historical/gadgets_modpack) |  |
+| `guidebooks` | PolySaken | CC-BY-SA-4.0 | [ContentDB](https://content.luanti.org/packages/PolySaken/guidebooks/) &bull; [Source](https://github.com/mt-historical/guidebooklib) | Physical written books support |
 | `hbarmor` | Wuzzy | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbarmor/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbarmor) |  |
 | `hbhunger` | Wuzzy | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbhunger/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbhunger) |  |
-| `heli` | apercy | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/heli/) &bull; [Source](https://github.com/APercy/heli) |  |
+| `heli` | apercy | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/heli/) &bull; [Source](https://github.com/APercy/b47_heli) |  |
 | `hidroplane` | apercy | LGPL-3.0-only for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/hidroplane/) &bull; [Source](https://github.com/APercy/hidroplane) |  |
 | `hudbars` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/hudbars/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hudbars) |  |
 | `i_have_hands` | SURV | MIT | [ContentDB](https://content.luanti.org/packages/SURV/i_have_hands/) &bull; [Source](https://github.com/KingTheGuy/i_have_hands) |  |
@@ -74,7 +74,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `ropes` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/ropes/) &bull; [Source](https://github.com/minetest-mods/ropes) |  |
 | `ruined_structures` | X-DE1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/X-DE1/ruined_structures/) &bull; [Source](https://github.com/X-DE1/ruined_structures) |  |
 | `shipwrecks` | mt-mods | GPL-3.0-only | [ContentDB](https://content.luanti.org/packages/mt-mods/shipwrecks/) &bull; [Source](https://github.com/mt-historical/shipwrecks) |  |
-| `signs_lib` | mt-mods | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/signs_lib/) &bull; [Source](https://github.com/mt-mods/signs_lib) | Adds signs with readable text |
+| `signs_lib` | VanessaE | LGPL-3.0-only for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/signs_lib/) &bull; [Source](https://github.com/mt-mods/signs_lib) | Adds signs with readable text |
 | `simple_woodcutter` | luarocks | MIT | [ContentDB](https://content.luanti.org/packages/luarocks/simple_woodcutter/) &bull; [Source](https://notabug.org/rr/simple_woodcutter) |  |
 | `skinsdb` | bell07 | GPL-3.0-or-later for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/bell07/skinsdb/) &bull; [Source](https://github.com/minetest-mods/skinsdb) | Player skin selector UI |
 | `supercub` | apercy | LGPL-3.0-or-later for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/supercub/) &bull; [Source](https://github.com/APercy/supercub.git) |  |
