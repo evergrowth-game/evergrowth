@@ -17,7 +17,8 @@ mods/space_modpack/
 │   ├── mod.conf
 │   ├── init.lua
 │   ├── nodes.lua                  (Rich ores, comet ice, cosmic crystals)
-│   ├── asteroid_mapgen.lua        (Multi-mineral asteroid generator, sunlight propagation)
+│   ├── derelicts.lua              (Procedural space probes, fuel shuttles, research labs)
+│   ├── asteroid_mapgen.lua        (Multi-mineral asteroid generator, derelict mapgen hook)
 │   ├── gravity.lua                (player_monoids gravity scaling 0.35x at Y >= 1000)
 │   ├── climate_hook.lua           (Suppresses wind/rain and merges space skyboxes)
 │   ├── solar_hook.lua             (24/7 continuous orbital solar generation & efficiency scaling)
@@ -86,26 +87,25 @@ mods/space_modpack/
 * **Documentation Manual:** Registered `space_exploration` category in `doc` covering vacuum survival, EVA maneuvering, ship transponders, quantum recall, orbital solar power, ice liquefaction, and jumpdrive engineering.
 * **Item Encyclopedia:** Added descriptions and usage guides in `doc_items` for all space tools and nodes.
 
+### 2.8 Procedural Space Derelicts & Orbital Salvage (`derelicts.lua`) [DONE]
+* **Modular Lua Schematics:** Procedural generation of three space derelict archetypes (*Adrift Science Probe*, *Abandoned Fuel Shuttle*, *Wrecked Orbital Lab*) built 100% with existing in-game blocks, machinery, and alloy chests.
+* **Rotation & Collision Clearance:** 4-way yaw matrix transformation with solid rock density sampling (preventing clipping into asteroid cores) and sub-volume dimension guards.
+* **Salvage & Supply Containers:** Tiered loot populator in `techage:chest_ta3` and `techage:chest_ta4` supplying pressurized hydrogen canisters (`techage:cylinder_small_hydrogen`), breathing air tanks (`airtanks:steel_tank` / `vacuum:air_bottle`), structural alloys, and advanced circuitry.
+* **Voxel Performance:** Lazy `VoxelManip` buffer allocation ensuring zero table garbage generation on chunks without derelict spawns.
+
 ---
 
 ## 3. Upcoming Gameplay Roadmap
 
 ### 3.1 Tier 1: High-Priority Additions and Immediate Feasibility
-1. **Derelict Starships & Orbital Stations:**
-   - **Mechanism:** Procedural schematic placement integrated into `other_worlds_tweaks/asteroid_mapgen.lua` spawning abandoned vessel hulls and orbital outpost ruins in asteroid fields.
-   - **Content:** Salvageable Techage machinery, damaged solar arrays, fuel storage containers, high-tier electronic circuits, and exploration log terminals.
-2. **Ship Sensor & Radar Array Console:**
-   - **Mechanism:** Cockpit console node interfacing with surrounding chunk voxels within a 500m–1,000m radius.
-   - **Output:** Identifies directions and coordinates of rich mineral asteroid cores, derelict wrecks, and active transponders.
-3. **Hydroponic Oxygen Scrubbers & Life Support Modules:**
-   - **Mechanism:** Station life support machine linking to TechAge water pipes and electricity. Automatically pressurizes station chambers and recharges inventory air bottles without manual crafting.
+1. **Granular Flight Navigation & Micro-Jump Impulse Controls:**
+   - **Mechanism:** Cockpit interface enhancements adding directional impulse micro-jumps (single-click fixed nudges of $+10\text{m}$, $+50\text{m}$, and $+100\text{m}$ along $\pm X$, $\pm Y$, $\pm Z$) and target coordinate locking.
+   - **Output:** Eliminates manual coordinate guessing when approaching asteroids, orbital stations, and derelicts. Automatically calculates safe standoff distance offsets to prevent collision.
 
 ### 3.2 Tier 2: Medium-Priority Additions (Moderate Complexity)
-1. **Derelict Defense Drones & Security Constructs:**
-   - **Mechanism:** Leverages `eg_constructs` and `mobs` to spawn vacuum-immune automated security drones patrolling derelict stations that defend salvage with directed-energy weapons.
-2. **Solar Radiation & Cosmic Ray Storms:**
+1. **Solar Radiation & Cosmic Ray Storms:**
    - **Mechanism:** Periodic high-altitude space weather events that inflict radiation damage unless players are sheltered within sealed, reinforced hull compartments (verified via `vacuum` seal checks).
-3. **Ship-Mounted Mining Lasers / Drills:**
+2. **Ship-Mounted Mining Lasers / Drills:**
    - **Mechanism:** Hull-mounted excavation heads allowing pilots to bore through asteroid rock and harvest mineral veins directly from the vessel cockpit.
 
 ### 3.3 Tier 3: Stretch Goals
@@ -114,3 +114,4 @@ mods/space_modpack/
    - **Consideration:** Requires handling coordinate offsets and bounding-box merges across independent `jumpdrive` controllers.
 2. **Gas Giant & Planetary Ring Siphons:**
    - **Concept:** Orbital harvesting platforms designed to collect exotic gases (Helium-3, volatile plasmas) from outer planetary boundaries.
+

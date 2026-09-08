@@ -261,8 +261,19 @@ local function generate_asteroid_chunk(minp, maxp, seed, layer_type, ymin, ymax)
 	end
 	end
 
+	local derelict_chests = {}
+	if other_worlds_tweaks_derelicts and other_worlds_tweaks_derelicts.generate_in_chunk then
+		derelict_chests = other_worlds_tweaks_derelicts.generate_in_chunk(minp, maxp, data, vm, area, layer_type)
+	end
+
 	vm:set_data(data)
 	vm:write_to_map()
+
+	if derelict_chests and #derelict_chests > 0 and other_worlds_tweaks_derelicts.populate_chest then
+		for _, cinfo in ipairs(derelict_chests) do
+			other_worlds_tweaks_derelicts.populate_chest(cinfo.pos, cinfo.tier)
+		end
+	end
 end
 
 -- Unregister old upstream other_worlds mapgen functions
