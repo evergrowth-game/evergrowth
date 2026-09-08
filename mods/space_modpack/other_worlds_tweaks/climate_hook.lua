@@ -1,16 +1,4 @@
--- other_worlds_tweaks/climate_hook.lua
--- Suppress climate weather, precipitation, and wind loops above Y >= 2000
--- and seamlessly integrate space skyboxes with climate_api sky merger.
-
 local SPACE_ALTITUDE_THRESHOLD = 1000
-
--- Unregister upstream other_worlds skybox globalstep to prevent blue sky overrides in space
-for i = #minetest.registered_globalsteps, 1, -1 do
-	local info = debug.getinfo(minetest.registered_globalsteps[i], "S")
-	if info and info.source and info.source:find("other_worlds/skybox.lua") then
-		table.remove(minetest.registered_globalsteps, i)
-	end
-end
 
 local spaceskybox = {
 	"sky_pos_z.png",

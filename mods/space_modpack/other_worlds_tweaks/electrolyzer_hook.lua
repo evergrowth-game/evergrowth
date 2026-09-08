@@ -120,11 +120,10 @@ local function generating_with_water(pos, nvm)
 	end
 end
 
--- Override on_mods_loaded to hook NodeStates, timer, tiles, and dual-liquid network
-minetest.register_on_mods_loaded(function()
-	local def_passive = minetest.registered_nodes["techage:ta4_electrolyzer"]
-	local def_active = minetest.registered_nodes["techage:ta4_electrolyzer_on"]
-	if not def_passive or not def_active then return end
+-- Hook NodeStates, timer, tiles, and dual-liquid network
+local def_passive = minetest.registered_nodes["techage:ta4_electrolyzer"]
+local def_active = minetest.registered_nodes["techage:ta4_electrolyzer_on"]
+if def_passive and def_active then
 
 	-- 1. Update node tiles to display square pipe intake on the back face
 	local new_tiles_passive = {
@@ -320,8 +319,6 @@ minetest.register_on_mods_loaded(function()
 	}
 
 	liquid.register_nodes({"techage:ta4_electrolyzer", "techage:ta4_electrolyzer_on"}, Pipe, "tank", {"R", "B"}, dual_liquid_def)
-
-
-end)
+end
 
 minetest.log("action", "[other_worlds_tweaks] Loaded TechAge water-fed electrolyzer ISRU compatibility hook.")

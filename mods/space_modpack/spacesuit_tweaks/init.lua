@@ -1,3 +1,4 @@
+spacesuit_tweaks = {}
 local modpath = minetest.get_modpath("spacesuit_tweaks")
 
 dofile(modpath .. "/eva_thruster.lua")

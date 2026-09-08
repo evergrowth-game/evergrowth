@@ -89,3 +89,8 @@ log_non_player_actions (Log non-player action) bool false
 #    Adjust the frequency of village spawns.
 #    A higher number makes villages rarer (e.g., 4 means a 1 in 4 chance per mapchunk).
 # evergrowth_villages_chance (Village Gen Chance 1 in X) int 1
+
+# Space exploration: disable legacy un-overhauled other_worlds mapgens in favor of other_worlds_tweaks
+otherworlds.space (Enable default space mapgen) bool false
+otherworlds.redsky (Enable default redsky mapgen) bool false
+

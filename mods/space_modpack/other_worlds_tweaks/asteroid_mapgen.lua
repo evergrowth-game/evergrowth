@@ -75,37 +75,46 @@ local np_satmos = {
 	persist = 0.6
 }
 
--- Content IDs
-local c_air = minetest.get_content_id("air")
-local c_atmos = minetest.get_content_id("asteroid:atmos")
-local c_stone = minetest.get_content_id("asteroid:stone")
-local c_cobble = minetest.get_content_id("asteroid:cobble")
-local c_gravel = minetest.get_content_id("asteroid:gravel")
-local c_dust = minetest.get_content_id("asteroid:dust")
-local c_snowblock = minetest.get_content_id("default:snowblock")
+-- Content IDs (lazily resolved inside mapgen)
+local c_air, c_atmos, c_stone, c_cobble, c_gravel, c_dust, c_snowblock
+local c_rich_diamond, c_rich_mese, c_rich_gold, c_rich_copper, c_rich_tin, c_rich_coal, c_rich_iron, c_comet_ice
+local c_egerum, c_februm, c_baborium
+local c_redstone, c_redgravel, c_reddust
 
--- Rich Ores & Volatiles
-local c_rich_diamond = minetest.get_content_id("other_worlds_tweaks:rich_diamond_ore")
-local c_rich_mese = minetest.get_content_id("other_worlds_tweaks:rich_mese_ore")
-local c_rich_gold = minetest.get_content_id("other_worlds_tweaks:rich_gold_ore")
-local c_rich_copper = minetest.get_content_id("other_worlds_tweaks:rich_copper_ore")
-local c_rich_tin = minetest.get_content_id("other_worlds_tweaks:rich_tin_ore")
-local c_rich_coal = minetest.get_content_id("other_worlds_tweaks:rich_coal_ore")
-local c_rich_iron = minetest.get_content_id("other_worlds_tweaks:rich_iron_ore")
-local c_comet_ice = minetest.get_content_id("other_worlds_tweaks:comet_ice")
+local ids_initialized = false
+local function init_mapgen_content_ids()
+	if ids_initialized then return end
 
--- Magic Materials & TechAge integration
-local has_magic = minetest.get_modpath("magic_materials")
-local c_egerum = has_magic and minetest.get_content_id("magic_materials:stone_with_egerum") or c_rich_diamond
-local c_februm = has_magic and minetest.get_content_id("magic_materials:stone_with_februm") or c_rich_mese
+	c_air = minetest.get_content_id("air")
+	c_atmos = minetest.get_content_id("asteroid:atmos")
+	c_stone = minetest.get_content_id("asteroid:stone")
+	c_cobble = minetest.get_content_id("asteroid:cobble")
+	c_gravel = minetest.get_content_id("asteroid:gravel")
+	c_dust = minetest.get_content_id("asteroid:dust")
+	c_snowblock = minetest.get_content_id("default:snowblock")
 
-local has_techage = minetest.get_modpath("techage")
-local c_baborium = has_techage and minetest.get_content_id("techage:stone_with_baborium") or c_rich_diamond
+	c_rich_diamond = minetest.get_content_id("other_worlds_tweaks:rich_diamond_ore")
+	c_rich_mese = minetest.get_content_id("other_worlds_tweaks:rich_mese_ore")
+	c_rich_gold = minetest.get_content_id("other_worlds_tweaks:rich_gold_ore")
+	c_rich_copper = minetest.get_content_id("other_worlds_tweaks:rich_copper_ore")
+	c_rich_tin = minetest.get_content_id("other_worlds_tweaks:rich_tin_ore")
+	c_rich_coal = minetest.get_content_id("other_worlds_tweaks:rich_coal_ore")
+	c_rich_iron = minetest.get_content_id("other_worlds_tweaks:rich_iron_ore")
+	c_comet_ice = minetest.get_content_id("other_worlds_tweaks:comet_ice")
 
--- Redsky specific
-local c_redstone = minetest.get_content_id("asteroid:redstone")
-local c_redgravel = minetest.get_content_id("asteroid:redgravel")
-local c_reddust = minetest.get_content_id("asteroid:reddust")
+	local has_magic = minetest.get_modpath("magic_materials")
+	c_egerum = has_magic and minetest.get_content_id("magic_materials:stone_with_egerum") or c_rich_diamond
+	c_februm = has_magic and minetest.get_content_id("magic_materials:stone_with_februm") or c_rich_mese
+
+	local has_techage = minetest.get_modpath("techage")
+	c_baborium = has_techage and minetest.get_content_id("techage:stone_with_baborium") or c_rich_diamond
+
+	c_redstone = minetest.get_content_id("asteroid:redstone")
+	c_redgravel = minetest.get_content_id("asteroid:redgravel")
+	c_reddust = minetest.get_content_id("asteroid:reddust")
+
+	ids_initialized = true
+end
 
 -- Specialized Ore Selectors for Space Tiers
 local function select_space_ore()
@@ -164,6 +173,8 @@ local function generate_asteroid_chunk(minp, maxp, seed, layer_type, ymin, ymax)
 	or minp.z < ZMIN or maxp.z > ZMAX then
 		return
 	end
+
+	init_mapgen_content_ids()
 
 	local x0, y0, z0 = minp.x, minp.y, minp.z
 	local x1, y1, z1 = maxp.x, maxp.y, maxp.z
@@ -276,13 +287,7 @@ local function generate_asteroid_chunk(minp, maxp, seed, layer_type, ymin, ymax)
 	end
 end
 
--- Unregister old upstream other_worlds mapgen functions
-for i = #minetest.registered_on_generateds, 1, -1 do
-	local info = debug.getinfo(minetest.registered_on_generateds[i], "S")
-	if info and info.source and (info.source:find("other_worlds/space_asteroids.lua") or info.source:find("other_worlds/redsky_asteroids.lua") or info.source:find("other_worlds/asteroid_layer_helpers.lua")) then
-		table.remove(minetest.registered_on_generateds, i)
-	end
-end
+
 
 -- Register Space Asteroid generator (Y = 5000 to 5999)
 minetest.register_on_generated(function(minp, maxp, seed)

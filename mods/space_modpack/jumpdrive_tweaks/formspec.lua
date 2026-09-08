@@ -209,10 +209,8 @@ local function sync_coords_from_fields(meta, fields)
 end
 
 -- Override jumpdrive:engine to add on_rightclick dynamic refresh and handle all field inputs
-minetest.register_on_mods_loaded(function()
-	local engine_def = minetest.registered_nodes["jumpdrive:engine"]
-	if not engine_def then return end
-
+local engine_def = minetest.registered_nodes["jumpdrive:engine"]
+if engine_def then
 	local orig_on_receive_fields = engine_def.on_receive_fields
 
 	minetest.override_item("jumpdrive:engine", {
@@ -410,4 +408,4 @@ minetest.register_on_mods_loaded(function()
 			end
 		end
 	})
-end)
+end

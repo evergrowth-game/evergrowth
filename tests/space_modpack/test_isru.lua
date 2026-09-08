@@ -433,14 +433,14 @@ minetest.get_node_or_nil = minetest.get_node
 
 -- Load subsystems
 _G.jumpdrive_tweaks = _G.jumpdrive_tweaks or {}
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/nodes_fuel.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/techage_pipe.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/ice_melter.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/other_worlds_tweaks/electrolyzer_hook.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/other_worlds_tweaks/solar_hook.lua")
-dofile("/Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/jumpdrive_tweaks/crafts.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/nodes_fuel.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/techage_pipe.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/ice_melter.lua")
+dofile("mods/space_modpack/other_worlds_tweaks/electrolyzer_hook.lua")
+dofile("mods/space_modpack/other_worlds_tweaks/solar_hook.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/crafts.lua")
 
 print("Starting ISRU Subsystem Headless Test Suite...\n")
 

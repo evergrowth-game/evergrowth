@@ -11,7 +11,6 @@ Third-party mods remain 100% unmodified in `mods/space_modpack/<mod_name>/`. All
 ```
 mods/space_modpack/
 ├── modpack.conf
-├── modpack.txt
 ├── other_worlds/
 ├── other_worlds_tweaks/
 │   ├── mod.conf

@@ -85,8 +85,7 @@ local function resolve_carrier_power(pos, y_offset, orig_cb)
 end
 
 -- Hook carrier nodes in control network
-minetest.register_on_mods_loaded(function()
-	-- 1. Override Carrier A (y_offset = 0)
+-- 1. Override Carrier A (y_offset = 0)
 	local def_carrierA = minetest.registered_nodes["techage:ta4_solar_carrier"]
 	local orig_carrierA_req = def_carrierA and def_carrierA.control and def_carrierA.control.on_request
 	control.register_nodes({"techage:ta4_solar_carrier"}, {
@@ -230,6 +229,5 @@ minetest.register_on_mods_loaded(function()
 			end
 		})
 	end
-end)
 
 minetest.log("action", "[other_worlds_tweaks] Loaded TechAge orbital solar power compatibility hook.")

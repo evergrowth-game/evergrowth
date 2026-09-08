@@ -116,11 +116,14 @@ Standalone regression test suites validate all mechanics without requiring an ac
 
 ```bash
 # Run Starship Backbone Tracker & Geometry Test Suite
-luajit mods/space_modpack/tests/test_ship_tracker.lua
+luajit tests/space_modpack/test_ship_tracker.lua
 
 # Run ISRU Refinery, Ice Melter & Solar Generation Suite
-luajit mods/space_modpack/tests/test_isru.lua
+luajit tests/space_modpack/test_isru.lua
 
 # Run EVA Thruster & Propellant Management Suite
-luajit mods/space_modpack/tests/test_eva_thruster.lua
+luajit tests/space_modpack/test_eva_thruster.lua
+
+# Run Procedural Space Derelicts Test Suite
+luajit tests/space_modpack/test_derelicts.lua
 ```
