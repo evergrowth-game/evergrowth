@@ -120,6 +120,11 @@ local content_ids = {
 	["asteroid:stone"] = 12,
 	["vacuum:vacuum"] = 13,
 	["ignore"] = 14,
+	["techage:ta4_solar_module"] = 15,
+}
+
+local mock_settings = {
+	["space_derelict_spawn_rate"] = "45",
 }
 
 minetest = {
@@ -137,8 +142,14 @@ minetest = {
 		["techage:chest_ta4"] = {description = "TA4 Chest"},
 		["techage:ta4_solar_minicell"] = {description = "Solar Minicell"},
 		["techage:ta4_solar_carrier"] = {description = "Solar Carrier"},
+		["techage:ta4_solar_module"] = {description = "Solar Module"},
 		["techage:ta4_electrolyzer"] = {description = "Electrolyzer"},
 		["jumpdrive_tweaks:fuel_tank"] = {description = "Fuel Tank"},
+	},
+	settings = {
+		get = function(self, key)
+			return mock_settings[key]
+		end,
 	},
 	get_meta = function(pos)
 		local key = string.format("%d,%d,%d", pos.x, pos.y, pos.z)
@@ -206,7 +217,7 @@ assert_eq(data[area:index(40, 5040, 41)], 1, "Rot 3 node 1 placement")
 assert_eq(data[area:index(38, 5041, 40)], 2, "Rot 3 node 2 placement")
 print("  ✓ Rotation math verified for all 4 cardinal angles")
 
-print("[TEST 2] Testing Chest Loot Population Engine for all tiers...")
+print("[TEST 2] Testing Chest Loot Population Engine & Loot Variability for all tiers...")
 node_metas = {}
 local probe_pos = {x = 10, y = 5000, z = 10}
 derelicts.populate_chest(probe_pos, "probe")
@@ -255,7 +266,26 @@ assert_true(lab_has_high_tech, "Lab chest contains high-tech materials/chips")
 assert_true(lab_meta:get_string("formspec") ~= "", "Lab chest has formspec string")
 assert_eq(lab_meta:get_int("public"), 1, "Lab chest is set to public")
 assert_eq(lab_inv:get_size("conf"), 50, "Lab chest conf inventory size initialized to 50")
-print("  ✓ Loot generation & UI formspec metadata verified for Probe, Shuttle, and Lab tiers")
+
+-- Verify loot variability across multiple chests of same tier
+local probe_variants = {}
+for trial = 1, 10 do
+	local ppos = {x = 100 + trial, y = 5000, z = 100}
+	derelicts.populate_chest(ppos, "probe")
+	local inv = minetest.get_meta(ppos):get_inventory()
+	local names = {}
+	for _, it in pairs(inv:get_list("main")) do
+		if not it:is_empty() then
+			table.insert(names, it:get_name() .. ":" .. it:get_count())
+		end
+	end
+	table.sort(names)
+	probe_variants[table.concat(names, ",")] = true
+end
+local variant_count = 0
+for _ in pairs(probe_variants) do variant_count = variant_count + 1 end
+assert_true(variant_count > 1, "Loot pool generates variable cache compositions across probe instances (found " .. variant_count .. " unique combinations)")
+print("  ✓ Loot generation, randomized variability & UI formspec metadata verified for Probe, Shuttle, and Lab tiers")
 
 print("[TEST 3] Testing Clearance Collision Filter...")
 -- Fill chunk solid with stone
@@ -282,7 +312,7 @@ for i = 1, total_nodes do
 end
 
 local placed_chests_count = 0
-for trial = 1, 500 do
+for trial = 1, 2000 do
 	local chests = derelicts.generate_in_chunk(cmin, cmax, data, param2_data, area, "blackness")
 	if chests and #chests > 0 then
 		placed_chests_count = placed_chests_count + #chests
@@ -292,7 +322,7 @@ for trial = 1, 500 do
 	end
 end
 assert_true(placed_chests_count > 0, "Procedural derelicts successfully placed in vacuum chunks")
-print("  ✓ Procedural derelicts generation verified in open vacuum (" .. placed_chests_count .. " chests generated over 500 trials)")
+print("  ✓ Procedural derelicts generation verified in open vacuum (" .. placed_chests_count .. " chests generated over 2000 trials)")
 
 print("[TEST 5] Testing Small Sub-Volume Boundary Guard...")
 local small_min = {x = 0, y = 5000, z = 0}
@@ -343,7 +373,7 @@ local mock_vm = {
 
 for i = 1, total_nodes do data[i] = 0 end
 local vm_chests = {}
-for trial = 1, 100 do
+for trial = 1, 500 do
 	vm_chests = derelicts.generate_in_chunk(cmin, cmax, data, mock_vm, area, "blackness")
 	if #vm_chests > 0 then break end
 end
@@ -363,5 +393,21 @@ for _, item in pairs(tank_inv:get_list("main")) do
 	end
 end
 print("  ✓ Airtank single-unit tool stacking compliance verified")
+
+print("[TEST 9] Testing Sector Spatial Hash Isolation (no adjacent chunk clustering)...")
+-- Chunk 0 in sector (0,0) is at x=0, z=0
+-- Chunk 1 in sector (0,0) is at x=80, z=0
+local adj_min = {x = 80, y = 5000, z = 0}
+local adj_max = {x = 159, y = 5079, z = 79}
+local adj_area = VoxelArea:new{MinEdge = adj_min, MaxEdge = adj_max}
+local adj_data = {}
+for i = 1, total_nodes do adj_data[i] = 13 end
+local adj_chests_count = 0
+for trial = 1, 200 do
+	local chests = derelicts.generate_in_chunk(adj_min, adj_max, adj_data, nil, adj_area, "blackness")
+	if #chests > 0 then adj_chests_count = adj_chests_count + 1 end
+end
+assert_eq(adj_chests_count, 0, "Non-active chunk in sector (0,0) guaranteed to reject spawn to prevent clustering")
+print("  ✓ Sector spatial hashing guarantees anti-clustering isolation")
 
 print("\nALL DERELICT TESTS PASSED SUCCESSFULLY!")

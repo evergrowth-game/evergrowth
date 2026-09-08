@@ -151,7 +151,7 @@ core.register_node(":mars:redgrass", {
 	sunlight_propagates = true,
 	walkable = false,
 	buildable_to = true,
-	groups = {snappy = 3, flora = 1, attached_node = 1},
+	groups = {snappy = 3, flora = 1, space_flora = 1, attached_node = 1},
 	sounds = default.node_sound_leaves_defaults(),
 	selection_box = {
 		type = "fixed",
@@ -171,7 +171,7 @@ core.register_node(":mars:redweed", {
 	sunlight_propagates = true,
 	walkable = false,
 	buildable_to = true,
-	groups = {snappy = 3, flora = 1, attached_node = 1},
+	groups = {snappy = 3, flora = 1, space_flora = 1, attached_node = 1},
 	sounds = default.node_sound_leaves_defaults(),
 	selection_box = {
 		type = "fixed",
@@ -198,7 +198,7 @@ core.register_node(":mars:moss", {
 		type = "fixed",
 		fixed = {-1/2, -1/2, -1/2, 1/2, -15/32, 1/2},
 	},
-	groups = {snappy = 3, flora = 1, attached_node = 1},
+	groups = {snappy = 3, flora = 1, space_flora = 1, attached_node = 1},
 	sounds = default.node_sound_leaves_defaults()
 })
 
@@ -215,7 +215,7 @@ core.register_node(":mars:grass_1", {
 	sunlight_propagates = true,
 	walkable = false,
 	buildable_to = true,
-	groups = {snappy = 3, flora = 1, attached_node = 1},
+	groups = {snappy = 3, flora = 1, space_flora = 1, attached_node = 1},
 	sounds = default.node_sound_leaves_defaults(),
 	selection_box = {
 		type = "fixed",
@@ -248,7 +248,7 @@ for i = 2, 5 do
 		buildable_to = true,
 		drop = "mars:grass_1",
 		groups = {
-			snappy = 3, flora = 1, attached_node = 1,
+			snappy = 3, flora = 1, space_flora = 1, attached_node = 1,
 			not_in_creative_inventory = 1
 		},
 		sounds = default.node_sound_leaves_defaults(),

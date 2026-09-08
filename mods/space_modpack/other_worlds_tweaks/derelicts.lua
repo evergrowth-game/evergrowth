@@ -18,7 +18,7 @@ local c_copperblock
 local c_obsidian_glass
 local c_chest_ta3
 local c_chest_ta4
-local c_solar_minicell
+local c_solar_module
 local c_solar_carrier
 local c_electrolyzer
 local c_fuel_tank
@@ -44,8 +44,8 @@ local function init_content_ids()
 	c_chest_ta4 = (has_techage and minetest.registered_nodes["techage:chest_ta4"])
 		and minetest.get_content_id("techage:chest_ta4") or c_chest_ta3
 
-	c_solar_minicell = (has_techage and minetest.registered_nodes["techage:ta4_solar_minicell"])
-		and minetest.get_content_id("techage:ta4_solar_minicell") or c_steelblock
+	c_solar_module = (has_techage and minetest.registered_nodes["techage:ta4_solar_module"])
+		and minetest.get_content_id("techage:ta4_solar_module") or c_steelblock
 
 	c_solar_carrier = (has_techage and minetest.registered_nodes["techage:ta4_solar_carrier"])
 		and minetest.get_content_id("techage:ta4_solar_carrier") or c_steelblock
@@ -63,7 +63,7 @@ end
 
 local function get_probe_schematic()
 	if not c_air then init_content_ids() end
-	-- Adrift Science Probe (~3x3x5)
+	-- Adrift Science Probe (~5x4x5)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
@@ -77,14 +77,14 @@ local function get_probe_schematic()
 	add(0, 2, 0, c_copperblock)        -- Antenna spire
 	add(0, 0, 2, c_obsidian_glass)     -- Sensor lens
 
-	-- Solar wings
-	add(1, 0, 0, c_solar_minicell)
-	add(2, 0, 0, c_solar_minicell)
-	add(-1, 0, 0, c_solar_minicell)
-	add(-2, 0, 0, c_solar_minicell)
+	-- Solar wings (flat TA4 solar modules)
+	add(1, 0, 0, c_solar_module)
+	add(2, 0, 0, c_solar_module)
+	add(-1, 0, 0, c_solar_module)
+	add(-2, 0, 0, c_solar_module)
 
-	-- Salvage container (underside)
-	add(0, -1, 0, c_chest_ta3, 0, true, "probe")
+	-- Salvage container (accessible on top-deck aft chassis)
+	add(0, 1, -1, c_chest_ta3, 0, true, "probe")
 
 	return {
 		name = "probe",
@@ -228,6 +228,37 @@ end
 -- 2. LOOT POPULATION ENGINE
 -- -------------------------------------------------------------------------
 
+-- Helper function to roll from a weighted pool
+local function roll_loot_pool(pool, count)
+	local picked = {}
+	if not pool or #pool == 0 or count <= 0 then return picked end
+
+	local total_weight = 0
+	for _, entry in ipairs(pool) do
+		total_weight = total_weight + (entry.weight or 10)
+	end
+
+	for _ = 1, count do
+		local roll = random(1, total_weight)
+		local acc = 0
+		for _, entry in ipairs(pool) do
+			acc = acc + (entry.weight or 10)
+			if roll <= acc then
+				local qty = (entry.min and entry.max) and random(entry.min, entry.max) or 1
+				if entry.is_tool then
+					for _ = 1, qty do
+						table.insert(picked, entry.item)
+					end
+				else
+					table.insert(picked, entry.item .. " " .. qty)
+				end
+				break
+			end
+		end
+	end
+	return picked
+end
+
 function derelicts.populate_chest(pos, tier)
 	local meta = minetest.get_meta(pos)
 	if not meta then return end
@@ -286,57 +317,89 @@ function derelicts.populate_chest(pos, tier)
 	local items = {}
 
 	if tier == "probe" then
-		-- Probe loot: Electronic parts, small circuits, solar cells, air
+		-- Guaranteed life support/basic consumable
+		if has_airtanks and random(1, 4) == 1 then
+			table.insert(items, "airtanks:steel_tank")
+		elseif has_vacuum then
+			table.insert(items, "vacuum:air_bottle " .. random(1, 3))
+		end
+
+		local probe_pool = {
+			{item = "default:steel_ingot", weight = 25, min = 2, max = 6},
+			{item = "default:copper_ingot", weight = 20, min = 2, max = 5},
+			{item = "default:gold_ingot", weight = 10, min = 1, max = 3},
+			{item = "default:mese_crystal", weight = 10, min = 1, max = 2},
+		}
 		if has_techage then
-			table.insert(items, "techage:ta4_wlanchip " .. random(1, 2))
-			table.insert(items, "techage:aluminum " .. random(2, 5))
-			table.insert(items, "techage:ta4_solar_minicell " .. random(1, 2))
-		else
-			table.insert(items, "default:copper_ingot " .. random(3, 6))
-			table.insert(items, "default:mese_crystal " .. random(1, 2))
+			table.insert(probe_pool, {item = "techage:ta4_wlanchip", weight = 20, min = 1, max = 2})
+			table.insert(probe_pool, {item = "techage:aluminum", weight = 20, min = 2, max = 5})
+			table.insert(probe_pool, {item = "techage:ta4_solar_module", weight = 15, min = 1, max = 2})
+			table.insert(probe_pool, {item = "techage:ta3_cylinder_small", weight = 15, min = 1, max = 3})
 		end
-		if has_vacuum then
-			table.insert(items, "vacuum:air_bottle " .. random(1, 2))
-		end
-		table.insert(items, "default:steel_ingot " .. random(2, 6))
+
+		local rolls = roll_loot_pool(probe_pool, random(3, 5))
+		for _, it in ipairs(rolls) do table.insert(items, it) end
 
 	elseif tier == "shuttle" then
-		-- Shuttle loot: Fuel canisters, cylinders, structural alloys, breathing air
+		-- Guaranteed propellant canister
 		if has_techage then
 			table.insert(items, "techage:cylinder_small_hydrogen " .. random(2, 4))
-			table.insert(items, "techage:ta3_cylinder_small " .. random(2, 5))
-			table.insert(items, "techage:steelmat " .. random(2, 6))
-			table.insert(items, "techage:aluminum " .. random(2, 4))
 		end
 		if has_airtanks then
-			for _ = 1, random(1, 2) do
-				table.insert(items, "airtanks:steel_tank")
-			end
+			table.insert(items, "airtanks:steel_tank")
 		elseif has_vacuum then
 			table.insert(items, "vacuum:air_bottle " .. random(2, 4))
 		end
-		table.insert(items, "default:gold_ingot " .. random(2, 5))
-		table.insert(items, "default:bronze_ingot " .. random(4, 8))
+
+		local shuttle_pool = {
+			{item = "default:gold_ingot", weight = 20, min = 2, max = 5},
+			{item = "default:bronze_ingot", weight = 20, min = 3, max = 8},
+			{item = "default:steel_ingot", weight = 20, min = 4, max = 8},
+			{item = "default:mese_crystal", weight = 15, min = 1, max = 3},
+			{item = "default:diamond", weight = 10, min = 1, max = 2},
+		}
+		if has_techage then
+			table.insert(shuttle_pool, {item = "techage:steelmat", weight = 25, min = 2, max = 6})
+			table.insert(shuttle_pool, {item = "techage:aluminum", weight = 20, min = 2, max = 5})
+			table.insert(shuttle_pool, {item = "techage:ta3_cylinder_small", weight = 20, min = 2, max = 4})
+			table.insert(shuttle_pool, {item = "techage:cylinder_small_hydrogen", weight = 20, min = 1, max = 3})
+			table.insert(shuttle_pool, {item = "techage:ta4_carbon_fiber", weight = 10, min = 1, max = 3})
+		end
+
+		local rolls = roll_loot_pool(shuttle_pool, random(4, 7))
+		for _, it in ipairs(rolls) do table.insert(items, it) end
 
 	elseif tier == "lab" then
-		-- Lab loot: High-tech components, carbon fiber, gems, high-capacity propellant
+		-- Guaranteed high-tech / propellant items
 		if has_techage then
 			table.insert(items, "techage:ta4_carbon_fiber " .. random(2, 4))
-			table.insert(items, "techage:ta4_wlanchip " .. random(2, 3))
-			table.insert(items, "techage:cylinder_small_hydrogen " .. random(3, 6))
-			table.insert(items, "techage:steelmat " .. random(4, 8))
-			table.insert(items, "techage:ta4_solar_minicell " .. random(2, 4))
+			table.insert(items, "techage:cylinder_small_hydrogen " .. random(3, 5))
 		end
 		if has_airtanks then
-			for _ = 1, 2 do
-				table.insert(items, "airtanks:steel_tank")
-			end
+			table.insert(items, "airtanks:steel_tank")
 		elseif has_vacuum then
 			table.insert(items, "vacuum:air_bottle " .. random(3, 6))
 		end
-		table.insert(items, "default:diamond " .. random(2, 4))
-		table.insert(items, "default:mese_crystal " .. random(3, 6))
-		table.insert(items, "default:gold_ingot " .. random(4, 8))
+
+		local lab_pool = {
+			{item = "default:diamond", weight = 20, min = 2, max = 5},
+			{item = "default:mese_crystal", weight = 25, min = 3, max = 6},
+			{item = "default:gold_ingot", weight = 20, min = 4, max = 8},
+		}
+		if has_techage then
+			table.insert(lab_pool, {item = "techage:ta4_wlanchip", weight = 25, min = 2, max = 4})
+			table.insert(lab_pool, {item = "techage:ta4_carbon_fiber", weight = 20, min = 2, max = 5})
+			table.insert(lab_pool, {item = "techage:steelmat", weight = 20, min = 4, max = 8})
+			table.insert(lab_pool, {item = "techage:aluminum", weight = 15, min = 4, max = 8})
+			table.insert(lab_pool, {item = "techage:ta4_solar_module", weight = 15, min = 1, max = 3})
+			table.insert(lab_pool, {item = "techage:cylinder_small_hydrogen", weight = 20, min = 2, max = 4})
+		end
+		if has_airtanks then
+			table.insert(lab_pool, {item = "airtanks:steel_tank", weight = 15, min = 1, max = 1, is_tool = true})
+		end
+
+		local rolls = roll_loot_pool(lab_pool, random(5, 8))
+		for _, it in ipairs(rolls) do table.insert(items, it) end
 	end
 
 	-- Populate inventory slots randomly with bounded search
@@ -404,11 +467,28 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 		init_content_ids()
 	end
 
-	-- Spawn frequency roll per chunk
-	-- Space: 1 in 12 (~8.3%)
-	-- Redsky: 1 in 16 (~6.2%)
-	-- Deep Space: 1 in 10 (~10.0%)
-	local spawn_chance = (layer_type == "blackness") and 10 or ((layer_type == "redsky") and 16 or 12)
+	-- Spatial Sector Spacing: Ensure at most 1 derelict per 160x160m horizontal sector
+	-- Each sector is 2x2 mapblock chunks (chunks are 80x80)
+	local sector_x = floor(minp.x / 160)
+	local sector_z = floor(minp.z / 160)
+	local chunk_in_sector_x = floor((minp.x - sector_x * 160) / 80)
+	local chunk_in_sector_z = floor((minp.z - sector_z * 160) / 80)
+
+	-- Hash sector coordinates to select one active chunk in the 2x2 sector
+	local hash_seed = math.abs(sector_x * 73856093 + sector_z * 19349663)
+	local active_chunk_idx = hash_seed % 4
+	local current_chunk_idx = (chunk_in_sector_x % 2) + (chunk_in_sector_z % 2) * 2
+	if current_chunk_idx ~= active_chunk_idx then
+		return {}
+	end
+
+	-- Configurable spawn rate roll (default: 1 in 45 chunks)
+	local base_rate = 45
+	if minetest.settings and minetest.settings.get then
+		base_rate = tonumber(minetest.settings:get("space_derelict_spawn_rate")) or 45
+	end
+	base_rate = math.max(1, base_rate)
+	local spawn_chance = math.max(1, (layer_type == "blackness") and base_rate or floor(base_rate * 1.2))
 	if random(1, spawn_chance) ~= 1 then
 		return {}
 	end

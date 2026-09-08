@@ -94,3 +94,7 @@ log_non_player_actions (Log non-player action) bool false
 otherworlds.space (Enable default space mapgen) bool false
 otherworlds.redsky (Enable default redsky mapgen) bool false
 
+# Derelict spawn rate: 1 in X chunks per sector (higher is rarer)
+space_derelict_spawn_rate (Space derelict rarity 1 in X) int 45 5 200
+
+
