@@ -38,5 +38,6 @@ evergrowth.sh
 # Whitelist currently tracked dotfiles
 !/.github/
 !/.gitignore
+!/.gitattributes
 !/.luacheckrc
 screenshots/

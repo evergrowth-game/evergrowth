@@ -1,0 +1,10 @@
+# Exclude developer, documentation, and tooling files from release archives
+/research export-ignore
+/screenshots export-ignore
+/.github export-ignore
+/.agents export-ignore
+/utils export-ignore
+/evergrowth.sh export-ignore
+/.luacheckrc export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore

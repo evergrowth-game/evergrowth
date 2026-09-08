@@ -22,6 +22,18 @@ jobs:
             exit 1
           fi
 
+      - name: Verify release archive size is under 100MB
+        run: |
+          git archive --format=zip HEAD -o /tmp/release_test.zip
+          SIZE_BYTES=$(wc -c < /tmp/release_test.zip | tr -d ' ')
+          SIZE_MB=$(( SIZE_BYTES / 1048576 ))
+          rm /tmp/release_test.zip
+          echo "Release archive size: ${SIZE_MB}MB"
+          if [ "$SIZE_MB" -ge 100 ]; then
+            echo "Error: Release archive (${SIZE_MB}MB) exceeds ContentDB 100MB limit."
+            exit 1
+          fi
+
   test:
     needs: validate
     runs-on: ubuntu-latest

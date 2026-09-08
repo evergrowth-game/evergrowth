@@ -537,9 +537,18 @@ do_sync() {
         --exclude='.gitlab-ci.yml' \
         --exclude='.DS_Store' \
         --exclude='.luacheckrc' \
+        --exclude='*.blend' \
+        --exclude='*.blend1' \
+        --exclude='*.xcf' \
+        --exclude='*.psd' \
+        --exclude='screenshot.*' \
+        --exclude='screenshot*.png' \
+        --exclude='screenshot*.jpg' \
+        --exclude='screenshot*.webp' \
+        --exclude='screenshot*.gif' \
         "$upstream_mod_root/" "$local_mod_path/"
 
-    # Strip any ContentDB-injected release keys and legacy metadata files from synced mod
+    # Strip any ContentDB-injected release keys, legacy metadata files, and non-runtime source files from synced mod
     python3 -c "
 import os, re
 pattern = re.compile(r'^[ \t]*release[ \t]*=.*(?:\r?\n)?', re.MULTILINE)
