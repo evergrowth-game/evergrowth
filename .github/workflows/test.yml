@@ -13,6 +13,15 @@ jobs:
             exit 1
           fi
 
+      - name: Verify no legacy metadata files
+        run: |
+          LEGACY_FILES=$(find mods \( -name "description.txt" -o -name "depends.txt" -o -name "modpack.txt" \))
+          if [ -n "$LEGACY_FILES" ]; then
+            echo "Error: Legacy metadata files found (ContentDB requires mod.conf/modpack.conf instead):"
+            echo "$LEGACY_FILES"
+            exit 1
+          fi
+
   test:
     needs: validate
     runs-on: ubuntu-latest

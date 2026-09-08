@@ -539,7 +539,7 @@ do_sync() {
         --exclude='.luacheckrc' \
         "$upstream_mod_root/" "$local_mod_path/"
 
-    # Strip any ContentDB-injected release keys from synced configuration files
+    # Strip any ContentDB-injected release keys and legacy metadata files from synced mod
     python3 -c "
 import os, re
 pattern = re.compile(r'^[ \t]*release[ \t]*=.*(?:\r?\n)?', re.MULTILINE)
@@ -553,6 +553,52 @@ for root, _, files in os.walk('$local_mod_path'):
             if nc != c:
                 with open(p, 'w', encoding='utf-8') as f:
                     f.write(nc)
+    if 'description.txt' in files:
+        dp = os.path.join(root, 'description.txt')
+        cp = os.path.join(root, 'modpack.conf' if 'modpack.conf' in files else 'mod.conf')
+        if os.path.exists(cp):
+            with open(cp, 'r', encoding='utf-8', errors='ignore') as f:
+                cc = f.read()
+            if not any(l.strip().startswith('description') for l in cc.splitlines()):
+                with open(dp, 'r', encoding='utf-8', errors='ignore') as f:
+                    dt = f.read().strip().replace('\n', ' ')
+                with open(cp, 'a', encoding='utf-8') as f:
+                    if not cc.endswith('\n'): f.write('\n')
+                    f.write(f'description = {dt}\n')
+        os.remove(dp)
+    if 'depends.txt' in files:
+        dp = os.path.join(root, 'depends.txt')
+        cp = os.path.join(root, 'mod.conf')
+        if os.path.exists(cp):
+            reqs, opts = [], []
+            with open(dp, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        (opts if line.endswith('?') else reqs).append(line[:-1].strip() if line.endswith('?') else line)
+            with open(cp, 'r', encoding='utf-8', errors='ignore') as f:
+                lines = f.readlines()
+            c_reqs = set(p.strip() for l in lines if l.strip().startswith('depends') for p in l.split('=', 1)[1].split(',') if p.strip())
+            c_opts = set(p.strip() for l in lines if l.strip().startswith('optional_depends') for p in l.split('=', 1)[1].split(',') if p.strip())
+            add_reqs = [r for r in reqs if r not in c_reqs]
+            add_opts = [o for o in opts if o not in c_opts]
+            if add_reqs:
+                has_dep = any(l.strip().startswith('depends') for l in lines)
+                if has_dep:
+                    for i, l in enumerate(lines):
+                        if l.strip().startswith('depends'): lines[i] = l.strip() + ', ' + ', '.join(add_reqs) + '\n'
+                else: lines.append(f'depends = {\", \".join(add_reqs)}\n')
+            if add_opts:
+                has_opt = any(l.strip().startswith('optional_depends') for l in lines)
+                if has_opt:
+                    for i, l in enumerate(lines):
+                        if l.strip().startswith('optional_depends'): lines[i] = l.strip() + ', ' + ', '.join(add_opts) + '\n'
+                else: lines.append(f'optional_depends = {\", \".join(add_opts)}\n')
+            with open(cp, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+        os.remove(dp)
+    if 'modpack.txt' in files:
+        os.remove(os.path.join(root, 'modpack.txt'))
 "
 
     echo "✅ Successfully synced '$mod_name' to upstream HEAD."
