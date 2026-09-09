@@ -1,13 +1,13 @@
 local SPACE_ALTITUDE_THRESHOLD = 1000
 
 local function make_space_skybox(earth_texture, colorize)
-	local neg_y = earth_texture .. "^[transformR270"
+	local neg_y = earth_texture
 	if colorize then
 		neg_y = neg_y .. "^[colorize:" .. colorize
 		return {
 			"sky_pos_z.png^[colorize:" .. colorize,
-			"sky_neg_z.png^[transformR180^[colorize:" .. colorize,
 			neg_y,
+			"sky_neg_y.png^[transformR270^[colorize:" .. colorize,
 			"sky_pos_y.png^[transformR270^[colorize:" .. colorize,
 			"sky_pos_x.png^[transformR270^[colorize:" .. colorize,
 			"sky_neg_x.png^[transformR90^[colorize:" .. colorize
@@ -15,8 +15,8 @@ local function make_space_skybox(earth_texture, colorize)
 	end
 	return {
 		"sky_pos_z.png",
-		"sky_neg_z.png^[transformR180",
 		neg_y,
+		"sky_neg_y.png^[transformR270",
 		"sky_pos_y.png^[transformR270",
 		"sky_pos_x.png^[transformR270",
 		"sky_neg_x.png^[transformR90"
@@ -27,8 +27,8 @@ local skyboxes = {
 	space_low = make_space_skybox("space_earth_low.png"),
 	space_mid = make_space_skybox("space_earth_mid.png"),
 	space_high = make_space_skybox("space_earth_high.png"),
-	redsky = make_space_skybox("space_earth_far.png", "#99000050"),
-	blackness = make_space_skybox("space_earth_far.png", "#00005070"),
+	redsky = make_space_skybox("space_earth_mars.png", "#99000050"),
+	blackness = make_space_skybox("space_earth_deep.png", "#00005070"),
 }
 
 minetest.register_on_mods_loaded(function()
@@ -74,7 +74,7 @@ end)
 local player_realm_state = {}
 
 local function get_realm(y)
-	if y >= 7000 then
+	if y >= 8000 then
 		return "blackness"
 	elseif y >= 6000 then
 		return "redsky"
@@ -113,10 +113,8 @@ local function apply_space_skybox(player, realm)
 
 	if realm == "blackness" then
 		sun_scale = 0.1
-		show_stars = true
 	elseif realm == "redsky" then
 		sun_scale = 0.5
-		show_stars = false
 	end
 
 	if has_climate_sky then

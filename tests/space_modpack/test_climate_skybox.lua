@@ -61,21 +61,20 @@ assert_eq(climate.get_realm(4499), "space_mid", "Mid orbit realm at Y=4499")
 assert_eq(climate.get_realm(4500), "space_high", "High orbit realm at Y=4500")
 assert_eq(climate.get_realm(5999), "space_high", "High orbit realm at Y=5999")
 assert_eq(climate.get_realm(6000), "redsky", "Mars realm at Y=6000")
-assert_eq(climate.get_realm(6999), "redsky", "Mars realm at Y=6999")
-assert_eq(climate.get_realm(7000), "blackness", "Deep space realm at Y=7000")
+assert_eq(climate.get_realm(7999), "redsky", "Mars realm at Y=7999")
+assert_eq(climate.get_realm(8000), "blackness", "Deep space realm at Y=8000")
 assert_eq(climate.get_realm(20000), "blackness", "Deep space realm at Y=20000")
 
--- Test 2: Skybox Face 3 (-Y bottom face) contains appropriate Earth texture
+-- Test 2: Skybox Face 2 (-Y bottom face) contains appropriate Earth texture
 local skyboxes = climate.skyboxes
 assert_true(skyboxes.space_low ~= nil, "space_low skybox exists")
 assert_eq(#skyboxes.space_low, 6, "space_low has 6 faces")
-assert_true(skyboxes.space_low[3]:find("space_earth_low.png") ~= nil, "space_low face 3 has space_earth_low.png")
-assert_true(skyboxes.space_low[3]:find("%^%[transformR270") ~= nil, "space_low face 3 has R270 transform")
+assert_true(skyboxes.space_low[2]:find("space_earth_low.png") ~= nil, "space_low face 2 (-Y) has space_earth_low.png")
 
-assert_true(skyboxes.space_mid[3]:find("space_earth_mid.png") ~= nil, "space_mid face 3 has space_earth_mid.png")
-assert_true(skyboxes.space_high[3]:find("space_earth_high.png") ~= nil, "space_high face 3 has space_earth_high.png")
-assert_true(skyboxes.redsky[3]:find("space_earth_far.png") ~= nil, "redsky face 3 has space_earth_far.png")
-assert_true(skyboxes.blackness[3]:find("space_earth_far.png") ~= nil, "blackness face 3 has space_earth_far.png")
+assert_true(skyboxes.space_mid[2]:find("space_earth_mid.png") ~= nil, "space_mid face 2 (-Y) has space_earth_mid.png")
+assert_true(skyboxes.space_high[2]:find("space_earth_high.png") ~= nil, "space_high face 2 (-Y) has space_earth_high.png")
+assert_true(skyboxes.redsky[2]:find("space_earth_mars.png") ~= nil, "redsky face 2 (-Y) has space_earth_mars.png")
+assert_true(skyboxes.blackness[2]:find("space_earth_deep.png") ~= nil, "blackness face 2 (-Y) has space_earth_deep.png")
 
 -- Test 3: Standalone player:set_sky execution
 local mock_player = {
@@ -98,8 +97,9 @@ local mock_player = {
 climate.apply_space_skybox(mock_player, "space_low")
 assert_eq(#mock_player.sky_calls, 1, "set_sky called once")
 assert_eq(mock_player.sky_calls[1].type, "skybox", "skybox type set")
-assert_eq(mock_player.sky_calls[1].textures[3], skyboxes.space_low[3], "correct -Y face applied")
+assert_eq(mock_player.sky_calls[1].textures[2], skyboxes.space_low[2], "correct -Y face applied to index 2")
 assert_eq(mock_player.sun_calls[1].scale, 1.0, "sun scale is 1.0 in space_low")
+assert_eq(mock_player.stars_calls[1].visible, false, "procedural stars disabled in space_low")
 
 -- Test 4: Blackness and Redsky sun/star settings
 mock_player.sky_calls = {}
@@ -107,7 +107,7 @@ mock_player.sun_calls = {}
 mock_player.stars_calls = {}
 climate.apply_space_skybox(mock_player, "blackness")
 assert_eq(mock_player.sun_calls[1].scale, 0.1, "blackness sun scale is 0.1")
-assert_eq(mock_player.stars_calls[1].visible, true, "blackness stars visible")
+assert_eq(mock_player.stars_calls[1].visible, false, "blackness procedural stars disabled")
 
 mock_player.sun_calls = {}
 mock_player.stars_calls = {}
@@ -134,7 +134,7 @@ assert_eq(#mock_player.sky_calls, 1, "Same bracket does not trigger duplicate up
 mock_player.pos.y = 3000
 globalstep(1.5)
 assert_eq(#mock_player.sky_calls, 2, "Transition to space_mid triggers update")
-assert_eq(mock_player.sky_calls[2].textures[3], skyboxes.space_mid[3], "space_mid texture applied")
+assert_eq(mock_player.sky_calls[2].textures[2], skyboxes.space_mid[2], "space_mid texture applied to index 2")
 
 -- Test 6: Player leave cleanup
 local on_leave = minetest.registered_on_leaveplayers[1]
