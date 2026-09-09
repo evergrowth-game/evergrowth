@@ -98,6 +98,11 @@ mods/space_modpack/
 * **Planetary & Asteroid Terrain Isolation:** Watertight classification separating natural ground (`asteroid:*`, `mars:*`, `default:dirt*`, `default:stone*`) from ship masonry and equipment during landed jumps.
 * **Bare-Hand Ignition:** Direct punch on jumpdrive core engaging hyperspace translation without formspec interaction.
 
+### 2.10 Altitude-Scaled Orbital Earth Skybox (`climate_hook.lua`) [DONE]
+* **Downward Skybox Mapping:** -Y cube face mapped to custom procedural Earth textures visible when looking straight down in orbit.
+* **Continuous Altitude Gradients:** Dynamic realm transitions scaling Earth radius from Low Orbit (Y=1000..2500) down to Mid Orbit (Y=2500..4500), High Orbit (Y=4500..6000), and Distant Space (Y>=6000).
+* **Atmospheric Scattering & 3D Shading:** Custom shader-style procedural asset generation with continental noise, weather systems, polar caps, Rayleigh limb brightening, and directional solar illumination.
+
 ---
 
 ## 3. Upcoming Gameplay Roadmap

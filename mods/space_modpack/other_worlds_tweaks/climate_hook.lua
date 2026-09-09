@@ -1,30 +1,34 @@
 local SPACE_ALTITUDE_THRESHOLD = 1000
 
-local spaceskybox = {
-	"sky_pos_z.png",
-	"sky_neg_z.png^[transformR180",
-	"sky_neg_y.png^[transformR270",
-	"sky_pos_y.png^[transformR270",
-	"sky_pos_x.png^[transformR270",
-	"sky_neg_x.png^[transformR90"
-}
+local function make_space_skybox(earth_texture, colorize)
+	local neg_y = earth_texture .. "^[transformR270"
+	if colorize then
+		neg_y = neg_y .. "^[colorize:" .. colorize
+		return {
+			"sky_pos_z.png^[colorize:" .. colorize,
+			"sky_neg_z.png^[transformR180^[colorize:" .. colorize,
+			neg_y,
+			"sky_pos_y.png^[transformR270^[colorize:" .. colorize,
+			"sky_pos_x.png^[transformR270^[colorize:" .. colorize,
+			"sky_neg_x.png^[transformR90^[colorize:" .. colorize
+		}
+	end
+	return {
+		"sky_pos_z.png",
+		"sky_neg_z.png^[transformR180",
+		neg_y,
+		"sky_pos_y.png^[transformR270",
+		"sky_pos_x.png^[transformR270",
+		"sky_neg_x.png^[transformR90"
+	}
+end
 
-local redskybox = {
-	"sky_pos_z.png^[colorize:#99000050",
-	"sky_neg_z.png^[transformR180^[colorize:#99000050",
-	"sky_neg_y.png^[transformR270^[colorize:#99000050",
-	"sky_pos_y.png^[transformR270^[colorize:#99000050",
-	"sky_pos_x.png^[transformR270^[colorize:#99000050",
-	"sky_neg_x.png^[transformR90^[colorize:#99000050"
-}
-
-local darkskybox = {
-	"sky_pos_z.png^[colorize:#00005070",
-	"sky_neg_z.png^[transformR180^[colorize:#00005070",
-	"sky_neg_y.png^[transformR270^[colorize:#00005070",
-	"sky_pos_y.png^[transformR270^[colorize:#00005070",
-	"sky_pos_x.png^[transformR270^[colorize:#00005070",
-	"sky_neg_x.png^[transformR90^[colorize:#00005070"
+local skyboxes = {
+	space_low = make_space_skybox("space_earth_low.png"),
+	space_mid = make_space_skybox("space_earth_mid.png"),
+	space_high = make_space_skybox("space_earth_high.png"),
+	redsky = make_space_skybox("space_earth_far.png", "#99000050"),
+	blackness = make_space_skybox("space_earth_far.png", "#00005070"),
 }
 
 minetest.register_on_mods_loaded(function()
@@ -74,8 +78,12 @@ local function get_realm(y)
 		return "blackness"
 	elseif y >= 6000 then
 		return "redsky"
+	elseif y >= 4500 then
+		return "space_high"
+	elseif y >= 2500 then
+		return "space_mid"
 	elseif y >= 1000 then
-		return "space"
+		return "space_low"
 	else
 		return "earth"
 	end
@@ -99,18 +107,15 @@ local function apply_space_skybox(player, realm)
 		return
 	end
 
-	local textures, sun_scale, show_stars
+	local textures = skyboxes[realm] or skyboxes.space_low
+	local sun_scale = 1.0
+	local show_stars = false
+
 	if realm == "blackness" then
-		textures = darkskybox
 		sun_scale = 0.1
 		show_stars = true
 	elseif realm == "redsky" then
-		textures = redskybox
 		sun_scale = 0.5
-		show_stars = false
-	else -- space
-		textures = spaceskybox
-		sun_scale = 1.0
 		show_stars = false
 	end
 
@@ -183,4 +188,12 @@ end)
 minetest.register_on_leaveplayer(function(player)
 	player_realm_state[player:get_player_name()] = nil
 end)
+
+other_worlds_tweaks_climate = {
+	get_realm = get_realm,
+	apply_space_skybox = apply_space_skybox,
+	skyboxes = skyboxes,
+	player_realm_state = player_realm_state,
+}
+
 
