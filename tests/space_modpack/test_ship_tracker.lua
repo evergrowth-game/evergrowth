@@ -1133,6 +1133,53 @@ run_test("Beacon Node Placement: after_place_node registers beacon metadata and 
 	assert_eq(active[key].owner, "Astronaut", "Active beacon owner matches placer")
 end)
 
+-- Test 26: Unowned Derelict Beacon Migration Immunity
+run_test("Unowned Beacon Migration Immunity: Derelict distress beacons never migrate with player ship", function()
+	world_nodes = {}
+	local engine_pos = {x = 10, y = 5000, z = 10}
+	local beacon_pos = {x = 11, y = 5000, z = 10}
+	local derelict_beacon_pos = {x = 12, y = 5000, z = 10}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(beacon_pos, {name = "jumpdrive_tweaks:beacon"})
+	minetest.set_node(derelict_beacon_pos, {name = "jumpdrive_tweaks:beacon"})
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 10)
+	meta:set_int("y", 6200)
+	meta:set_int("z", 10)
+	meta:set_int("radius", 5)
+	meta:set_int("powerstorage", 500000)
+
+	local active_beacons = jumpdrive_tweaks.get_active_beacons()
+	for k in pairs(active_beacons) do active_beacons[k] = nil end
+
+	-- Player-owned beacon on the ship (in mask)
+	active_beacons["11,5000,10"] = {
+		pos = {x = 11, y = 5000, z = 10},
+		name = "Player Vessel",
+		owner = "Astronaut",
+	}
+	-- Unowned derelict beacon also in mask (adjacent to ship)
+	active_beacons["12,5000,10"] = {
+		pos = {x = 12, y = 5000, z = 10},
+		name = "Derelict Heavy Freighter [DISTRESS]",
+		owner = "",
+	}
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
+
+	-- Player's beacon migrated
+	assert_true(active_beacons["11,5000,10"] == nil, "Player beacon origin purged")
+	assert_true(active_beacons["11,6200,10"] ~= nil, "Player beacon migrated to destination")
+	assert_eq(active_beacons["11,6200,10"].name, "Player Vessel", "Player beacon name preserved")
+
+	-- Derelict beacon stays at original position
+	assert_true(active_beacons["12,5000,10"] ~= nil, "Derelict beacon remains at original position")
+	assert_eq(active_beacons["12,5000,10"].name, "Derelict Heavy Freighter [DISTRESS]", "Derelict beacon name unchanged")
+	assert_true(active_beacons["12,6200,10"] == nil, "Derelict beacon was NOT migrated to destination")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then

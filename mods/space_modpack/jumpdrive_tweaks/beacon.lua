@@ -26,6 +26,7 @@ jumpdrive_tweaks = jumpdrive_tweaks or {}
 jumpdrive_tweaks.get_active_beacons = function()
 	return active_beacons
 end
+jumpdrive_tweaks.save_beacons = save_beacons
 
 local function pos_to_key(pos)
 	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
@@ -54,7 +55,12 @@ jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius, ship_sc
 	for key, bdata in pairs(active_beacons) do
 		local bp = bdata.pos
 		local is_on_ship = false
-		if ship_scan and ship_scan.mask then
+
+		-- Unowned beacons (derelict distress signals) are environmental fixtures
+		-- and must never migrate with a player's ship
+		if not bdata.owner or bdata.owner == "" then
+			-- skip
+		elseif ship_scan and ship_scan.mask then
 			local bhash = minetest.hash_node_position(bp)
 			if ship_scan.mask[bhash] then
 				is_on_ship = true

@@ -106,13 +106,29 @@ jumpdrive.update_formspec = function(meta, pos)
 		end
 	end
 
-	-- Build Beacon Dropdown entries
+	-- Build Beacon Dropdown entries (with stale-entry pruning)
 	local beacon_items = {"Select Navigation Beacon"}
 	local active_beacons = jumpdrive_tweaks.get_active_beacons and jumpdrive_tweaks.get_active_beacons() or {}
+	local stale_keys = {}
 
-	for _, binfo in pairs(active_beacons) do
-		local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
-		table.insert(beacon_items, minetest.formspec_escape(label))
+	for key, binfo in pairs(active_beacons) do
+		local bnode = minetest.get_node_or_nil(binfo.pos)
+		if bnode and bnode.name == "jumpdrive_tweaks:beacon" then
+			local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
+			table.insert(beacon_items, minetest.formspec_escape(label))
+		else
+			table.insert(stale_keys, key)
+		end
+	end
+
+	-- Prune orphaned beacon entries from registry
+	if #stale_keys > 0 then
+		for _, k in ipairs(stale_keys) do
+			active_beacons[k] = nil
+		end
+		if jumpdrive_tweaks.save_beacons then
+			jumpdrive_tweaks.save_beacons()
+		end
 	end
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
