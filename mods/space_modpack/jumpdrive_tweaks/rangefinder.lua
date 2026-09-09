@@ -192,7 +192,7 @@ minetest.register_tool("jumpdrive_tweaks:rangefinder", {
 	description = "Optical Rangefinder\n[Right-click Engine: Link | Right-click Space: Target Lock | Sneak+Right-click: Cycle Margin]",
 	short_description = "Optical Rangefinder",
 	inventory_image = "jumpdrive_rangefinder.png",
-	wield_image = "jumpdrive_rangefinder.png",
+	wield_image = "jumpdrive_rangefinder.png^[transformFX",
 	stack_max = 1,
 	groups = {tool = 1},
 
