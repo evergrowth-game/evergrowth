@@ -1,5 +1,16 @@
 local SPACE_ALTITUDE_THRESHOLD = 1000
 
+-- Dynamically unregister legacy other_worlds skybox globalstep so other_worlds remains unmodified
+if minetest.registered_globalsteps then
+	for i = #minetest.registered_globalsteps, 1, -1 do
+		local fn = minetest.registered_globalsteps[i]
+		local info = debug.getinfo(fn, "S")
+		if info and info.source and (info.source:find("other_worlds/skybox%.lua") or info.source:find("other_worlds[/\\]skybox%.lua")) then
+			table.remove(minetest.registered_globalsteps, i)
+		end
+	end
+end
+
 local function make_space_skybox(earth_texture, colorize)
 	local neg_y = earth_texture
 	if colorize then
