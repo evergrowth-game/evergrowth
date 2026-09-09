@@ -70,6 +70,9 @@ local registered_nodes = {
 	["asteroid:redcobble"] = {description = "Asteroid Red Cobble", is_ground_content = true},
 	["asteroid:dust"] = {description = "Asteroid Dust", is_ground_content = true},
 	["mars:redgrass"] = {description = "Mars Redgrass", groups = {flora = 1}},
+	["other_worlds_tweaks:rich_iron_ore"] = {description = "Rich Asteroid Iron Ore", groups = {cracky = 2}},
+	["other_worlds_tweaks:rich_mese_ore"] = {description = "Rich Asteroid Mese Ore", groups = {cracky = 1}},
+	["other_worlds_tweaks:comet_ice"] = {description = "Comet Ice", groups = {cracky = 3}},
 }
 
 minetest.registered_nodes = registered_nodes
@@ -432,7 +435,25 @@ run_test("Terrain vs Masonry: Stonebrick and cobble are kept; natural dirt and s
 	assert_eq(scan.node_count, 4, "4 ship nodes counted (engine, backbone, stonebrick, cobble)")
 end)
 
--- Test 4: Protection Gating
+-- Test 4: Space Natural Resource Exclusion
+run_test("Space resources: comet ice and rich ores are excluded from the ship", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 5000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 0, y = 5001, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 1, y = 5000, z = 0}, {name = "other_worlds_tweaks:comet_ice"})
+	minetest.set_node({x = -1, y = 5000, z = 0}, {name = "other_worlds_tweaks:rich_iron_ore"})
+	minetest.set_node({x = 0, y = 5002, z = 0}, {name = "other_worlds_tweaks:rich_mese_ore"})
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+
+	assert_false(scan.mask[minetest.hash_node_position({x = 1, y = 5000, z = 0})], "Comet ice excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = -1, y = 5000, z = 0})], "Rich iron ore excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 5002, z = 0})], "Rich mese ore excluded")
+	assert_eq(scan.node_count, 2, "Only engine and backbone counted")
+end)
+
+-- Test 5: Protection Gating
 run_test("Protection Gating: Jumps fail cleanly if origin or destination intersects protected areas", function()
 	world_nodes = {}
 	protected_positions = {}
