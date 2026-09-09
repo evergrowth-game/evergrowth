@@ -631,10 +631,13 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"  - Entry Protocol: Cruise horizontally in orbit to align coordinates directly above your landing site, then execute a vertical descent.\n\n" ..
 					"• Uncharted Sector Emergence:\n" ..
 					"Entering coordinates in unexplored orbital sectors automatically triggers background sector emergence. Once generation completes, the vessel executes the jump automatically.\n\n" ..
+					"• Optical Rangefinder & Diegetic Navigation:\n" ..
+					"The Optical Rangefinder (jumpdrive_tweaks:rangefinder) allows pilots to lock onto distant asteroids, derelicts, and orbital stations up to 1,500m away. Right-clicking an object calculates a collision-free standoff waypoint based on the vessel's hull dimensions and programs the jump coordinates into the linked engine. Punching the Jumpdrive Core block directly executes the jump.\n\n" ..
 					"• Automatic Docking Decoupling:\n" ..
 					"Station docking lines connected to Starship Fuel Ports decouple automatically during hyperjump without fluid spillage or pipe damage.",
 				images = {
 					{ image = "jumpdrive:engine", imagetype = "item", caption = "Jumpdrive Core" },
+					{ image = "jumpdrive_tweaks:rangefinder", imagetype = "item", caption = "Optical Rangefinder" },
 					{ image = "jumpdrive_tweaks:fuel_tank", imagetype = "item", caption = "Fuel Tank" },
 					{ image = "jumpdrive_tweaks:fuel_port", imagetype = "item", caption = "Fuel Port" },
 					{ image = "jumpdrive_tweaks:beacon", imagetype = "item", caption = "Ship Beacon" },

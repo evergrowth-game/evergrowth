@@ -97,9 +97,12 @@ mods/space_modpack/
 ## 3. Upcoming Gameplay Roadmap
 
 ### 3.1 Tier 1: High-Priority Additions and Immediate Feasibility
-1. **Granular Flight Navigation & Micro-Jump Impulse Controls:**
-   - **Mechanism:** Cockpit interface enhancements adding directional impulse micro-jumps (single-click fixed nudges of $+10\text{m}$, $+50\text{m}$, and $+100\text{m}$ along $\pm X$, $\pm Y$, $\pm Z$) and target coordinate locking.
-   - **Output:** Eliminates manual coordinate guessing when approaching asteroids, orbital stations, and derelicts. Automatically calculates safe standoff distance offsets to prevent collision.
+1. **Optical Rangefinder & Diegetic Standoff Navigation (`jumpdrive_tweaks:rangefinder`):**
+   - **Mechanism:** Handheld optical rangefinder tool using line-of-sight raycasting (up to 1,500m) to calculate safe standoff offsets based on vessel hull dimensions and write destination coordinates directly to `jumpdrive:engine`. Direct punch on `jumpdrive:engine` engages jump.
+   - **Output:** Eliminates manual coordinate guessing and formspec reliance when approaching asteroids, orbital stations, and derelicts.
+
+2. **Diegetic Cockpit & Physical Jump Lever:**
+   - **Mechanism:** Dedicated bridge console and wall-mounted mechanical lever nodes connected to the vessel's backbone to engage jumps and prime coordinates without interacting directly with the engine block.
 
 ### 3.2 Tier 2: Medium-Priority Additions (Moderate Complexity)
 1. **Solar Radiation & Cosmic Ray Storms:**

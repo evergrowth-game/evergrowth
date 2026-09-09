@@ -93,4 +93,25 @@ if minetest.get_modpath("techage") and minetest.get_modpath("networks") and mine
 	})
 end
 
+-- 8. Optical Rangefinder
+if minetest.get_modpath("techage") then
+	minetest.register_craft({
+		output = "jumpdrive_tweaks:rangefinder",
+		recipe = {
+			{"default:glass", "default:mese_crystal", "default:glass"},
+			{"default:steel_ingot", "techage:ta4_wlanchip", "default:steel_ingot"},
+			{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
+		}
+	})
+else
+	minetest.register_craft({
+		output = "jumpdrive_tweaks:rangefinder",
+		recipe = {
+			{"default:glass", "default:mese_crystal", "default:glass"},
+			{"default:steel_ingot", "default:diamond", "default:steel_ingot"},
+			{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
+		}
+	})
+end
+
 

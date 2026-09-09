@@ -216,9 +216,29 @@ if engine_def then
 	minetest.override_item("jumpdrive:engine", {
 		on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 			if not clicker or not clicker:is_player() then return itemstack end
+			if itemstack and itemstack:get_name() == "jumpdrive_tweaks:rangefinder" then
+				if jumpdrive_tweaks.link_rangefinder then
+					return jumpdrive_tweaks.link_rangefinder(itemstack, clicker, pos)
+				end
+			end
 			local meta = minetest.get_meta(pos)
 			jumpdrive.update_formspec(meta, pos)
 			return itemstack
+		end,
+
+		on_punch = function(pos, node, puncher, pointed_thing)
+			if not puncher or not puncher:is_player() then return end
+			local wielded = puncher:get_wielded_item()
+			if wielded and not wielded:is_empty() then return end
+			local name = puncher:get_player_name()
+			if minetest.is_protected(pos, name) then
+				minetest.chat_send_player(name, "Jump engine is protected!")
+				return
+			end
+			local ok, res = jumpdrive.execute_jump(pos, puncher)
+			if not ok and res then
+				minetest.chat_send_player(name, "Jump aborted: " .. tostring(res))
+			end
 		end,
 
 		on_receive_fields = function(pos, formname, fields, sender)
