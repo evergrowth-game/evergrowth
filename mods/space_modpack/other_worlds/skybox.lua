@@ -1,6 +1,11 @@
 
 -- Heights for skyboxes
 
+if core.get_modpath("other_worlds_tweaks") or core.get_modpath("climate_api") then
+	-- Skybox management, climate integration, and gravity are handled by other_worlds_tweaks
+	return
+end
+
 local underground_low = -31000
 local underground_high = -50
 local space_low = otherworlds.settings.space_asteroids.YMIN
