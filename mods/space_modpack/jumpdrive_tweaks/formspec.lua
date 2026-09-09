@@ -379,6 +379,33 @@ if engine_def then
 						local bz = math.floor(binfo.pos.z)
 						local bname = binfo.name or "Beacon"
 
+						-- Compute standoff-adjusted arrival position for space targets.
+						-- Uses the same effective_radius + margin approach as the
+						-- Optical Rangefinder to prevent materializing inside structures.
+						local function compute_standoff_arrival(target_x, target_y, target_z)
+							local beacon_pos = {x = target_x, y = target_y, z = target_z}
+							local dist = vector.distance(pos, beacon_pos)
+							if dist < 1 then
+								return target_x, target_y, target_z, 0
+							end
+
+							local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
+							local effective_radius = ship_scan and ship_scan.effective_radius or 5
+							local standoff_margin = 20
+							local standoff_distance = effective_radius + standoff_margin
+
+							if dist <= standoff_distance then
+								return target_x, target_y, target_z, 0
+							end
+
+							local dir = vector.direction(pos, beacon_pos)
+							local delta_dist = dist - standoff_distance
+							local ax = jumpdrive.sanitize_coord(math.floor(pos.x + dir.x * delta_dist + 0.5))
+							local ay = jumpdrive.sanitize_coord(math.floor(pos.y + dir.y * delta_dist + 0.5))
+							local az = jumpdrive.sanitize_coord(math.floor(pos.z + dir.z * delta_dist + 0.5))
+							return ax, ay, az, standoff_distance
+						end
+
 						-- Case A: Ship in orbit/space (Y >= 1000) and target beacon on surface (Y < 1000)
 						if pos.y >= 1000 and by < 1000 then
 							if pos.x ~= bx or pos.z ~= bz then
@@ -415,23 +442,46 @@ if engine_def then
 								end
 								return
 							else
+								-- Vertical ascent to space beacon; apply standoff
+								local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
+								meta:set_int("x", ax)
+								meta:set_int("y", ay)
+								meta:set_int("z", az)
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									if so > 0 then
+										minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted ascent to [%s] at (%d, %d, %d) [Standoff: %dm].", bname, ax, ay, az, so))
+									else
+										minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted vertical ascent to [%s] at (%d, %d, %d).", bname, ax, ay, az))
+									end
+								end
+								return
+							end
+						else
+							-- Case C: Direct navigation (both in space or both on surface)
+							if by >= 1000 then
+								-- Space target: apply standoff to avoid materializing inside structures
+								local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
+								meta:set_int("x", ax)
+								meta:set_int("y", ay)
+								meta:set_int("z", az)
+								jumpdrive.update_formspec(meta, pos)
+								if sender then
+									if so > 0 then
+										minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d) [Standoff: %dm]", bname, ax, ay, az, so))
+									else
+										minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, ax, ay, az))
+									end
+								end
+							else
+								-- Surface target: direct coordinates (player-placed beacons)
 								meta:set_int("x", jumpdrive.sanitize_coord(bx))
 								meta:set_int("y", jumpdrive.sanitize_coord(by))
 								meta:set_int("z", jumpdrive.sanitize_coord(bz))
 								jumpdrive.update_formspec(meta, pos)
 								if sender then
-									minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted vertical ascent to [%s] at (%d, %d, %d).", bname, bx, by, bz))
+									minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, bx, by, bz))
 								end
-								return
-							end
-						else
-							-- Case C: Direct navigation (both in space or direct vertical)
-							meta:set_int("x", jumpdrive.sanitize_coord(bx))
-							meta:set_int("y", jumpdrive.sanitize_coord(by))
-							meta:set_int("z", jumpdrive.sanitize_coord(bz))
-							jumpdrive.update_formspec(meta, pos)
-							if sender then
-								minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, bx, by, bz))
 							end
 							return
 						end
