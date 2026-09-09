@@ -29,6 +29,10 @@ minetest = {
 	register_on_mods_loaded = function(fn)
 		table.insert(minetest.registered_on_mods_loaded, fn)
 	end,
+	registered_on_joinplayers = {},
+	register_on_joinplayer = function(fn)
+		table.insert(minetest.registered_on_joinplayers, fn)
+	end,
 	registered_on_leaveplayers = {},
 	register_on_leaveplayer = function(fn)
 		table.insert(minetest.registered_on_leaveplayers, fn)
@@ -140,5 +144,14 @@ assert_eq(mock_player.sky_calls[2].textures[2], skyboxes.space_mid[2], "space_mi
 local on_leave = minetest.registered_on_leaveplayers[1]
 on_leave(mock_player)
 assert_eq(climate.player_realm_state[mock_player.name], nil, "Player realm state cleared on leave")
+
+-- Test 7: Player join initialization
+local on_join = minetest.registered_on_joinplayers[1]
+mock_player.pos.y = 5000
+mock_player.sky_calls = {}
+on_join(mock_player)
+assert_eq(climate.player_realm_state[mock_player.name], "space_high", "Join sets realm state to space_high")
+assert_eq(#mock_player.sky_calls, 1, "Join immediately applies skybox")
+assert_eq(mock_player.sky_calls[1].textures[2], skyboxes.space_high[2], "Join applies space_high texture")
 
 print(string.format("\nClimate Skybox Test Suite Complete: %d passed, 0 failed.", pass_count))

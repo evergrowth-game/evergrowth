@@ -167,7 +167,7 @@ end
 local timer = 0
 minetest.register_globalstep(function(dtime)
 	timer = timer + dtime
-	if timer < 1.0 then return end
+	if timer < 0.5 then return end
 	timer = 0
 
 	for _, player in ipairs(minetest.get_connected_players()) do
@@ -180,6 +180,15 @@ minetest.register_globalstep(function(dtime)
 				apply_space_skybox(player, current_realm)
 			end
 		end
+	end
+end)
+
+minetest.register_on_joinplayer(function(player)
+	local pos = player:get_pos()
+	if pos then
+		local realm = get_realm(pos.y)
+		player_realm_state[player:get_player_name()] = realm
+		apply_space_skybox(player, realm)
 	end
 end)
 
