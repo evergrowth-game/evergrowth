@@ -50,6 +50,7 @@ local updated_map_called = false
 local registered_nodes = {
 	["air"] = {buildable_to = true},
 	["vacuum:vacuum"] = {buildable_to = true},
+	["asteroid:atmos"] = {buildable_to = true},
 	["jumpdrive:engine"] = {description = "Engine"},
 	["jumpdrive:backbone"] = {description = "Backbone"},
 	["jumpdrive_tweaks:fuel_tank"] = {description = "Tank"},
@@ -61,7 +62,14 @@ local registered_nodes = {
 	["techage:ta4_solar_inverter"] = {description = "Solar Inverter", cycle_time = 2.0},
 	["techage:ta3_akku"] = {description = "Battery Accu", cycle_time = 2.0},
 	["default:dirt"] = {description = "Dirt", is_ground_content = true},
+	["default:dirt_with_grass"] = {description = "Grass Dirt", is_ground_content = true, groups = {soil = 1}},
 	["default:stone"] = {description = "Stone", is_ground_content = true, groups = {stone = 1}},
+	["asteroid:stone"] = {description = "Asteroid Stone", is_ground_content = true},
+	["asteroid:redstone"] = {description = "Asteroid Redstone", is_ground_content = true},
+	["asteroid:cobble"] = {description = "Asteroid Cobble", is_ground_content = true},
+	["asteroid:redcobble"] = {description = "Asteroid Red Cobble", is_ground_content = true},
+	["asteroid:dust"] = {description = "Asteroid Dust", is_ground_content = true},
+	["mars:redgrass"] = {description = "Mars Redgrass", groups = {flora = 1}},
 }
 
 minetest.registered_nodes = registered_nodes
@@ -157,8 +165,14 @@ local content_ids = {
 local id_to_names = {}
 for k, v in pairs(content_ids) do id_to_names[v] = k end
 
+local next_cid = 100
 minetest.get_content_id = function(name)
-	return content_ids[name] or 99
+	if not content_ids[name] then
+		content_ids[name] = next_cid
+		id_to_names[next_cid] = name
+		next_cid = next_cid + 1
+	end
+	return content_ids[name]
 end
 
 minetest.get_name_from_content_id = function(id)
@@ -328,8 +342,9 @@ minetest.get_mod_storage = function()
 	}
 end
 minetest.serialize = function(t) return "" end
-minetest.deserialize = function(s) return {} end
-minetest.register_node = function() end
+minetest.register_node = function(name, def)
+	registered_nodes[name] = def
+end
 minetest.register_tool = function() end
 minetest.register_craft = function() end
 minetest.register_on_player_receive_fields = function() end
@@ -859,6 +874,12 @@ run_test("Beacon Migration: Beacon coordinates migrate during ship jump", functi
 		name = "OrbitalVessel",
 		owner = "Astronaut",
 	}
+	-- External stationary beacon near the ship (5 blocks away, not in ship_scan.mask)
+	active_beacons["15,20,30"] = {
+		pos = {x = 15, y = 20, z = 30},
+		name = "SpaceStationBeacon",
+		owner = "Astronaut",
+	}
 
 	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
 	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
@@ -869,6 +890,10 @@ run_test("Beacon Migration: Beacon coordinates migrate during ship jump", functi
 	assert_true(active_beacons["11,6200,30"] ~= nil, "Destination beacon coordinate registered")
 	assert_eq(active_beacons["11,6200,30"].name, "OrbitalVessel", "Beacon name preserved")
 	assert_eq(active_beacons["11,6200,30"].owner, "Astronaut", "Beacon owner preserved")
+
+	-- External stationary beacon must remain in place at X=15, Y=20, Z=30
+	assert_true(active_beacons["15,20,30"] ~= nil, "External stationary beacon remains at origin")
+	assert_true(active_beacons["15,6200,30"] == nil, "External stationary beacon was not incorrectly migrated")
 end)
 
 -- Test 19: Terrestrial Beacon Altitude Filter (Ignore ground beacons in space HUD)
@@ -987,8 +1012,130 @@ run_test("Beacon Priority: Player-owned beacon prioritized over unowned beacons,
 	assert_eq(best_beacon.name, "Derelict Closest", "Closest unowned beacon selected (dist 100 over dist 300)")
 end)
 
+-- Test 21: Disconnected Floating Terrain & Atmosphere Exclusion
+run_test("Disconnected Floating Terrain & Atmosphere Exclusion: Atmos clouds and floating asteroid rock excluded", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 0, y = 1001, z = 0}, {name = "jumpdrive:backbone"})
+
+	-- Disconnected floating comet atmosphere 2 blocks above
+	minetest.set_node({x = 0, y = 1003, z = 0}, {name = "asteroid:atmos"})
+	minetest.set_node({x = 1, y = 1003, z = 0}, {name = "asteroid:atmos"})
+
+	-- Disconnected floating asteroid stone 2 blocks to the side (separated by vacuum)
+	minetest.set_node({x = 2, y = 1000, z = 0}, {name = "asteroid:stone"})
+	minetest.set_node({x = 2, y = 1001, z = 0}, {name = "asteroid:redcobble"})
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+
+	assert_true(scan.mask[minetest.hash_node_position(engine_pos)], "Engine included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 0, y = 1001, z = 0})], "Backbone included")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 1003, z = 0})], "Disconnected asteroid:atmos excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 1, y = 1003, z = 0})], "Disconnected asteroid:atmos excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 2, y = 1000, z = 0})], "Disconnected asteroid:stone excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 2, y = 1001, z = 0})], "Disconnected asteroid:redcobble excluded")
+	assert_eq(scan.node_count, 2, "Only 2 contiguous vessel blocks captured")
+end)
+
+-- Test 22: Landed Craft Surface Separation on Asteroid
+run_test("Landed Craft Surface Separation: Touching asteroid ground terminated at hull interface", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 1001, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 1, y = 1001, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 0, y = 1000, z = 0}, {name = "default:stonebrick"}) -- landing gear
+	minetest.set_node({x = 1, y = 1000, z = 0}, {name = "default:stonebrick"}) -- landing gear
+
+	-- Asteroid terrain directly touching landing gear at Y=999
+	minetest.set_node({x = 0, y = 999, z = 0}, {name = "asteroid:redstone"})
+	minetest.set_node({x = 1, y = 999, z = 0}, {name = "asteroid:cobble"})
+	minetest.set_node({x = 2, y = 999, z = 0}, {name = "asteroid:dust"})
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+
+	assert_true(scan.mask[minetest.hash_node_position(engine_pos)], "Engine included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1001, z = 0})], "Backbone included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 0, y = 1000, z = 0})], "Landing gear 1 included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1000, z = 0})], "Landing gear 2 included")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 999, z = 0})], "Touching asteroid:redstone excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 1, y = 999, z = 0})], "Touching asteroid:cobble excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 2, y = 999, z = 0})], "Adjacent asteroid:dust excluded")
+	assert_eq(scan.node_count, 4, "Only 4 ship blocks captured without pulling asteroid terrain")
+end)
+
+-- Test 23: Earth Ground Surface Separation
+run_test("Earth Ground Surface Separation: Parked vessel excludes touching dirt, grass, and trees", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 11, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 0, y = 12, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 0, y = 10, z = 0}, {name = "default:stonebrick"}) -- strut
+
+	-- Ground blocks directly touching strut at Y=9
+	minetest.set_node({x = 0, y = 9, z = 0}, {name = "default:dirt_with_grass"})
+	minetest.set_node({x = 0, y = 8, z = 0}, {name = "default:dirt"})
+	minetest.set_node({x = 0, y = 7, z = 0}, {name = "default:stone"})
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+
+	assert_true(scan.mask[minetest.hash_node_position(engine_pos)], "Engine included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 0, y = 12, z = 0})], "Backbone included")
+	assert_true(scan.mask[minetest.hash_node_position({x = 0, y = 10, z = 0})], "Strut included")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 9, z = 0})], "Grass dirt ground excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 8, z = 0})], "Dirt underground excluded")
+	assert_false(scan.mask[minetest.hash_node_position({x = 0, y = 7, z = 0})], "Stone underground excluded")
+	assert_eq(scan.node_count, 3, "Only 3 ship blocks captured")
+end)
+
+-- Test 24: Contiguous Hull & Truss Propagation
+run_test("Contiguous Hull & Truss Propagation: Multi-block chain branching off backbone is captured", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 1, y = 1000, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 1, y = 1001, z = 0}, {name = "default:stonebrick"}) -- bridge floor
+	minetest.set_node({x = 1, y = 1002, z = 0}, {name = "default:glass"})      -- cockpit canopy
+	minetest.set_node({x = 1, y = 1000, z = 1}, {name = "jumpdrive_tweaks:fuel_tank"}) -- tank attached to backbone
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+
+	assert_true(scan.mask[minetest.hash_node_position(engine_pos)], "Engine captured")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1000, z = 0})], "Backbone captured")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1001, z = 0})], "Bridge floor captured")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1002, z = 0})], "Cockpit canopy glass captured")
+	assert_true(scan.mask[minetest.hash_node_position({x = 1, y = 1000, z = 1})], "Fuel tank captured")
+	assert_eq(#scan.fuel_tanks, 1, "1 fuel tank recorded")
+	assert_eq(scan.node_count, 5, "5 contiguous components captured")
+end)
+
+-- Test 25: Beacon Placement and Registry Update
+run_test("Beacon Node Placement: after_place_node registers beacon metadata and active beacon entry", function()
+	local beacon_pos = {x = 10, y = 1000, z = 20}
+	local placer = {
+		is_player = function() return true end,
+		get_player_name = function() return "Astronaut" end,
+	}
+
+	minetest.set_node(beacon_pos, {name = "jumpdrive_tweaks:beacon"})
+	local beacon_def = minetest.registered_nodes["jumpdrive_tweaks:beacon"]
+	assert_true(beacon_def ~= nil, "Beacon node registered")
+	beacon_def.after_place_node(beacon_pos, placer)
+
+	local meta = minetest.get_meta(beacon_pos)
+	assert_eq(meta:get_string("owner"), "Astronaut", "Beacon owner set in metadata")
+	assert_eq(meta:get_string("ship_name"), "Astronaut's Ship", "Beacon ship_name set in metadata")
+
+	local active = jumpdrive_tweaks.get_active_beacons()
+	local key = string.format("%d,%d,%d", beacon_pos.x, beacon_pos.y, beacon_pos.z)
+	assert_true(active[key] ~= nil, "Beacon registered in active_beacons table")
+	assert_eq(active[key].name, "Astronaut's Ship", "Active beacon name matches default name")
+	assert_eq(active[key].owner, "Astronaut", "Active beacon owner matches placer")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then
 	error("Test suite failed!")
 end
+

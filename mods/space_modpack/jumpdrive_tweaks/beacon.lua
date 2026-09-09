@@ -54,13 +54,13 @@ jumpdrive_tweaks.on_ship_jump = function(source_pos, target_pos, radius, ship_sc
 	for key, bdata in pairs(active_beacons) do
 		local bp = bdata.pos
 		local is_on_ship = false
-		if ship_scan and ship_scan.nodes then
-			local bkey = pos_to_key(bp)
-			if ship_scan.nodes[bkey] then
+		if ship_scan and ship_scan.mask then
+			local bhash = minetest.hash_node_position(bp)
+			if ship_scan.mask[bhash] then
 				is_on_ship = true
 			end
-		end
-		if not is_on_ship and math.abs(bp.x - source_pos.x) <= r and
+		-- Defensive fallback: if caller passes nil ship_scan, approximate with AABB
+		elseif not ship_scan and math.abs(bp.x - source_pos.x) <= r and
 		   math.abs(bp.y - source_pos.y) <= r and
 		   math.abs(bp.z - source_pos.z) <= r then
 			is_on_ship = true
@@ -93,10 +93,10 @@ end
 
 -- 1. Navigation Beacon Node
 local function get_beacon_formspec(ship_name)
-	return "size[6,3]" ..
-		"label[0.5,0.5;Navigation Beacon Configuration]" ..
-		"field[0.8,1.5;4.8,0.8;ship_name;Beacon Name;" .. minetest.formspec_escape(ship_name) .. "]" ..
-		"button_exit[2,2.3;2,0.8;save;Save]"
+	return "size[6,3.5]" ..
+		"label[0.5,0.5;Configure Navigation Beacon]" ..
+		"field[0.8,1.6;4.8,0.8;ship_name;Beacon / Ship Name;" .. minetest.formspec_escape(ship_name) .. "]" ..
+		"button_exit[1.8,2.6;2.4,0.8;save;Save]"
 end
 
 minetest.register_node("jumpdrive_tweaks:beacon", {
@@ -123,30 +123,23 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 	end,
 
 	after_place_node = function(pos, placer)
-		if placer and placer:is_player() then
-			local pname = placer:get_player_name()
-			local meta = minetest.get_meta(pos)
-			meta:set_string("owner", pname)
-			meta:set_string("ship_name", "Beacon")
-			meta:set_string("infotext", string.format("Navigation Beacon: [Beacon] (Owner: %s)", pname))
-
-			local key = pos_to_key(pos)
-			active_beacons[key] = {
-				pos = {x = pos.x, y = pos.y, z = pos.z},
-				owner = pname,
-				name = "Beacon"
-			}
-			save_beacons()
-			minetest.chat_send_player(pname, "Navigation Beacon active: Registered 3D waypoint on HUD.")
-		end
+		local meta = minetest.get_meta(pos)
+		local pname = (placer and placer:is_player()) and placer:get_player_name() or ""
+		local default_name = pname ~= "" and (pname .. "'s Ship") or "Beacon"
+		meta:set_string("owner", pname)
+		meta:set_string("ship_name", default_name)
+		meta:set_string("infotext", string.format("Navigation Beacon: [%s] (Owner: %s)", default_name, pname ~= "" and pname or "None"))
+		jumpdrive_tweaks.register_external_beacon(pos, default_name, pname)
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 		if not clicker or not clicker:is_player() then return itemstack end
 		local meta = minetest.get_meta(pos)
 		local ship_name = meta:get_string("ship_name")
-		if ship_name == "" then ship_name = "Beacon" end
-		minetest.show_formspec(clicker:get_player_name(), "jumpdrive_tweaks:beacon_" .. pos_to_key(pos), get_beacon_formspec(ship_name))
+		if ship_name == "" then ship_name = "Vessel" end
+
+		local formname = string.format("jumpdrive_tweaks:beacon_%d,%d,%d", pos.x, pos.y, pos.z)
+		minetest.show_formspec(clicker:get_player_name(), formname, get_beacon_formspec(ship_name))
 		return itemstack
 	end,
 
@@ -159,8 +152,9 @@ minetest.register_node("jumpdrive_tweaks:beacon", {
 
 -- Handle beacon formspec submission
 minetest.register_on_player_receive_fields(function(player, formname, fields)
-	if not formname:find("^jumpdrive_tweaks:beacon_") then return false end
-	local pos_str = formname:sub(24)
+	local prefix = "jumpdrive_tweaks:beacon_"
+	if not formname:find("^" .. prefix) then return false end
+	local pos_str = formname:sub(#prefix + 1)
 	local p = {}
 	for coord in pos_str:gmatch("([^,]+)") do
 		table.insert(p, tonumber(coord))
@@ -168,12 +162,22 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 	if #p ~= 3 then return false end
 	local pos = {x = p[1], y = p[2], z = p[3]}
 
+	local node_at_pos = minetest.get_node(pos)
+	if node_at_pos.name ~= "jumpdrive_tweaks:beacon" then return false end
+
 	if fields.save and fields.ship_name then
+		local meta = minetest.get_meta(pos)
+		local owner = meta:get_string("owner")
+		local pname = player:get_player_name()
+
+		if owner ~= "" and owner ~= pname and not minetest.check_player_privs(pname, {protection_bypass = true}) then
+			minetest.chat_send_player(pname, "You do not have permission to configure this beacon.")
+			return true
+		end
+
 		local new_name = fields.ship_name:sub(1, 24)
 		if new_name == "" then new_name = "Beacon" end
 
-		local meta = minetest.get_meta(pos)
-		local owner = meta:get_string("owner")
 		meta:set_string("ship_name", new_name)
 		meta:set_string("infotext", string.format("Navigation Beacon: [%s] (Owner: %s)", new_name, owner))
 
@@ -183,7 +187,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 			save_beacons()
 		end
 
-		minetest.chat_send_player(player:get_player_name(), string.format("Navigation beacon name updated to [%s]", new_name))
+		minetest.chat_send_player(pname, string.format("Navigation beacon name updated to [%s]", new_name))
 		return true
 	end
 	return false
@@ -344,8 +348,9 @@ end
 -- 4. Register Quantum Recall Tether Tool
 minetest.register_tool("jumpdrive_tweaks:quantum_tether", {
 	description = S("Quantum Recall Tether\nEmergency Return Beacon\n[Sneak + Right-Click on Beacon]: Tune to Vessel\n[Sneak + Right-Click in Void]: Teleport to Tuned Beacon (Range: 5000m)"),
-	inventory_image = "jumpdrive_remote.png^[colorize:#00e5ff:160",
-	wield_image = "jumpdrive_remote.png^[colorize:#00e5ff:160",
+	short_description = S("Quantum Recall Tether"),
+	inventory_image = "jumpdrive_quantum_tether.png",
+	wield_image = "jumpdrive_quantum_tether.png",
 	stack_max = 1,
 
 	on_place = function(itemstack, placer, pointed_thing)

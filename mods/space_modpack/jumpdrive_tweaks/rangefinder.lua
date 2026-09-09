@@ -121,7 +121,7 @@ local function handle_rangefinder(itemstack, user, pointed_thing)
 	local look_dir = user:get_look_dir()
 	local end_pos = vector.add(eye_pos, vector.multiply(look_dir, MAX_SCAN_DISTANCE))
 
-	local ray = minetest.raycast(eye_pos, end_pos, true, false)
+	local ray = minetest.raycast(eye_pos, end_pos, false, false)
 	local hit_target = nil
 
 	for pointed in ray do
@@ -132,7 +132,7 @@ local function handle_rangefinder(itemstack, user, pointed_thing)
 			-- Ignore self ship nodes
 			if not ship_mask[nhash] then
 				local n = minetest.get_node_or_nil(npos)
-				if n and n.name ~= "air" and n.name ~= "vacuum:vacuum" and n.name ~= "vacuum:air_bottle" and n.name ~= "ignore" then
+				if n and n.name ~= "air" and n.name ~= "vacuum:vacuum" and n.name ~= "vacuum:air_bottle" and n.name ~= "asteroid:atmos" and n.name ~= "ignore" then
 					local def = minetest.registered_nodes[n.name]
 					if def and not def.buildable_to then
 						hit_target = {
@@ -190,8 +190,9 @@ end
 -- Register Optical Rangefinder Tool
 minetest.register_tool("jumpdrive_tweaks:rangefinder", {
 	description = "Optical Rangefinder\n[Right-click Engine: Link | Right-click Space: Target Lock | Sneak+Right-click: Cycle Margin]",
-	inventory_image = "jumpdrive_remote.png^[colorize:#38bdf8:100",
-	wield_image = "jumpdrive_remote.png^[colorize:#38bdf8:100",
+	short_description = "Optical Rangefinder",
+	inventory_image = "jumpdrive_rangefinder.png",
+	wield_image = "jumpdrive_rangefinder.png",
 	stack_max = 1,
 	groups = {tool = 1},
 
@@ -203,3 +204,4 @@ minetest.register_tool("jumpdrive_tweaks:rangefinder", {
 		return handle_rangefinder(itemstack, user, pointed_thing)
 	end,
 })
+

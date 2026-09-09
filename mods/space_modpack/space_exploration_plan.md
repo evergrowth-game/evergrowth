@@ -92,16 +92,18 @@ mods/space_modpack/
 * **Salvage & Supply Containers:** Tiered loot populator in `techage:chest_ta3` and `techage:chest_ta4` supplying pressurized hydrogen canisters (`techage:cylinder_small_hydrogen`), breathing air tanks (`airtanks:steel_tank` / `vacuum:air_bottle`), structural alloys, and advanced circuitry.
 * **Voxel Performance:** Lazy `VoxelManip` buffer allocation ensuring zero table garbage generation on chunks without derelict spawns.
 
+### 2.9 Optical Rangefinder & Contiguous Spacecraft Navigation (`rangefinder.lua`, `ship_tracker.lua`) [DONE]
+* **Line-of-Sight Standoff Targeting:** Handheld `jumpdrive_tweaks:rangefinder` tool utilizing 1,500m raycasting, vessel bounding-radius standoff calculations, and direct coordinate injection into `jumpdrive:engine`.
+* **Contiguous Component Flood-Fill:** 26-connectivity BFS graph traversal anchored at vessel backbone preventing disconnected atmospheric clouds, ground patches, and nearby stationary objects from jumping with the craft.
+* **Planetary & Asteroid Terrain Isolation:** Watertight classification separating natural ground (`asteroid:*`, `mars:*`, `default:dirt*`, `default:stone*`) from ship masonry and equipment during landed jumps.
+* **Bare-Hand Ignition:** Direct punch on jumpdrive core engaging hyperspace translation without formspec interaction.
+
 ---
 
 ## 3. Upcoming Gameplay Roadmap
 
 ### 3.1 Tier 1: High-Priority Additions and Immediate Feasibility
-1. **Optical Rangefinder & Diegetic Standoff Navigation (`jumpdrive_tweaks:rangefinder`):**
-   - **Mechanism:** Handheld optical rangefinder tool using line-of-sight raycasting (up to 1,500m) to calculate safe standoff offsets based on vessel hull dimensions and write destination coordinates directly to `jumpdrive:engine`. Direct punch on `jumpdrive:engine` engages jump.
-   - **Output:** Eliminates manual coordinate guessing and formspec reliance when approaching asteroids, orbital stations, and derelicts.
-
-2. **Diegetic Cockpit & Physical Jump Lever:**
+1. **Diegetic Cockpit & Physical Jump Lever:**
    - **Mechanism:** Dedicated bridge console and wall-mounted mechanical lever nodes connected to the vessel's backbone to engage jumps and prime coordinates without interacting directly with the engine block.
 
 ### 3.2 Tier 2: Medium-Priority Additions (Moderate Complexity)

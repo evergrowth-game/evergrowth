@@ -17,7 +17,7 @@ function jumpdrive_tweaks.is_terrain_node(id, nodename)
 		nodename = minetest.get_name_from_content_id(id)
 	end
 
-	if not nodename or nodename == "air" or nodename == "ignore" or nodename == "vacuum:vacuum" then
+	if not nodename or nodename == "air" or nodename == "ignore" or nodename == "vacuum:vacuum" or nodename == "asteroid:atmos" then
 		if id then terrain_cache[id] = false end
 		return false
 	end
@@ -26,6 +26,12 @@ function jumpdrive_tweaks.is_terrain_node(id, nodename)
 	if nodename:find("^jumpdrive") or nodename:find("^techage") or nodename:find("^spacesuit") or nodename:find("^vacuum") then
 		if id then terrain_cache[id] = false end
 		return false
+	end
+
+	-- Space & planetary natural terrain (asteroids, Mars, space crystals)
+	if nodename:find("^asteroid:") or nodename:find("^mars:") or nodename:find("^crystals:") then
+		if id then terrain_cache[id] = true end
+		return true
 	end
 
 	local nodedef = minetest.registered_nodes[nodename]
@@ -42,8 +48,9 @@ function jumpdrive_tweaks.is_terrain_node(id, nodename)
 	end
 
 	-- Crafted construction materials & masonry (MUST be checked before is_ground_content/groups.stone)
-	if nodename:find("_block$") or nodename:find("glass") or nodename:find("brick") or nodename:find("cobble")
-		or nodename:find("^default:wood") or nodename:find("^stairs:") or nodename:find("^walls:")
+	if nodename:find("_block$") or nodename:find("glass") or nodename:find("brick")
+		or nodename == "default:cobble" or nodename == "default:mossycobble" or nodename:find("^stairs:")
+		or nodename:find("^default:wood") or nodename:find("^walls:")
 		or nodename:find("^castle_gates:") or nodename:find("^doors:") or nodename:find("^xdecor:")
 		or nodename:find("^basic_materials:") or nodename:find("^building_blocks:") or nodename:find("_wood$")
 		or nodename:find("_plank$") or nodename:find("_floor$") then
@@ -64,8 +71,11 @@ function jumpdrive_tweaks.is_terrain_node(id, nodename)
 
 	if nodename:find("^default:dirt") or nodename:find("^default:stone") or nodename:find("^default:sand")
 		or nodename:find("^default:gravel") or nodename:find("^default:clay") or nodename:find("^default:ice")
-		or nodename:find("^default:snow") or nodename:find("^default:water") or nodename:find("^ethereal:")
-		or nodename:find("^caverealms:") then
+		or nodename:find("^default:snow") or nodename:find("^default:water") or nodename:find("^default:lava")
+		or nodename:find("^default:tree") or nodename:find("^default:leaves") or nodename:find("^default:apple")
+		or nodename:find("^default:grass") or nodename:find("^default:fern") or nodename:find("^ethereal:")
+		or nodename:find("^caverealms:") or nodename:find("^flowers:") or nodename:find("^ferns:")
+		or nodename:find("^cavestuff:") or nodename:find("^bakedclay:") then
 		if id then terrain_cache[id] = true end
 		return true
 	end
@@ -82,7 +92,7 @@ local function is_buildable_to(id, nodename)
 	if not nodename and id then
 		nodename = minetest.get_name_from_content_id(id)
 	end
-	if not nodename or nodename == "air" or nodename == "vacuum:vacuum" then
+	if not nodename or nodename == "air" or nodename == "vacuum:vacuum" or nodename == "asteroid:atmos" then
 		if id then buildable_to_cache[id] = true end
 		return true
 	end
@@ -92,7 +102,7 @@ local function is_buildable_to(id, nodename)
 	return result
 end
 
--- 3. Backbone-Proximity Graph Traversal & Ship Spatial Mask
+-- 3. Backbone-Anchored Contiguous Component Traversal & Ship Spatial Mask
 function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 	capture_radius = capture_radius or 3
 
@@ -105,9 +115,11 @@ function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 	table.insert(backbone_nodes, engine_pos)
 	table.insert(queue, engine_pos)
 
-	-- BFS: Find all connected jumpdrive:backbone nodes (26-connectivity)
-	while #queue > 0 do
-		local curr = table.remove(queue, 1)
+	-- 1. BFS: Find all connected jumpdrive:backbone / engine / fuel_port nodes (26-connectivity)
+	local qi = 1
+	while qi <= #queue do
+		local curr = queue[qi]
+		qi = qi + 1
 
 		for dz = -1, 1 do
 		for dy = -1, 1 do
@@ -130,23 +142,21 @@ function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 		end
 	end
 
-	-- Compute union of candidate coordinates within capture_radius of all backbone nodes
-	local candidate_set = {}
+	-- 2. Precompute spatial lookup for backbone proximity envelope
+	local backbone_radius_lookup = {}
 	for _, bpos in ipairs(backbone_nodes) do
 		for dz = -capture_radius, capture_radius do
 		for dy = -capture_radius, capture_radius do
 		for dx = -capture_radius, capture_radius do
 			local cpos = {x = bpos.x + dx, y = bpos.y + dy, z = bpos.z + dz}
 			local chash = minetest.hash_node_position(cpos)
-			if not candidate_set[chash] then
-				candidate_set[chash] = cpos
-			end
+			backbone_radius_lookup[chash] = true
 		end
 		end
 		end
 	end
 
-	-- Filter candidate nodes: exclude air, vacuum, and natural terrain
+	-- 3. Contiguous Component Flood-Fill: Traverse physically attached solid ship blocks starting from backbone
 	local ship_mask = {}
 	local ship_node_list = {}
 	local fuel_tanks = {}
@@ -154,26 +164,62 @@ function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 	local max_pos = {x = engine_pos.x, y = engine_pos.y, z = engine_pos.z}
 	local solid_count = 0
 
-	for chash, pos in pairs(candidate_set) do
-		local node = minetest.get_node_or_nil(pos)
-		if node and node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" then
-			local id = minetest.get_content_id(node.name)
-			if not jumpdrive_tweaks.is_terrain_node(id, node.name) then
-				ship_mask[chash] = true
-				table.insert(ship_node_list, pos)
-				solid_count = solid_count + 1
+	local fill_queue = {}
+	for _, bpos in ipairs(backbone_nodes) do
+		local bhash = minetest.hash_node_position(bpos)
+		ship_mask[bhash] = true
+		table.insert(ship_node_list, bpos)
+		solid_count = solid_count + 1
+		table.insert(fill_queue, bpos)
 
-				if node.name == "jumpdrive_tweaks:fuel_tank" then
-					table.insert(fuel_tanks, pos)
+		if bpos.x < min_pos.x then min_pos.x = bpos.x end
+		if bpos.y < min_pos.y then min_pos.y = bpos.y end
+		if bpos.z < min_pos.z then min_pos.z = bpos.z end
+		if bpos.x > max_pos.x then max_pos.x = bpos.x end
+		if bpos.y > max_pos.y then max_pos.y = bpos.y end
+		if bpos.z > max_pos.z then max_pos.z = bpos.z end
+	end
+
+	local fi = 1
+	while fi <= #fill_queue do
+		local curr = fill_queue[fi]
+		fi = fi + 1
+
+		for dz = -1, 1 do
+		for dy = -1, 1 do
+		for dx = -1, 1 do
+			if dx ~= 0 or dy ~= 0 or dz ~= 0 then
+				local npos = {x = curr.x + dx, y = curr.y + dy, z = curr.z + dz}
+				local nhash = minetest.hash_node_position(npos)
+
+				if not ship_mask[nhash] then
+					if backbone_radius_lookup[nhash] then
+						local node = minetest.get_node_or_nil(npos)
+						if node and node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" and node.name ~= "asteroid:atmos" then
+							local id = minetest.get_content_id(node.name)
+							if not jumpdrive_tweaks.is_terrain_node(id, node.name) then
+								ship_mask[nhash] = true
+								table.insert(ship_node_list, npos)
+								solid_count = solid_count + 1
+								table.insert(fill_queue, npos)
+
+								if node.name == "jumpdrive_tweaks:fuel_tank" then
+									table.insert(fuel_tanks, npos)
+								end
+
+								if npos.x < min_pos.x then min_pos.x = npos.x end
+								if npos.y < min_pos.y then min_pos.y = npos.y end
+								if npos.z < min_pos.z then min_pos.z = npos.z end
+								if npos.x > max_pos.x then max_pos.x = npos.x end
+								if npos.y > max_pos.y then max_pos.y = npos.y end
+								if npos.z > max_pos.z then max_pos.z = npos.z end
+							end
+						end
+					end
 				end
-
-				if pos.x < min_pos.x then min_pos.x = pos.x end
-				if pos.y < min_pos.y then min_pos.y = pos.y end
-				if pos.z < min_pos.z then min_pos.z = pos.z end
-				if pos.x > max_pos.x then max_pos.x = pos.x end
-				if pos.y > max_pos.y then max_pos.y = pos.y end
-				if pos.z > max_pos.z then max_pos.z = pos.z end
 			end
+		end
+		end
 		end
 	end
 

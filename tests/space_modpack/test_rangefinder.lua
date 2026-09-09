@@ -264,6 +264,8 @@ run_test("Tool Registration & Metadata Defaults", function()
 	local tool = registered_tools["jumpdrive_tweaks:rangefinder"]
 	assert_true(tool ~= nil, "Tool jumpdrive_tweaks:rangefinder must be registered")
 	assert_eq(tool.stack_max, 1, "Stack max must be 1")
+	assert_eq(tool.inventory_image, "jumpdrive_rangefinder.png", "Inventory image must be dedicated jumpdrive_rangefinder.png")
+	assert_eq(tool.short_description, "Optical Rangefinder", "Short description must be set")
 	assert_true(type(tool.on_place) == "function", "on_place handler must exist")
 	assert_true(type(tool.on_secondary_use) == "function", "on_secondary_use handler must exist")
 end)

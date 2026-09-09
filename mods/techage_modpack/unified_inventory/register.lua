@@ -262,9 +262,13 @@ ui.register_page("craftguide", {
 		local item_def = minetest.registered_items[item_name]
 		local item_name_shown
 		if item_def and item_def.description then
-			item_name_shown = S("@1 (@2)", item_def.description, item_name)
+			local desc = item_def.short_description
+			if not desc or desc == "" then
+				desc = item_def.description:match("[^\r\n]+") or item_def.description
+			end
+			item_name_shown = F(S("@1 (@2)", desc, item_name))
 		else
-			item_name_shown = item_name
+			item_name_shown = F(item_name)
 		end
 
 		local dir = ui.current_craft_direction[player_name]
