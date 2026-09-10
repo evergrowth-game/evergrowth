@@ -113,7 +113,7 @@ jumpdrive.update_formspec = function(meta, pos)
 
 	for key, binfo in pairs(active_beacons) do
 		local bnode = minetest.get_node_or_nil(binfo.pos)
-		if bnode and bnode.name == "jumpdrive_tweaks:beacon" then
+		if not bnode or bnode.name == "jumpdrive_tweaks:beacon" then
 			local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
 			table.insert(beacon_items, minetest.formspec_escape(label))
 		else
