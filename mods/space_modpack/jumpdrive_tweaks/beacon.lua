@@ -28,6 +28,43 @@ jumpdrive_tweaks.get_active_beacons = function()
 end
 jumpdrive_tweaks.save_beacons = save_beacons
 
+jumpdrive_tweaks.get_valid_sorted_beacons = function()
+	local stale_keys = {}
+	local valid_list = {}
+
+	for key, binfo in pairs(active_beacons) do
+		local bnode = minetest.get_node_or_nil(binfo.pos)
+		if not bnode or bnode.name == "jumpdrive_tweaks:beacon" then
+			local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
+			table.insert(valid_list, {
+				key = key,
+				binfo = binfo,
+				label = label
+			})
+		else
+			table.insert(stale_keys, key)
+		end
+	end
+
+	-- Prune orphaned beacon entries from registry
+	if #stale_keys > 0 then
+		for _, k in ipairs(stale_keys) do
+			active_beacons[k] = nil
+		end
+		save_beacons()
+	end
+
+	-- Deterministic alphabetical and coordinate sorting
+	table.sort(valid_list, function(a, b)
+		if a.label ~= b.label then
+			return a.label < b.label
+		end
+		return a.key < b.key
+	end)
+
+	return valid_list
+end
+
 local function pos_to_key(pos)
 	return string.format("%d,%d,%d", math.floor(pos.x), math.floor(pos.y), math.floor(pos.z))
 end

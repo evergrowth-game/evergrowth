@@ -106,29 +106,12 @@ jumpdrive.update_formspec = function(meta, pos)
 		end
 	end
 
-	-- Build Beacon Dropdown entries (with stale-entry pruning)
+	-- Build Beacon Dropdown entries (with deterministic sorting and stale-entry pruning)
 	local beacon_items = {"Select Navigation Beacon"}
-	local active_beacons = jumpdrive_tweaks.get_active_beacons and jumpdrive_tweaks.get_active_beacons() or {}
-	local stale_keys = {}
+	local valid_beacons = jumpdrive_tweaks.get_valid_sorted_beacons and jumpdrive_tweaks.get_valid_sorted_beacons() or {}
 
-	for key, binfo in pairs(active_beacons) do
-		local bnode = minetest.get_node_or_nil(binfo.pos)
-		if not bnode or bnode.name == "jumpdrive_tweaks:beacon" then
-			local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
-			table.insert(beacon_items, minetest.formspec_escape(label))
-		else
-			table.insert(stale_keys, key)
-		end
-	end
-
-	-- Prune orphaned beacon entries from registry
-	if #stale_keys > 0 then
-		for _, k in ipairs(stale_keys) do
-			active_beacons[k] = nil
-		end
-		if jumpdrive_tweaks.save_beacons then
-			jumpdrive_tweaks.save_beacons()
-		end
+	for _, entry in ipairs(valid_beacons) do
+		table.insert(beacon_items, minetest.formspec_escape(entry.label))
 	end
 
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
@@ -370,14 +353,32 @@ if engine_def then
 
 			-- Handle beacon plotting matching dropdown selection with 2-stage guidance
 			if fields.plot_beacon and fields.beacon_select then
-				local active_beacons = jumpdrive_tweaks.get_active_beacons and jumpdrive_tweaks.get_active_beacons() or {}
-				for _, binfo in pairs(active_beacons) do
-					local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
-					if label == fields.beacon_select and binfo.pos then
-						local bx = math.floor(binfo.pos.x)
-						local by = math.floor(binfo.pos.y)
-						local bz = math.floor(binfo.pos.z)
-						local bname = binfo.name or "Beacon"
+				local valid_beacons = jumpdrive_tweaks.get_valid_sorted_beacons and jumpdrive_tweaks.get_valid_sorted_beacons() or {}
+				local selected_index = tonumber(fields.beacon_select)
+				local selected_binfo = nil
+
+				if selected_index and selected_index > 1 then
+					local entry = valid_beacons[selected_index - 1]
+					if entry then
+						selected_binfo = entry.binfo
+					end
+				else
+					for _, entry in ipairs(valid_beacons) do
+						local label = entry.label
+						local escaped_label = minetest.formspec_escape(label)
+						if fields.beacon_select == label or fields.beacon_select == escaped_label then
+							selected_binfo = entry.binfo
+							break
+						end
+					end
+				end
+
+				if selected_binfo and selected_binfo.pos then
+					local binfo = selected_binfo
+					local bx = math.floor(binfo.pos.x)
+					local by = math.floor(binfo.pos.y)
+					local bz = math.floor(binfo.pos.z)
+					local bname = binfo.name or "Beacon"
 
 						-- Compute standoff-adjusted arrival position for space targets.
 						-- Uses the same effective_radius + margin approach as the

@@ -9,6 +9,12 @@ vacuum = {
 	disable_mapgen = minetest.settings:get("vacuum.disable_mapgen")
 }
 
+local space_enabled = minetest.settings:get_bool("enable_space", true)
+if not space_enabled then
+	vacuum.disable_physics = true
+	vacuum.disable_mapgen = true
+end
+
 local MP = minetest.get_modpath("vacuum")
 
 if minetest.get_modpath("digilines") then
@@ -17,8 +23,15 @@ end
 
 dofile(MP.."/util/throttle.lua")
 dofile(MP.."/common.lua")
+
+if not space_enabled then
+	vacuum.is_pos_in_space = function(pos) return false end
+	vacuum.no_vacuum_abm = function(pos) return false end
+end
+
 dofile(MP.."/vacuum.lua")
 dofile(MP.."/compat.lua")
+
 dofile(MP.."/airbottle.lua")
 dofile(MP.."/airpump_functions.lua")
 dofile(MP.."/airpump.lua")
