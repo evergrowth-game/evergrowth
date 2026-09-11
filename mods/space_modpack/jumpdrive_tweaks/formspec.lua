@@ -488,7 +488,6 @@ if engine_def then
 						end
 					end
 				end
-			end
 
 			if orig_on_receive_fields then
 				return orig_on_receive_fields(pos, formname, fields, sender)
