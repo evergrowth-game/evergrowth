@@ -1325,7 +1325,7 @@ run_test("Hyperjump Feedback: Spool scaling, ambient HUD glow lifecycle, exterio
 	assert_true(fx_handle ~= nil, "FX handle created")
 	assert_eq(fx_handle.spool_time, 4.0, "Spool time matches 4.0s")
 	assert_eq(#hud_added, 1, "Ambient glow HUD added to passenger")
-	assert_eq(hud_added[1].text, "jumpdrive_warp_glow.png", "Ambient glow texture used")
+	assert_true(string.find(hud_added[1].text, "jumpdrive_warp_glow.png") ~= nil, "Ambient glow texture used")
 
 	-- 4. Abort cleanup
 	jumpdrive_tweaks.abort_spool_fx(fx_handle)

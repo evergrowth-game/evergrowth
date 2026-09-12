@@ -71,7 +71,7 @@ function jumpdrive_tweaks.start_spool_fx(source_pos, distance, ship_scan)
 					hud_elem_type = "image",
 					position = {x = 0.5, y = 0.5},
 					scale = {x = -100, y = -100},
-					text = "jumpdrive_warp_glow.png",
+					text = "jumpdrive_warp_glow.png^[opacity:0",
 					alignment = {x = 0, y = 0},
 					offset = {x = 0, y = 0},
 				})
@@ -85,6 +85,30 @@ function jumpdrive_tweaks.start_spool_fx(source_pos, distance, ship_scan)
 				if p_h then table.insert(fx_handle.sound_handles, p_h) end
 			end
 		end
+	end
+
+	-- Smooth progressive fade-in of ambient perimeter glow during spool
+	if #fx_handle.hud_entries > 0 and minetest.after then
+		local in_steps = 12
+		local step_dt = spool_time / in_steps
+		local function step_fade_in(step)
+			if not fx_handle.active then return end
+			local progress = math.min(1.0, step / in_steps)
+			local opacity = math.floor(255 * (progress ^ 1.3))
+			local texture = "jumpdrive_warp_glow.png^[opacity:" .. tostring(opacity)
+			for _, entry in ipairs(fx_handle.hud_entries) do
+				local player = minetest.get_player_by_name and minetest.get_player_by_name(entry.player_name)
+				if player and player:is_player() and player.hud_change then
+					player:hud_change(entry.hud_id, "text", texture)
+				end
+			end
+			if step < in_steps and minetest.after then
+				minetest.after(step_dt, function()
+					step_fade_in(step + 1)
+				end)
+			end
+		end
+		minetest.after(step_dt, function() step_fade_in(1) end)
 	end
 
 	return fx_handle
@@ -211,23 +235,48 @@ function jumpdrive_tweaks.on_jump_discontinuity(source_pos, target_pos, ship_sca
 		end
 	end
 
-	-- 2. Fade out and remove ambient screen glow HUD
-	if fx_handle and fx_handle.hud_entries then
-		local function clear_huds()
-			for _, entry in ipairs(fx_handle.hud_entries) do
+	-- 2. Smoothly fade out and remove ambient screen glow HUD
+	if fx_handle and fx_handle.hud_entries and #fx_handle.hud_entries > 0 then
+		local entries_to_clear = fx_handle.hud_entries
+		fx_handle.hud_entries = {}
+		fx_handle.active = false
+
+		if minetest.after then
+			local out_steps = 10
+			local out_duration = 0.8
+			local out_interval = out_duration / out_steps
+
+			local function step_fade_out(step)
+				local progress = math.min(1.0, step / out_steps)
+				local opacity = math.floor(255 * ((1.0 - progress) ^ 1.4))
+				local texture = "jumpdrive_warp_glow.png^[opacity:" .. tostring(opacity)
+
+				for _, entry in ipairs(entries_to_clear) do
+					local player = minetest.get_player_by_name and minetest.get_player_by_name(entry.player_name)
+					if player and player:is_player() then
+						if step < out_steps and player.hud_change then
+							player:hud_change(entry.hud_id, "text", texture)
+						elseif step >= out_steps and player.hud_remove then
+							player:hud_remove(entry.hud_id)
+						end
+					end
+				end
+
+				if step < out_steps and minetest.after then
+					minetest.after(out_interval, function()
+						step_fade_out(step + 1)
+					end)
+				end
+			end
+
+			minetest.after(out_interval, function() step_fade_out(1) end)
+		else
+			for _, entry in ipairs(entries_to_clear) do
 				local player = minetest.get_player_by_name and minetest.get_player_by_name(entry.player_name)
 				if player and player:is_player() and player.hud_remove then
 					player:hud_remove(entry.hud_id)
 				end
 			end
-			fx_handle.hud_entries = {}
-			fx_handle.active = false
-		end
-
-		if minetest.after then
-			minetest.after(0.5, clear_huds)
-		else
-			clear_huds()
 		end
 	end
 
