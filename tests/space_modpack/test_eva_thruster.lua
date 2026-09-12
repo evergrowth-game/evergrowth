@@ -280,4 +280,59 @@ assert_true(found_vacuum_craft, "Found shapeless refuel craft with vacuum:air_bo
 assert_true(found_airtank_craft, "Found shapeless refuel craft with airtanks:steel_tank")
 assert_true(not found_invalid_fuel_craft, "No hydrogen or biofuel refuel craft recipes exist")
 
+print("[TEST 9] Testing Reactive Keypress Transition Triggering in Globalstep...")
+-- Mock sound and particle tracking
+local sounds_played = {}
+local particles_spawned = {}
+local current_sim_time = 10000000
+
+minetest.get_us_time = function() return current_sim_time end
+minetest.sound_play = function(sname, spec)
+	table.insert(sounds_played, {name = sname, spec = spec, time = current_sim_time})
+	return 1
+end
+minetest.add_particlespawner = function(def)
+	table.insert(particles_spawned, {def = def, time = current_sim_time})
+	return 1
+end
+
+local globalstep_fn = registered_globalsteps[1]
+assert_true(globalstep_fn ~= nil, "EVA Thruster globalstep registered")
+
+local player5, inv5 = create_mock_player("VectorPilot", {})
+player5:set_wielded_item("spacesuit_tweaks:eva_thruster")
+player5:get_wielded_item():set_wear(0)
+
+-- Step 1: Neutral / Idle (dtime = 0.05, less than 0.1)
+player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = false, right = false})
+globalstep_fn(0.05)
+assert_eq(#sounds_played, 0, "No sound played while idle")
+assert_eq(#particles_spawned, 0, "No particles while idle")
+
+-- Step 2: Immediate key tap (up = true) on small dtime (0.02s, step_effects = false)
+current_sim_time = current_sim_time + 20000
+player5:set_player_control({jump = false, sneak = false, up = true, down = false, left = false, right = false})
+globalstep_fn(0.02)
+assert_eq(#sounds_played, 1, "Sound triggered immediately on key-down transition")
+assert_eq(#particles_spawned, 1, "Particles spawned immediately on key-down transition")
+assert_eq(sounds_played[1].name, "default_cool_lava", "Thruster sound played")
+
+-- Step 3: Holding 'up' continuously during short dtimes (< 0.75s) should NOT spam sound
+current_sim_time = current_sim_time + 50000 -- +50ms
+globalstep_fn(0.05) -- triggers step_effects
+assert_eq(#sounds_played, 1, "Sound throttled during continuous hold (only 1 play)")
+assert_eq(#particles_spawned, 2, "Particles spawn on periodic step_effects")
+
+-- Step 4: Sustained hold past 750ms interval triggers next burn sound
+current_sim_time = current_sim_time + 800000 -- +800ms
+globalstep_fn(0.1)
+assert_eq(#sounds_played, 2, "Sustained burn sound triggered after 750ms interval")
+
+-- Step 5: Transition to strafe 'left' (direction change) triggers immediate burst
+current_sim_time = current_sim_time + 200000 -- +200ms (> 150ms force interval)
+player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = true, right = false})
+globalstep_fn(0.02)
+assert_eq(#sounds_played, 3, "Immediate burst sound triggered on direction change to strafe left")
+
 print("ALL EVA THRUSTER TESTS PASSED SUCCESSFULLY!")
+

@@ -62,13 +62,15 @@ spacesuit_tweaks.PROPELLANTS = {
 	},
 }
 
--- Sound throttling
+-- Sound and control throttling
 local last_sound_time = {}
 local last_warn_time = {}
+local prev_player_controls = {} -- pname -> table of keys {jump, sneak, up, down, left, right}
 
-local function play_thruster_sound(playername, pos)
+local function play_thruster_sound(playername, pos, force)
 	local now = minetest.get_us_time()
-	if not last_sound_time[playername] or (now - last_sound_time[playername]) > 300000 then
+	local min_interval = force and 150000 or 750000
+	if not last_sound_time[playername] or (now - last_sound_time[playername]) >= min_interval then
 		last_sound_time[playername] = now
 		minetest.sound_play("default_cool_lava", {
 			pos = pos,
@@ -76,7 +78,9 @@ local function play_thruster_sound(playername, pos)
 			pitch = 1.6,
 			max_hear_distance = 15,
 		})
+		return true
 	end
+	return false
 end
 
 local function play_refuel_sound(pos)
@@ -218,7 +222,7 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 		local boost_vel = vector.multiply(look_dir, 14.0)
 		user:add_velocity(boost_vel)
 
-		play_thruster_sound(pname, ppos)
+		play_thruster_sound(pname, ppos, true)
 		spawn_rcs_particles(ppos, look_dir)
 		return itemstack
 	end,
@@ -251,6 +255,9 @@ local player_speed_active = {}
 
 local function cleanup_player(player)
 	local pname = player:get_player_name()
+	if prev_player_controls[pname] then
+		prev_player_controls[pname] = nil
+	end
 	if player_thrust_state[pname] then
 		player_thrust_state[pname] = nil
 		if player_monoids and player_monoids.gravity then
@@ -300,8 +307,19 @@ minetest.register_globalstep(function(dtime)
 					end
 
 					local ctrl = player:get_player_control()
-					local target_state = "neutral"
+					local prev = prev_player_controls[pname] or {}
 
+					-- Detect 0 -> 1 keypress transitions
+					local new_press = (ctrl.jump and not prev.jump) or
+						(ctrl.sneak and not prev.sneak) or
+						(ctrl.up and not prev.up) or
+						(ctrl.down and not prev.down) or
+						(ctrl.left and not prev.left) or
+						(ctrl.right and not prev.right)
+
+					local is_moving = ctrl.jump or ctrl.sneak or ctrl.up or ctrl.down or ctrl.left or ctrl.right
+
+					local target_state = "neutral"
 					if ctrl.jump then
 						target_state = "up"
 					elseif ctrl.sneak then
@@ -326,34 +344,55 @@ minetest.register_globalstep(function(dtime)
 					end
 
 					-- Audio, particles, and propellant consumption
-					if step_effects then
-						local is_moving = ctrl.jump or ctrl.sneak or ctrl.up or ctrl.down or ctrl.left or ctrl.right
-						if is_moving then
+					if is_moving then
+						local should_trigger = new_press or step_effects
+						if should_trigger then
 							local particle_dir = {x = 0, y = 0, z = 0}
 							local yaw = player:get_look_horizontal()
 
 							if ctrl.jump then
-								particle_dir.y = 1
-							elseif ctrl.sneak then
-								particle_dir.y = -1
+								particle_dir.y = particle_dir.y + 1
+							end
+							if ctrl.sneak then
+								particle_dir.y = particle_dir.y - 1
 							end
 
 							if ctrl.up then
-								particle_dir.x = -math.sin(yaw)
-								particle_dir.z = math.cos(yaw)
+								particle_dir.x = particle_dir.x - math.sin(yaw)
+								particle_dir.z = particle_dir.z + math.cos(yaw)
 							elseif ctrl.down then
-								particle_dir.x = math.sin(yaw)
-								particle_dir.z = -math.cos(yaw)
+								particle_dir.x = particle_dir.x + math.sin(yaw)
+								particle_dir.z = particle_dir.z - math.cos(yaw)
 							end
 
-							play_thruster_sound(pname, ppos)
+							if ctrl.left then
+								particle_dir.x = particle_dir.x - math.cos(yaw)
+								particle_dir.z = particle_dir.z - math.sin(yaw)
+							elseif ctrl.right then
+								particle_dir.x = particle_dir.x + math.cos(yaw)
+								particle_dir.z = particle_dir.z + math.sin(yaw)
+							end
+
+							play_thruster_sound(pname, ppos, new_press)
 							if vector.length(particle_dir) > 0 then
 								spawn_rcs_particles(ppos, vector.normalize(particle_dir))
 							end
-							consume_propellant(player, wielded, 1)
-							player:set_wielded_item(wielded)
+							if step_effects or new_press then
+								consume_propellant(player, wielded, 1)
+								player:set_wielded_item(wielded)
+							end
 						end
 					end
+
+					-- Save current control state for transition detection
+					prev_player_controls[pname] = {
+						jump = ctrl.jump,
+						sneak = ctrl.sneak,
+						up = ctrl.up,
+						down = ctrl.down,
+						left = ctrl.left,
+						right = ctrl.right,
+					}
 				else
 					cleanup_player(player)
 				end
@@ -380,7 +419,8 @@ if minetest.register_on_player_hpchange then
 end
 
 minetest.register_on_leaveplayer(function(player)
+	local pname = player:get_player_name()
 	cleanup_player(player)
-	last_sound_time[player:get_player_name()] = nil
-	last_warn_time[player:get_player_name()] = nil
+	last_sound_time[pname] = nil
+	last_warn_time[pname] = nil
 end)
