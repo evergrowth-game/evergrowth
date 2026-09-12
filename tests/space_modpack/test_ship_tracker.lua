@@ -54,6 +54,9 @@ local registered_nodes = {
 	["jumpdrive:engine"] = {description = "Engine"},
 	["jumpdrive:backbone"] = {description = "Backbone"},
 	["jumpdrive_tweaks:fuel_tank"] = {description = "Tank"},
+	["jumpdrive_tweaks:bridge_console"] = {description = "Bridge Console", groups = {jumpdrive_ship_part = 1}},
+	["jumpdrive_tweaks:jump_lever"] = {description = "Jump Lever", groups = {jumpdrive_ship_part = 1}},
+	["jumpdrive_tweaks:jump_lever_on"] = {description = "Jump Lever Engaged", groups = {jumpdrive_ship_part = 1}},
 	["default:glass"] = {description = "Glass"},
 	["default:stonebrick"] = {description = "Stone Brick", groups = {stone = 1}},
 	["default:cobble"] = {description = "Cobblestone", groups = {stone = 1}},
@@ -291,7 +294,7 @@ minetest.get_voxel_manip = function()
 		get_data = function(self)
 			local data = {}
 			for h, node in pairs(world_nodes) do
-				data[h] = content_ids[node.name] or 0
+				data[h] = minetest.get_content_id(node.name)
 			end
 			return setmetatable(data, {
 				__index = function() return 0 end
@@ -1201,9 +1204,81 @@ run_test("Unowned Beacon Migration Immunity: Derelict distress beacons never mig
 	assert_true(active_beacons["12,6200,10"] == nil, "Derelict beacon was NOT migrated to destination")
 end)
 
+-- Test 28: Reverse Engine Discovery (Direct Backbone vs Hull Flood-Fill vs Isolation)
+run_test("Reverse Engine Discovery: Backbone traversal, hull propagation, and terrain isolation", function()
+	world_nodes = {}
+	local engine_pos = {x = 0, y = 1000, z = 0}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 1, y = 1000, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 2, y = 1000, z = 0}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 3, y = 1000, z = 0}, {name = "jumpdrive_tweaks:bridge_console"})
+
+	-- Case A: Direct backbone traversal from bridge console
+	local found, err = jumpdrive_tweaks.find_connected_engine({x = 3, y = 1000, z = 0}, true)
+	assert_true(found ~= nil, "Engine found from bridge console on backbone")
+	assert_eq(found.x, 0, "Discovered engine X matches")
+	assert_eq(found.y, 1000, "Discovered engine Y matches")
+	assert_eq(found.z, 0, "Discovered engine Z matches")
+
+	-- Case B: Console connected via solid hull blocks (default:stonebrick) without direct backbone line
+	world_nodes = {}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 0, y = 1001, z = 0}, {name = "default:stonebrick"})
+	minetest.set_node({x = 1, y = 1001, z = 0}, {name = "default:stonebrick"})
+	minetest.set_node({x = 2, y = 1001, z = 0}, {name = "default:stonebrick"})
+	minetest.set_node({x = 2, y = 1000, z = 0}, {name = "jumpdrive_tweaks:jump_lever"})
+
+	-- Backbone-only should fail
+	local found_bb, err_bb = jumpdrive_tweaks.find_connected_engine({x = 2, y = 1000, z = 0}, true)
+	assert_true(found_bb == nil, "Backbone-only search fails on hull-only connection")
+
+	-- Full hull search should succeed
+	local found_hull, err_hull = jumpdrive_tweaks.find_connected_engine({x = 2, y = 1000, z = 0}, false)
+	assert_true(found_hull ~= nil, "Hull flood-fill discovers connected engine")
+	assert_eq(found_hull.x, 0, "Discovered engine X matches")
+
+	-- Case C: Console on separate vessel across asteroid stone terrain should NOT discover engine
+	world_nodes = {}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 1, y = 1000, z = 0}, {name = "default:stone"}) -- Asteroid terrain
+	minetest.set_node({x = 2, y = 1000, z = 0}, {name = "jumpdrive_tweaks:bridge_console"})
+
+	local found_terrain, err_terrain = jumpdrive_tweaks.find_connected_engine({x = 2, y = 1000, z = 0}, false)
+	assert_true(found_terrain == nil, "Terrain interface prevents bridge console binding across asteroid")
+end)
+
+-- Test 29: Bridge Controls Integration in Spacecraft Scan & Jump Translation
+run_test("Bridge Controls: Console and lever scanned and migrated during hyperjump", function()
+	world_nodes = {}
+	local engine_pos = {x = 10, y = 5000, z = 10}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 11, y = 5000, z = 10}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 12, y = 5000, z = 10}, {name = "jumpdrive_tweaks:bridge_console"})
+	minetest.set_node({x = 13, y = 5000, z = 10}, {name = "jumpdrive_tweaks:jump_lever"})
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 3)
+	assert_eq(scan.node_count, 4, "Scan captures engine, backbone, bridge console, and jump lever")
+
+	local meta = minetest.get_meta(engine_pos)
+	meta:set_int("x", 10)
+	meta:set_int("y", 6500)
+	meta:set_int("z", 10)
+	meta:set_int("radius", 5)
+	meta:set_int("powerstorage", 500000)
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "execute_jump succeeds: " .. tostring(err))
+
+	assert_eq(minetest.get_node({x = 12, y = 6500, z = 10}).name, "jumpdrive_tweaks:bridge_console", "Bridge console translated to destination")
+	assert_eq(minetest.get_node({x = 13, y = 6500, z = 10}).name, "jumpdrive_tweaks:jump_lever", "Jump lever translated to destination")
+	assert_eq(minetest.get_node({x = 12, y = 5000, z = 10}).name, "air", "Origin bridge console cleared to air")
+	assert_eq(minetest.get_node({x = 13, y = 5000, z = 10}).name, "air", "Origin jump lever cleared to air")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then
 	error("Test suite failed!")
 end
+
 

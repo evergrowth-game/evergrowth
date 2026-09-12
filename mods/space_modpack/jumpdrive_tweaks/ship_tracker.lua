@@ -108,6 +108,131 @@ local function is_buildable_to(id, nodename)
 	return result
 end
 
+-- 2. Reverse Engine Discovery from Peripheral Ship Nodes
+function jumpdrive_tweaks.find_connected_engine(origin_pos, backbone_only)
+	if not origin_pos then return nil, "Invalid origin position" end
+
+	local origin_node = minetest.get_node_or_nil(origin_pos)
+	if origin_node and origin_node.name == "jumpdrive:engine" then
+		return origin_pos
+	end
+
+	local visited = {}
+	local queue = {origin_pos}
+	local origin_hash = minetest.hash_node_position(origin_pos)
+	visited[origin_hash] = true
+
+	local is_backbone_type = {
+		["jumpdrive:engine"] = true,
+		["jumpdrive:backbone"] = true,
+		["jumpdrive_tweaks:fuel_port"] = true,
+		["jumpdrive_tweaks:fuel_tank"] = true,
+		["jumpdrive_tweaks:bridge_console"] = true,
+		["jumpdrive_tweaks:jump_lever"] = true,
+		["jumpdrive_tweaks:jump_lever_on"] = true,
+	}
+
+	-- Phase 1: Fast direct backbone and machinery network traversal
+	local qi = 1
+	while qi <= #queue do
+		local curr = queue[qi]
+		qi = qi + 1
+
+		for dz = -1, 1 do
+		for dy = -1, 1 do
+		for dx = -1, 1 do
+			if dx ~= 0 or dy ~= 0 or dz ~= 0 then
+				local npos = {x = curr.x + dx, y = curr.y + dy, z = curr.z + dz}
+				local nhash = minetest.hash_node_position(npos)
+				if not visited[nhash] then
+					visited[nhash] = true
+					local node = minetest.get_node_or_nil(npos)
+					if node then
+						if node.name == "jumpdrive:engine" then
+							return npos
+						elseif is_backbone_type[node.name] then
+							table.insert(queue, npos)
+						end
+					end
+				end
+			end
+		end
+		end
+		end
+	end
+
+	if backbone_only then
+		return nil, "No Jump Core detected on backbone"
+	end
+
+	-- Phase 2: If no direct backbone link reached an engine, flood-fill solid ship hull to find backbone / engine
+	local hull_queue = {origin_pos}
+	local hull_visited = {[origin_hash] = true}
+	local hi = 1
+	local MAX_HULL_SEARCH = 2000
+
+	while hi <= #hull_queue and hi <= MAX_HULL_SEARCH do
+		local curr = hull_queue[hi]
+		hi = hi + 1
+
+		for dz = -1, 1 do
+		for dy = -1, 1 do
+		for dx = -1, 1 do
+			if dx ~= 0 or dy ~= 0 or dz ~= 0 then
+				local npos = {x = curr.x + dx, y = curr.y + dy, z = curr.z + dz}
+				local nhash = minetest.hash_node_position(npos)
+				if not hull_visited[nhash] then
+					hull_visited[nhash] = true
+					local node = minetest.get_node_or_nil(npos)
+					if node and node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" and node.name ~= "asteroid:atmos" then
+						if node.name == "jumpdrive:engine" then
+							return npos
+						end
+						local id = minetest.get_content_id(node.name)
+						if not jumpdrive_tweaks.is_terrain_node(id, node.name) then
+							if is_backbone_type[node.name] then
+								local b_queue = {npos}
+								local b_visited = {[nhash] = true}
+								local bi = 1
+								while bi <= #b_queue do
+									local bcurr = b_queue[bi]
+									bi = bi + 1
+									for bdz = -1, 1 do
+									for bdy = -1, 1 do
+									for bdx = -1, 1 do
+										if bdx ~= 0 or bdy ~= 0 or bdz ~= 0 then
+											local bnpos = {x = bcurr.x + bdx, y = bcurr.y + bdy, z = bcurr.z + bdz}
+											local bnhash = minetest.hash_node_position(bnpos)
+											if not b_visited[bnhash] then
+												b_visited[bnhash] = true
+												local bnode = minetest.get_node_or_nil(bnpos)
+												if bnode then
+													if bnode.name == "jumpdrive:engine" then
+														return bnpos
+													elseif is_backbone_type[bnode.name] then
+														table.insert(b_queue, bnpos)
+													end
+												end
+											end
+										end
+									end
+									end
+									end
+								end
+							end
+							table.insert(hull_queue, npos)
+						end
+					end
+				end
+			end
+		end
+		end
+		end
+	end
+
+	return nil, "No Jumpdrive Core detected on hull"
+end
+
 -- 3. Backbone-Anchored Contiguous Component Traversal & Ship Spatial Mask
 function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 	capture_radius = capture_radius or 3
@@ -121,7 +246,7 @@ function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 	table.insert(backbone_nodes, engine_pos)
 	table.insert(queue, engine_pos)
 
-	-- 1. BFS: Find all connected jumpdrive:backbone / engine / fuel_port nodes (26-connectivity)
+	-- 1. BFS: Find all connected jumpdrive:backbone / engine / fuel_port / bridge controls (26-connectivity)
 	local qi = 1
 	while qi <= #queue do
 		local curr = queue[qi]
@@ -136,7 +261,8 @@ function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
 
 				if not visited_backbone[nhash] then
 					local node = minetest.get_node_or_nil(npos)
-					if node and (node.name == "jumpdrive:backbone" or node.name == "jumpdrive:engine" or node.name == "jumpdrive_tweaks:fuel_port") then
+					if node and (node.name == "jumpdrive:backbone" or node.name == "jumpdrive:engine" or node.name == "jumpdrive_tweaks:fuel_port"
+						or node.name == "jumpdrive_tweaks:bridge_console" or node.name == "jumpdrive_tweaks:jump_lever" or node.name == "jumpdrive_tweaks:jump_lever_on") then
 						visited_backbone[nhash] = true
 						table.insert(backbone_nodes, npos)
 						table.insert(queue, npos)

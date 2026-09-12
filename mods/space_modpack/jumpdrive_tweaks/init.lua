@@ -16,7 +16,9 @@ dofile(modpath .. "/ice_melter.lua")
 dofile(modpath .. "/rangefinder.lua")
 dofile(modpath .. "/crafts.lua")
 dofile(modpath .. "/formspec.lua")
+dofile(modpath .. "/bridge_console.lua")
+dofile(modpath .. "/jump_lever.lua")
 
-minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, thermal ice melter, validator, terrain filter, rangefinder, crafts, decoupling hooks, ship beacon/tether, and diegetic flight computer UI.")
+minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, thermal ice melter, validator, terrain filter, rangefinder, crafts, decoupling hooks, ship beacon/tether, bridge navigation console, and quick-jump lever.")
 
 

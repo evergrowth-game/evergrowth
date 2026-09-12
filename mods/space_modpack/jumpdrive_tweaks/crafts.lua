@@ -114,4 +114,36 @@ else
 	})
 end
 
+-- 9. Bridge Navigation Console
+if minetest.get_modpath("techage") then
+	minetest.register_craft({
+		output = "jumpdrive_tweaks:bridge_console",
+		recipe = {
+			{"techage:ta4_terminal", "techage:ta4_wlanchip", "default:glass"},
+			{"techage:aluminum", "jumpdrive:backbone", "techage:aluminum"},
+			{"default:steelblock", "techage:electric_cableS", "default:steelblock"}
+		}
+	})
+else
+	minetest.register_craft({
+		output = "jumpdrive_tweaks:bridge_console",
+		recipe = {
+			{"default:glass", "default:mese_crystal", "default:glass"},
+			{"default:steel_ingot", "jumpdrive:backbone", "default:steel_ingot"},
+			{"default:steelblock", "default:copper_ingot", "default:steelblock"}
+		}
+	})
+end
+
+-- 10. Tactile Quick-Jump Lever
+minetest.register_craft({
+	output = "jumpdrive_tweaks:jump_lever",
+	recipe = {
+		{"default:steel_ingot", "default:mese_crystal", "dye:yellow"},
+		{"default:steel_ingot", "jumpdrive:backbone", "default:steel_ingot"},
+		{"default:steel_ingot", "default:copper_ingot", "default:steel_ingot"}
+	}
+})
+
+
 

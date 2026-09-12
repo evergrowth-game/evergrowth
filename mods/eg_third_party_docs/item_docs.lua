@@ -260,6 +260,18 @@ local item_docs = {
 		longdesc = "Pure frozen volatiles harvested from glacial asteroids in orbital space.",
 		usagehelp = "Can be processed in the Starship Thermal Ice Melter or TechAge furnaces into pure liquid water.",
 	},
+	["jumpdrive_tweaks:bridge_console"] = {
+		longdesc = "A dedicated 3D cockpit navigation terminal desk. Proxies coordinate settings, waypoint presets, beacon navigation, and propellant telemetry directly to the vessel's Jumpdrive Core.",
+		usagehelp = "Place on the starship bridge connected to the hull or backbone network. Right-click to open navigation flight controls or punch with an empty hand to engage hyperjump.",
+	},
+	["jumpdrive_tweaks:jump_lever"] = {
+		longdesc = "A physical wall/console-mounted toggle lever for instant tactile hyperjump execution without opening graphical interfaces.",
+		usagehelp = "Mount on the vessel bridge connected to the hull or backbone. Right-click or punch with an empty hand to engage jump. Automatically resets after jump translation completes or aborts with an audio tone if preflight checks fail.",
+	},
+	["jumpdrive_tweaks:rangefinder"] = {
+		longdesc = "An optical targeting rangefinder with a 1,500m raycast range. Computes collision-free standoff waypoints based on vessel dimensions and locks coordinates directly into the jump engine.",
+		usagehelp = "Right-click the Jump Core or Bridge Console to link. Point at a celestial body, asteroid, or vessel and right-click to program standoff jump coordinates. Sneak + right-click to cycle standoff safety margins.",
+	},
 }
 
 -- Apply doc_items fields on loaded items

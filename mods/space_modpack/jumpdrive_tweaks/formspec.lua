@@ -117,6 +117,7 @@ jumpdrive.update_formspec = function(meta, pos)
 	local beacon_dropdown_str = table.concat(beacon_items, ",")
 
 	-- Formspec Layout (Spacious 15.5x14.8 formspec_version[4] grid with full inventory clearance)
+	local inv_loc = pos and string.format("nodemeta:%d,%d,%d", pos.x, pos.y, pos.z) or "context"
 	local formspec =
 		"formspec_version[4]" ..
 		"size[15.5,14.8]" ..
@@ -177,10 +178,10 @@ jumpdrive.update_formspec = function(meta, pos)
 
 		-- 4. BOTTOM INVENTORIES & ACTION CONTROLS (Isolated columns to avoid overlap)
 		"label[0.5,7.5;Engine Buffer Inventory:]" ..
-		"list[context;main;0.5,7.8;8,1;]" ..
+		"list[" .. inv_loc .. ";main;0.5,7.8;8,1;]" ..
 		"label[0.5,9.0;Player Cargo Inventory:]" ..
 		"list[current_player;main;0.5,9.3;8,4;]" ..
-		"listring[context;main]" ..
+		"listring[" .. inv_loc .. ";main]" ..
 		"listring[current_player;main]" ..
 
 		"button_exit[10.6,7.8;4.4,1.2;jump;ENGAGE JUMP DRIVE]" ..
@@ -207,12 +208,272 @@ local function sync_coords_from_fields(meta, fields)
 	end
 end
 
--- Override jumpdrive:engine to add on_rightclick dynamic refresh and handle all field inputs
+-- Unified Flight Field Handler for both Direct Engine interaction and Bridge Console Proxies
+function jumpdrive_tweaks.handle_flight_fields(pos, fields, sender, is_bridge, formname)
+	local meta = minetest.get_meta(pos)
+	local playername = sender and sender:is_player() and sender:get_player_name() or ""
+
+	local function refresh_ui()
+		jumpdrive.update_formspec(meta, pos)
+		if is_bridge and formname and playername ~= "" and not fields.quit then
+			minetest.show_formspec(playername, formname, meta:get_string("formspec"))
+		end
+	end
+
+	-- Handle Reset Button (aligns destination coords with ship position)
+	if fields.reset then
+		meta:set_int("x", pos.x)
+		meta:set_int("y", pos.y)
+		meta:set_int("z", pos.z)
+		refresh_ui()
+		return
+	end
+
+	-- Handle Show / Project Bounds Button
+	if fields.show then
+		local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
+		local target_pos = {x = meta:get_int("x"), y = meta:get_int("y"), z = meta:get_int("z")}
+		local delta_vec = vector.subtract(target_pos, pos)
+		local target_min = vector.add(ship_scan.min_pos, delta_vec)
+		local target_max = vector.add(ship_scan.max_pos, delta_vec)
+
+		if minetest.get_modpath("vizlib") and vizlib and type(vizlib.draw_box) == "function" then
+			vizlib.draw_box(ship_scan.min_pos, ship_scan.max_pos, { color = "#00ff00", player = sender })
+			vizlib.draw_box(target_min, target_max, { color = "#ff0000", player = sender })
+		end
+		if playername ~= "" then
+			minetest.chat_send_player(playername, string.format("Spacecraft Bounds: %d nodes (%d backbone) spanning [%d,%d,%d] to [%d,%d,%d] (%d×%d×%d)",
+				ship_scan.node_count, ship_scan.backbone_count,
+				ship_scan.min_pos.x, ship_scan.min_pos.y, ship_scan.min_pos.z,
+				ship_scan.max_pos.x, ship_scan.max_pos.y, ship_scan.max_pos.z,
+				ship_scan.size.x, ship_scan.size.y, ship_scan.size.z))
+		end
+		return
+	end
+
+	-- Always sync any modified coordinate text fields first
+	sync_coords_from_fields(meta, fields)
+
+	-- Handle orbital presets
+	if fields.preset_surface then
+		meta:set_int("x", pos.x)
+		meta:set_int("y", 20)
+		meta:set_int("z", pos.z)
+		refresh_ui()
+		return
+	elseif fields.preset_orbit then
+		meta:set_int("x", pos.x)
+		meta:set_int("y", 1200)
+		meta:set_int("z", pos.z)
+		refresh_ui()
+		return
+	elseif fields.preset_asteroids then
+		if pos.y < 1000 then
+			meta:set_int("x", pos.x)
+			meta:set_int("z", pos.z)
+		end
+		meta:set_int("y", 5200)
+		refresh_ui()
+		return
+	elseif fields.preset_mars then
+		if pos.y < 1000 then
+			meta:set_int("x", pos.x)
+			meta:set_int("z", pos.z)
+		end
+		meta:set_int("y", 6200)
+		refresh_ui()
+		return
+	elseif fields.preset_deep then
+		if pos.y < 1000 then
+			meta:set_int("x", pos.x)
+			meta:set_int("z", pos.z)
+		end
+		meta:set_int("y", 10000)
+		refresh_ui()
+		return
+	elseif fields.preset_void then
+		if pos.y < 1000 then
+			meta:set_int("x", pos.x)
+			meta:set_int("z", pos.z)
+		end
+		meta:set_int("y", 20000)
+		refresh_ui()
+		return
+	end
+
+	-- Handle relative vector nudges
+	if fields.nudge_x_pos then
+		meta:set_int("x", jumpdrive.sanitize_coord(meta:get_int("x") + 500))
+		refresh_ui()
+		return
+	elseif fields.nudge_x_neg then
+		meta:set_int("x", jumpdrive.sanitize_coord(meta:get_int("x") - 500))
+		refresh_ui()
+		return
+	elseif fields.nudge_y_pos then
+		meta:set_int("y", jumpdrive.sanitize_coord(meta:get_int("y") + 250))
+		refresh_ui()
+		return
+	elseif fields.nudge_y_neg then
+		meta:set_int("y", jumpdrive.sanitize_coord(meta:get_int("y") - 250))
+		refresh_ui()
+		return
+	elseif fields.nudge_z_pos then
+		meta:set_int("z", jumpdrive.sanitize_coord(meta:get_int("z") + 500))
+		refresh_ui()
+		return
+	elseif fields.nudge_z_neg then
+		meta:set_int("z", jumpdrive.sanitize_coord(meta:get_int("z") - 500))
+		refresh_ui()
+		return
+	end
+
+	-- Handle beacon plotting matching dropdown selection with 2-stage guidance
+	if fields.plot_beacon and fields.beacon_select then
+		local valid_beacons = jumpdrive_tweaks.get_valid_sorted_beacons and jumpdrive_tweaks.get_valid_sorted_beacons() or {}
+		local selected_index = tonumber(fields.beacon_select)
+		local selected_binfo = nil
+
+		if selected_index and selected_index > 1 then
+			local entry = valid_beacons[selected_index - 1]
+			if entry then
+				selected_binfo = entry.binfo
+			end
+		else
+			for _, entry in ipairs(valid_beacons) do
+				local label = entry.label
+				local escaped_label = minetest.formspec_escape(label)
+				if fields.beacon_select == label or fields.beacon_select == escaped_label then
+					selected_binfo = entry.binfo
+					break
+				end
+			end
+		end
+
+		if selected_binfo and selected_binfo.pos then
+			local binfo = selected_binfo
+			local bx = math.floor(binfo.pos.x)
+			local by = math.floor(binfo.pos.y)
+			local bz = math.floor(binfo.pos.z)
+			local bname = binfo.name or "Beacon"
+
+			local function compute_standoff_arrival(target_x, target_y, target_z)
+				local beacon_pos = {x = target_x, y = target_y, z = target_z}
+				local dist = vector.distance(pos, beacon_pos)
+				if dist < 1 then
+					return target_x, target_y, target_z, 0
+				end
+
+				local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
+				local effective_radius = ship_scan and ship_scan.effective_radius or 5
+				local standoff_margin = 20
+				local standoff_distance = effective_radius + standoff_margin
+
+				if dist <= standoff_distance then
+					return target_x, target_y, target_z, 0
+				end
+
+				local dir = vector.direction(pos, beacon_pos)
+				local delta_dist = dist - standoff_distance
+				local ax = jumpdrive.sanitize_coord(math.floor(pos.x + dir.x * delta_dist + 0.5))
+				local ay = jumpdrive.sanitize_coord(math.floor(pos.y + dir.y * delta_dist + 0.5))
+				local az = jumpdrive.sanitize_coord(math.floor(pos.z + dir.z * delta_dist + 0.5))
+				return ax, ay, az, standoff_distance
+			end
+
+			-- Case A: Ship in orbit/space (Y >= 1000) and target beacon on surface (Y < 1000)
+			if pos.y >= 1000 and by < 1000 then
+				if pos.x ~= bx or pos.z ~= bz then
+					meta:set_int("x", jumpdrive.sanitize_coord(bx))
+					meta:set_int("y", 1200)
+					meta:set_int("z", jumpdrive.sanitize_coord(bz))
+					refresh_ui()
+					if playername ~= "" then
+						minetest.chat_send_player(playername, string.format("Orbital Guidance: Plotted approach vector above [%s] at (%d, 1200, %d). Once in position, plot vertical touchdown.", bname, bx, bz))
+					end
+					return
+				else
+					meta:set_int("x", jumpdrive.sanitize_coord(bx))
+					meta:set_int("y", jumpdrive.sanitize_coord(by))
+					meta:set_int("z", jumpdrive.sanitize_coord(bz))
+					refresh_ui()
+					if playername ~= "" then
+						minetest.chat_send_player(playername, string.format("Landing Guidance: Ship aligned in orbit. Plotted vertical descent to [%s] at (%d, %d, %d).", bname, bx, by, bz))
+					end
+					return
+				end
+			-- Case B: Ship on surface (Y < 1000) and target beacon in space (Y >= 1000)
+			elseif pos.y < 1000 and by >= 1000 then
+				if pos.x ~= bx or pos.z ~= bz then
+					meta:set_int("x", jumpdrive.sanitize_coord(pos.x))
+					meta:set_int("y", 1200)
+					meta:set_int("z", jumpdrive.sanitize_coord(pos.z))
+					refresh_ui()
+					if playername ~= "" then
+						minetest.chat_send_player(playername, string.format("Atmospheric Guidance: Plotted vertical ascent to orbit (Y=1,200). Once in orbit, navigate to [%s].", bname))
+					end
+					return
+				else
+					local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
+					meta:set_int("x", ax)
+					meta:set_int("y", ay)
+					meta:set_int("z", az)
+					refresh_ui()
+					if playername ~= "" then
+						if so > 0 then
+							minetest.chat_send_player(playername, string.format("Launch Guidance: Plotted ascent to [%s] at (%d, %d, %d) [Standoff: %dm].", bname, ax, ay, az, so))
+						else
+							minetest.chat_send_player(playername, string.format("Launch Guidance: Plotted vertical ascent to [%s] at (%d, %d, %d).", bname, ax, ay, az))
+						end
+					end
+					return
+				end
+			else
+				-- Case C: Direct navigation
+				if by >= 1000 then
+					local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
+					meta:set_int("x", ax)
+					meta:set_int("y", ay)
+					meta:set_int("z", az)
+					refresh_ui()
+					if playername ~= "" then
+						if so > 0 then
+							minetest.chat_send_player(playername, string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d) [Standoff: %dm]", bname, ax, ay, az, so))
+						else
+							minetest.chat_send_player(playername, string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, ax, ay, az))
+						end
+					end
+				else
+					meta:set_int("x", jumpdrive.sanitize_coord(bx))
+					meta:set_int("y", jumpdrive.sanitize_coord(by))
+					meta:set_int("z", jumpdrive.sanitize_coord(bz))
+					refresh_ui()
+					if playername ~= "" then
+						minetest.chat_send_player(playername, string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, bx, by, bz))
+					end
+				end
+				return
+			end
+		end
+	end
+
+	-- Pass-through to standard engine execution if not handled above
+	local orig_engine_def = minetest.registered_nodes["jumpdrive:engine"]
+	local orig_receive = orig_engine_def and orig_engine_def._orig_on_receive_fields
+	if orig_receive then
+		orig_receive(pos, formname or "", fields, sender)
+		if is_bridge then
+			refresh_ui()
+		end
+	end
+end
+
+-- Hook engine on_receive_fields
 local engine_def = minetest.registered_nodes["jumpdrive:engine"]
 if engine_def then
-	local orig_on_receive_fields = engine_def.on_receive_fields
-
+	local orig_on_receive = engine_def.on_receive_fields
 	minetest.override_item("jumpdrive:engine", {
+		_orig_on_receive_fields = orig_on_receive,
 		on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 			if not clicker or not clicker:is_player() then return itemstack end
 			if itemstack and itemstack:get_name() == "jumpdrive_tweaks:rangefinder" then
@@ -235,263 +496,37 @@ if engine_def then
 				return
 			end
 			local ok, res = jumpdrive.execute_jump(pos, puncher)
-			if not ok and res then
+			local is_emerging = not ok and type(res) == "string" and res:find("emergence initiated")
+			if is_emerging then
+				minetest.chat_send_player(name, "[Navigation] " .. tostring(res))
+			elseif not ok and res then
 				minetest.chat_send_player(name, "Jump aborted: " .. tostring(res))
 			end
 		end,
 
 		on_receive_fields = function(pos, formname, fields, sender)
-			local meta = minetest.get_meta(pos)
-
-			-- Handle Reset Button (aligns destination coords with ship position)
-			if fields.reset then
-				meta:set_int("x", pos.x)
-				meta:set_int("y", pos.y)
-				meta:set_int("z", pos.z)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			end
-
-			-- Handle Show / Project Bounds Button
-			if fields.show then
-				local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
-				local target_pos = {x = meta:get_int("x"), y = meta:get_int("y"), z = meta:get_int("z")}
-				local delta_vec = vector.subtract(target_pos, pos)
-				local target_min = vector.add(ship_scan.min_pos, delta_vec)
-				local target_max = vector.add(ship_scan.max_pos, delta_vec)
-
-				if minetest.get_modpath("vizlib") and vizlib and type(vizlib.draw_box) == "function" then
-					vizlib.draw_box(ship_scan.min_pos, ship_scan.max_pos, { color = "#00ff00", player = sender })
-					vizlib.draw_box(target_min, target_max, { color = "#ff0000", player = sender })
-				end
-				if sender and sender.is_player and sender:is_player() then
-					minetest.chat_send_player(sender:get_player_name(), string.format("Spacecraft Bounds: %d nodes (%d backbone) spanning [%d,%d,%d] to [%d,%d,%d] (%d×%d×%d)",
-						ship_scan.node_count, ship_scan.backbone_count,
-						ship_scan.min_pos.x, ship_scan.min_pos.y, ship_scan.min_pos.z,
-						ship_scan.max_pos.x, ship_scan.max_pos.y, ship_scan.max_pos.z,
-						ship_scan.size.x, ship_scan.size.y, ship_scan.size.z))
-				end
-				return
-			end
-
-			-- Always sync any modified coordinate text fields first
-			sync_coords_from_fields(meta, fields)
-
-			-- Handle orbital presets
-			if fields.preset_surface then
-				meta:set_int("x", pos.x)
-				meta:set_int("y", 20)
-				meta:set_int("z", pos.z)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_orbit then
-				meta:set_int("x", pos.x)
-				meta:set_int("y", 1200)
-				meta:set_int("z", pos.z)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_asteroids then
-				if pos.y < 1000 then
-					meta:set_int("x", pos.x)
-					meta:set_int("z", pos.z)
-				end
-				meta:set_int("y", 5200)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_mars then
-				if pos.y < 1000 then
-					meta:set_int("x", pos.x)
-					meta:set_int("z", pos.z)
-				end
-				meta:set_int("y", 6200)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_deep then
-				if pos.y < 1000 then
-					meta:set_int("x", pos.x)
-					meta:set_int("z", pos.z)
-				end
-				meta:set_int("y", 10000)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.preset_void then
-				if pos.y < 1000 then
-					meta:set_int("x", pos.x)
-					meta:set_int("z", pos.z)
-				end
-				meta:set_int("y", 20000)
-				jumpdrive.update_formspec(meta, pos)
-				return
-			end
-
-			-- Handle relative vector nudges
-			if fields.nudge_x_pos then
-				meta:set_int("x", jumpdrive.sanitize_coord(meta:get_int("x") + 500))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.nudge_x_neg then
-				meta:set_int("x", jumpdrive.sanitize_coord(meta:get_int("x") - 500))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.nudge_y_pos then
-				meta:set_int("y", jumpdrive.sanitize_coord(meta:get_int("y") + 250))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.nudge_y_neg then
-				meta:set_int("y", jumpdrive.sanitize_coord(meta:get_int("y") - 250))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.nudge_z_pos then
-				meta:set_int("z", jumpdrive.sanitize_coord(meta:get_int("z") + 500))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			elseif fields.nudge_z_neg then
-				meta:set_int("z", jumpdrive.sanitize_coord(meta:get_int("z") - 500))
-				jumpdrive.update_formspec(meta, pos)
-				return
-			end
-
-			-- Handle beacon plotting matching dropdown selection with 2-stage guidance
-			if fields.plot_beacon and fields.beacon_select then
-				local valid_beacons = jumpdrive_tweaks.get_valid_sorted_beacons and jumpdrive_tweaks.get_valid_sorted_beacons() or {}
-				local selected_index = tonumber(fields.beacon_select)
-				local selected_binfo = nil
-
-				if selected_index and selected_index > 1 then
-					local entry = valid_beacons[selected_index - 1]
-					if entry then
-						selected_binfo = entry.binfo
-					end
-				else
-					for _, entry in ipairs(valid_beacons) do
-						local label = entry.label
-						local escaped_label = minetest.formspec_escape(label)
-						if fields.beacon_select == label or fields.beacon_select == escaped_label then
-							selected_binfo = entry.binfo
-							break
-						end
-					end
-				end
-
-				if selected_binfo and selected_binfo.pos then
-					local binfo = selected_binfo
-					local bx = math.floor(binfo.pos.x)
-					local by = math.floor(binfo.pos.y)
-					local bz = math.floor(binfo.pos.z)
-					local bname = binfo.name or "Beacon"
-
-						-- Compute standoff-adjusted arrival position for space targets.
-						-- Uses the same effective_radius + margin approach as the
-						-- Optical Rangefinder to prevent materializing inside structures.
-						local function compute_standoff_arrival(target_x, target_y, target_z)
-							local beacon_pos = {x = target_x, y = target_y, z = target_z}
-							local dist = vector.distance(pos, beacon_pos)
-							if dist < 1 then
-								return target_x, target_y, target_z, 0
-							end
-
-							local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
-							local effective_radius = ship_scan and ship_scan.effective_radius or 5
-							local standoff_margin = 20
-							local standoff_distance = effective_radius + standoff_margin
-
-							if dist <= standoff_distance then
-								return target_x, target_y, target_z, 0
-							end
-
-							local dir = vector.direction(pos, beacon_pos)
-							local delta_dist = dist - standoff_distance
-							local ax = jumpdrive.sanitize_coord(math.floor(pos.x + dir.x * delta_dist + 0.5))
-							local ay = jumpdrive.sanitize_coord(math.floor(pos.y + dir.y * delta_dist + 0.5))
-							local az = jumpdrive.sanitize_coord(math.floor(pos.z + dir.z * delta_dist + 0.5))
-							return ax, ay, az, standoff_distance
-						end
-
-						-- Case A: Ship in orbit/space (Y >= 1000) and target beacon on surface (Y < 1000)
-						if pos.y >= 1000 and by < 1000 then
-							if pos.x ~= bx or pos.z ~= bz then
-								-- Stage 1: Plot orbital approach waypoint directly above beacon
-								meta:set_int("x", jumpdrive.sanitize_coord(bx))
-								meta:set_int("y", 1200)
-								meta:set_int("z", jumpdrive.sanitize_coord(bz))
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									minetest.chat_send_player(sender:get_player_name(), string.format("Orbital Guidance: Plotted approach vector above [%s] at (%d, 1200, %d). Once in position, plot vertical touchdown.", bname, bx, bz))
-								end
-								return
-							else
-								-- Stage 2: Already aligned horizontally in orbit -> plot vertical descent
-								meta:set_int("x", jumpdrive.sanitize_coord(bx))
-								meta:set_int("y", jumpdrive.sanitize_coord(by))
-								meta:set_int("z", jumpdrive.sanitize_coord(bz))
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									minetest.chat_send_player(sender:get_player_name(), string.format("Landing Guidance: Ship aligned in orbit. Plotted vertical descent to [%s] at (%d, %d, %d).", bname, bx, by, bz))
-								end
-								return
-							end
-						-- Case B: Ship on surface (Y < 1000) and target beacon in space (Y >= 1000)
-						elseif pos.y < 1000 and by >= 1000 then
-							if pos.x ~= bx or pos.z ~= bz then
-								-- Stage 1: Plot vertical ascent into orbit first
-								meta:set_int("x", jumpdrive.sanitize_coord(pos.x))
-								meta:set_int("y", 1200)
-								meta:set_int("z", jumpdrive.sanitize_coord(pos.z))
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									minetest.chat_send_player(sender:get_player_name(), string.format("Atmospheric Guidance: Plotted vertical ascent to orbit (Y=1,200). Once in orbit, navigate to [%s].", bname))
-								end
-								return
-							else
-								-- Vertical ascent to space beacon; apply standoff
-								local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
-								meta:set_int("x", ax)
-								meta:set_int("y", ay)
-								meta:set_int("z", az)
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									if so > 0 then
-										minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted ascent to [%s] at (%d, %d, %d) [Standoff: %dm].", bname, ax, ay, az, so))
-									else
-										minetest.chat_send_player(sender:get_player_name(), string.format("Launch Guidance: Plotted vertical ascent to [%s] at (%d, %d, %d).", bname, ax, ay, az))
-									end
-								end
-								return
-							end
-						else
-							-- Case C: Direct navigation (both in space or both on surface)
-							if by >= 1000 then
-								-- Space target: apply standoff to avoid materializing inside structures
-								local ax, ay, az, so = compute_standoff_arrival(bx, by, bz)
-								meta:set_int("x", ax)
-								meta:set_int("y", ay)
-								meta:set_int("z", az)
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									if so > 0 then
-										minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d) [Standoff: %dm]", bname, ax, ay, az, so))
-									else
-										minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, ax, ay, az))
-									end
-								end
-							else
-								-- Surface target: direct coordinates (player-placed beacons)
-								meta:set_int("x", jumpdrive.sanitize_coord(bx))
-								meta:set_int("y", jumpdrive.sanitize_coord(by))
-								meta:set_int("z", jumpdrive.sanitize_coord(bz))
-								jumpdrive.update_formspec(meta, pos)
-								if sender then
-									minetest.chat_send_player(sender:get_player_name(), string.format("Navigation plotted to beacon: [%s] at (%d, %d, %d)", bname, bx, by, bz))
-								end
-							end
-							return
-						end
-					end
-				end
-
-			if orig_on_receive_fields then
-				return orig_on_receive_fields(pos, formname, fields, sender)
-			end
+			jumpdrive_tweaks.handle_flight_fields(pos, fields, sender, false, formname)
 		end
 	})
 end
+
+-- Global handler for Bridge Console formspec submissions
+if minetest.register_on_player_receive_fields then
+	minetest.register_on_player_receive_fields(function(player, formname, fields)
+		if not player or not player:is_player() then return end
+		if formname:find("^jumpdrive_tweaks:bridge_console_") then
+			local pos_str = formname:gsub("^jumpdrive_tweaks:bridge_console_", "")
+			local engine_pos = minetest.string_to_pos(pos_str)
+			if engine_pos then
+				local playername = player:get_player_name()
+				if minetest.is_protected(engine_pos, playername) then
+					minetest.chat_send_player(playername, "Jump Core is protected!")
+					return true
+				end
+				jumpdrive_tweaks.handle_flight_fields(engine_pos, fields, player, true, formname)
+				return true
+			end
+		end
+	end)
+end
+

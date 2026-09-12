@@ -48,11 +48,19 @@ local function handle_rangefinder(itemstack, user, pointed_thing)
 	local playername = user:get_player_name()
 	local meta = itemstack:get_meta()
 
-	-- Check if pointed directly at an engine block to link
+	-- Check if pointed directly at an engine block or bridge console to link
 	if pointed_thing and pointed_thing.type == "node" and pointed_thing.under then
 		local node = minetest.get_node(pointed_thing.under)
 		if node.name == "jumpdrive:engine" then
 			return jumpdrive_tweaks.link_rangefinder(itemstack, user, pointed_thing.under)
+		elseif node.name == "jumpdrive_tweaks:bridge_console" then
+			local engine_pos, err = jumpdrive_tweaks.find_connected_engine(pointed_thing.under)
+			if engine_pos then
+				return jumpdrive_tweaks.link_rangefinder(itemstack, user, engine_pos)
+			else
+				minetest.chat_send_player(playername, "[Bridge Console] Cannot link Rangefinder: " .. (err or "No Jump Core connected."))
+				return itemstack
+			end
 		end
 	end
 
