@@ -62,7 +62,7 @@ spacesuit_tweaks.PROPELLANTS = {
 	},
 }
 
--- -- Sound and control state tracking
+-- Sound and control state tracking
 local player_sound_handles = {} -- pname -> sound_handle
 local last_warn_time = {}
 local prev_player_controls = {} -- pname -> table of keys {jump, sneak, up, down, left, right}
@@ -70,12 +70,12 @@ local prev_player_controls = {} -- pname -> table of keys {jump, sneak, up, down
 local function start_thruster_sound(player)
 	local pname = player:get_player_name()
 	if not player_sound_handles[pname] then
-		local handle = minetest.sound_play("default_cool_lava", {
+		local handle = minetest.sound_play("spacesuit_eva_thruster_loop", {
 			object = player,
-			gain = 0.35,
-			pitch = 1.6,
+			gain = 0.15,
+			pitch = 1.0,
 			loop = true,
-			max_hear_distance = 15,
+			max_hear_distance = 12,
 		})
 		player_sound_handles[pname] = handle or true
 	end
@@ -231,9 +231,9 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 
 		minetest.sound_play("default_cool_lava", {
 			pos = ppos,
-			gain = 0.45,
+			gain = 0.25,
 			pitch = 1.8,
-			max_hear_distance = 15,
+			max_hear_distance = 12,
 		})
 		spawn_rcs_particles(ppos, look_dir)
 		return itemstack
