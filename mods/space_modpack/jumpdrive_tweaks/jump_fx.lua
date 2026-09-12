@@ -6,11 +6,11 @@ jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
 -- Calculate distance-scaled spool duration
 function jumpdrive_tweaks.get_spool_duration(distance)
 	if not distance or distance <= 1000 then
-		return 1.6
+		return 2.2
 	elseif distance <= 5000 then
-		return 2.0
+		return 3.0
 	else
-		return 2.5
+		return 4.0
 	end
 end
 
@@ -151,6 +151,14 @@ function jumpdrive_tweaks.on_jump_discontinuity(source_pos, target_pos, ship_sca
 	   or not ship_scan.max_pos or not ship_scan.max_pos.x
 	   or not delta_vector or not delta_vector.x then
 		return
+	end
+
+	-- Stop pre-jump spool audio immediately upon jump discontinuity
+	if fx_handle and fx_handle.sound_handles and minetest.sound_stop then
+		for _, sh in ipairs(fx_handle.sound_handles) do
+			minetest.sound_stop(sh)
+		end
+		fx_handle.sound_handles = {}
 	end
 
 	local target_min = vector.add(ship_scan.min_pos, delta_vector)

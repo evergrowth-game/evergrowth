@@ -1284,11 +1284,11 @@ end)
 -- Test 30: Hyperjump Sensory Feedback & FX Lifecycle
 run_test("Hyperjump Feedback: Spool scaling, ambient HUD glow lifecycle, exterior shockwave ring, and clean abort", function()
 	-- 1. Spool duration scaling
-	assert_eq(jumpdrive_tweaks.get_spool_duration(100), 1.6, "Short jump (< 1km) is 1.6s")
-	assert_eq(jumpdrive_tweaks.get_spool_duration(1000), 1.6, "1km jump is 1.6s")
-	assert_eq(jumpdrive_tweaks.get_spool_duration(3000), 2.0, "3km jump is 2.0s")
-	assert_eq(jumpdrive_tweaks.get_spool_duration(5000), 2.0, "5km jump is 2.0s")
-	assert_eq(jumpdrive_tweaks.get_spool_duration(12000), 2.5, "Long jump (> 5km) is 2.5s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(100), 2.2, "Short jump (< 1km) is 2.2s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(1000), 2.2, "1km jump is 2.2s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(3000), 3.0, "3km jump is 3.0s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(5000), 3.0, "5km jump is 3.0s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(12000), 4.0, "Long jump (> 5km) is 4.0s")
 
 	-- 2. Mock player with HUD
 	local hud_added = {}
@@ -1323,7 +1323,7 @@ run_test("Hyperjump Feedback: Spool scaling, ambient HUD glow lifecycle, exterio
 	}
 	local fx_handle = jumpdrive_tweaks.start_spool_fx({x = 10, y = 1000, z = 10}, 8000, ship_scan)
 	assert_true(fx_handle ~= nil, "FX handle created")
-	assert_eq(fx_handle.spool_time, 2.5, "Spool time matches 2.5s")
+	assert_eq(fx_handle.spool_time, 4.0, "Spool time matches 4.0s")
 	assert_eq(#hud_added, 1, "Ambient glow HUD added to passenger")
 	assert_eq(hud_added[1].text, "jumpdrive_warp_glow.png", "Ambient glow texture used")
 

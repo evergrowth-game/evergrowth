@@ -47,6 +47,11 @@ local function trigger_jump_lever(pos, player)
 	local target_pos = jumpdrive.get_meta_pos(engine_pos)
 	local delta = vector.subtract(target_pos, engine_pos)
 
+	local distance = vector.distance(engine_pos, target_pos)
+	local spool_time = (jumpdrive_tweaks.get_spool_duration and jumpdrive_tweaks.get_spool_duration(distance)) or 2.2
+	local timer = minetest.get_node_timer(pos)
+	if timer then timer:start(spool_time + 1.5) end
+
 	-- Execute the jump
 	local ok, res = jumpdrive.execute_jump(engine_pos, player)
 	local is_emerging = not ok and type(res) == "string" and res:find("emergence initiated")
@@ -56,7 +61,7 @@ local function trigger_jump_lever(pos, player)
 			minetest.chat_send_player(playername, "[Navigation] " .. tostring(res))
 		end
 		-- Automatic reset after jump translation completes
-		minetest.after(0.5, function()
+		minetest.after(spool_time + 0.3, function()
 			local new_pos = vector.add(pos, delta)
 			local current_node = minetest.get_node(new_pos)
 			if current_node.name == "jumpdrive_tweaks:jump_lever_on" then
