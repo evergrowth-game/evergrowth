@@ -157,39 +157,47 @@ function jumpdrive_tweaks.on_jump_discontinuity(source_pos, target_pos, ship_sca
 	local target_max = vector.add(ship_scan.max_pos, delta_vector)
 	local passengers = jumpdrive_tweaks.get_ship_passengers(target_min, target_max)
 
+	-- Collect all target player names (from destination scan + spool handle)
+	local target_players = {}
+	for _, p in ipairs(passengers) do
+		local name = p:get_player_name()
+		if name and name ~= "" then target_players[name] = true end
+	end
+	if fx_handle and fx_handle.hud_entries then
+		for _, entry in ipairs(fx_handle.hud_entries) do
+			if entry.player_name and entry.player_name ~= "" then
+				target_players[entry.player_name] = true
+			end
+		end
+	end
+
 	-- 1. Rupture sound at destination (positional and direct to passengers)
 	if minetest.sound_play then
 		minetest.sound_play("jumpdrive_rupture", {
 			pos = target_pos,
 			max_hear_distance = 75,
-			gain = 0.70,
+			gain = 0.75,
 		})
-		for _, player in ipairs(passengers) do
-			local pname = player:get_player_name()
-			if pname then
-				minetest.sound_play("jumpdrive_rupture", {
-					to_player = pname,
-					gain = 0.85,
-				})
-			end
+		for pname, _ in pairs(target_players) do
+			minetest.sound_play("jumpdrive_rupture", {
+				to_player = pname,
+				gain = 0.85,
+			})
 		end
 
-		-- Soft cooldown spin-down audio (low gain)
+		-- Soft cooldown spin-down audio
 		if minetest.after then
 			minetest.after(0.25, function()
 				minetest.sound_play("jumpdrive_cooldown", {
 					pos = target_pos,
 					max_hear_distance = 45,
-					gain = 0.20,
+					gain = 0.35,
 				})
-				for _, player in ipairs(passengers) do
-					local pname = player:get_player_name()
-					if pname then
-						minetest.sound_play("jumpdrive_cooldown", {
-							to_player = pname,
-							gain = 0.20,
-						})
-					end
+				for pname, _ in pairs(target_players) do
+					minetest.sound_play("jumpdrive_cooldown", {
+						to_player = pname,
+						gain = 0.40,
+					})
 				end
 			end)
 		end
