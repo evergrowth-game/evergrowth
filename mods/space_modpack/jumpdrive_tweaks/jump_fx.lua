@@ -6,11 +6,11 @@ jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
 -- Calculate distance-scaled spool duration
 function jumpdrive_tweaks.get_spool_duration(distance)
 	if not distance or distance <= 1000 then
-		return 0.8
+		return 1.6
 	elseif distance <= 5000 then
-		return 1.2
+		return 2.0
 	else
-		return 1.5
+		return 2.5
 	end
 end
 
