@@ -92,96 +92,120 @@ def make_console_screen(w=32, h=32):
 
 
 def make_console_front(w=32, h=32):
-    # Cockpit keyboard matrix, throttle dials, status LEDs on light alloy panel
+    # Clean, organized cockpit flight deck: status strip, throttle sliders, structured keypad
     pixels = []
-    panel_base = (145, 155, 168, 255)
-    panel_dark = (110, 120, 132, 255)
-    panel_rim = (85, 95, 108, 255)
-    key_bg = (40, 46, 56, 255)
-    key_cyan = (0, 215, 255, 255)
-    key_amber = (245, 160, 20, 255)
-    key_green = (0, 255, 130, 255)
-    led_green = (0, 255, 130, 255)
-    led_red = (255, 55, 65, 255)
-    led_blue = (0, 180, 255, 255)
+    panel_bg = (34, 40, 50, 255)       # Calm aerospace dark slate
+    panel_border = (50, 58, 70, 255)   # Subtle panel rim
+    track_slot = (18, 22, 28, 255)     # Dark slider track
+    slider_thumb = (220, 228, 238, 255) # Polished slider grip
+    key_body = (48, 56, 68, 255)       # Uniform dark keycap
+    key_rim = (62, 72, 86, 255)        # Keycap bevel
+    key_label_blue = (90, 175, 235, 255) # Soft cyan function key label
+    key_label_amber = (240, 175, 50, 255) # Amber enter / execute key
+    key_label_white = (205, 215, 230, 255) # Clean numpad label
+
+    led_green = (0, 230, 120, 255)
+    led_blue = (0, 170, 255, 255)
+    led_amber = (245, 170, 25, 255)
+    led_red = (240, 55, 65, 255)
 
     for y in range(h):
         for x in range(w):
-            # Outer border / bevel
+            # Outer clean 1px bezel
             if x == 0 or x == w - 1 or y == 0 or y == h - 1:
-                pixels.append(panel_rim)
-            # Top LED diagnostic bar (y = 2..5)
+                pixels.append(panel_border)
+
+            # 1. Top Status Annunciator Bar (y = 2..5)
             elif 2 <= y <= 5:
                 if 4 <= x <= 7:
                     pixels.append(led_green)
-                elif 10 <= x <= 13:
+                elif 11 <= x <= 14:
                     pixels.append(led_blue)
-                elif 16 <= x <= 19:
-                    pixels.append(key_amber)
-                elif 22 <= x <= 25:
+                elif 18 <= x <= 21:
+                    pixels.append(led_amber)
+                elif 25 <= x <= 28:
                     pixels.append(led_red)
                 else:
-                    pixels.append(panel_dark)
-            # Throttle slider section (middle y = 7..13)
-            elif 7 <= y <= 13 and 3 <= x <= 28:
-                if x in (8, 16, 24):
-                    # Slider track
-                    if y in (9, 10):
-                        pixels.append((240, 245, 255, 255))  # Slider thumb
+                    pixels.append(panel_bg)
+
+            # Divider line (y = 7)
+            elif y == 7 and 2 <= x <= w - 3:
+                pixels.append(panel_border)
+
+            # 2. Throttle Bank (middle y = 9..15)
+            elif 9 <= y <= 15:
+                if x in (7, 15, 23):
+                    # Slider track slot
+                    if (x == 7 and y in (11, 12)) or (x == 15 and y in (10, 11)) or (x == 23 and y in (12, 13)):
+                        pixels.append(slider_thumb)
                     else:
-                        pixels.append((25, 30, 38, 255))
-                elif x in (7, 9, 15, 17, 23, 25):
-                    # Slider slot border
-                    pixels.append((70, 78, 88, 255))
-                elif y == 10 and (x in (5, 6, 13, 14, 21, 22, 26, 27)):
-                    pixels.append((0, 200, 180, 255))  # Calibration tick mark
+                        pixels.append(track_slot)
+                elif x in (6, 8, 14, 16, 22, 24):
+                    pixels.append((26, 32, 40, 255))
                 else:
-                    pixels.append(panel_base)
-            # Keypad matrix (bottom half y = 15..29)
-            elif 15 <= y <= 29 and 3 <= x <= 28:
-                if (x - 3) % 4 == 0 or (y - 15) % 4 == 0:
-                    pixels.append(panel_dark)
-                else:
-                    if (x + y) % 6 == 0:
-                        pixels.append(key_cyan)
-                    elif (x * y) % 9 == 0:
-                        pixels.append(key_amber)
-                    elif x >= 24 and y >= 24:
-                        pixels.append(key_green)
+                    pixels.append(panel_bg)
+
+            # Divider line (y = 17)
+            elif y == 17 and 2 <= x <= w - 3:
+                pixels.append(panel_border)
+
+            # 3. Clean Structured Keypad (bottom y = 19..29)
+            # Left Cluster: 3x3 Nav Keys (x: 4..13)
+            # Right Cluster: 3x3 Coordinate Numpad (x: 18..27)
+            elif 19 <= y <= 29:
+                in_left_col = (4 <= x <= 6) or (8 <= x <= 10) or (12 <= x <= 14)
+                in_right_col = (17 <= x <= 19) or (21 <= x <= 23) or (25 <= x <= 27)
+                in_row = (19 <= y <= 21) or (23 <= y <= 25) or (27 <= y <= 29)
+
+                if (in_left_col or in_right_col) and in_row:
+                    is_center = False
+                    if in_left_col and (x in (5, 9, 13)) and (y in (20, 24, 28)):
+                        is_center = True
+                    elif in_right_col and (x in (18, 22, 26)) and (y in (20, 24, 28)):
+                        is_center = True
+
+                    if is_center:
+                        if in_left_col:
+                            pixels.append(key_label_blue if y < 28 else key_label_amber)
+                        else:
+                            pixels.append(key_label_white)
+                    elif x in (4, 8, 12, 17, 21, 25) or y in (19, 23, 27):
+                        pixels.append(key_rim)
                     else:
-                        pixels.append(key_bg)
+                        pixels.append(key_body)
+                else:
+                    pixels.append(panel_bg)
+
             else:
-                pixels.append(panel_base)
+                pixels.append(panel_bg)
     return pixels
 
 
 def make_console_side(w=16, h=16):
-    # Light brushed titanium alloy starship panel with chamfered seams and rivets
+    # Seamless brushed titanium alloy panel without corner rivets or clashing borders
     pixels = []
-    base = (148, 158, 170, 255)
-    base_light = (175, 186, 200, 255)
-    base_shadow = (105, 115, 128, 255)
-    seam = (75, 84, 96, 255)
-    rivet = (225, 235, 248, 255)
+    base_alloy = (148, 156, 168, 255)
+    alloy_grain1 = (154, 162, 174, 255)
+    alloy_grain2 = (142, 150, 162, 255)
+    edge_highlight = (168, 176, 188, 255)
+    edge_shadow = (130, 138, 150, 255)
 
     for y in range(h):
         for x in range(w):
-        # Corner / mounting rivets
-            if (x in (2, 13) and y in (2, 13)) or (x in (2, 13) and y in (7, 8)):
-                pixels.append(rivet)
-            # Outer bevels and seam lines
-            elif x == 0 or y == 0:
-                pixels.append(base_light)
-            elif x == w - 1 or y == h - 1 or y == 8:
-                pixels.append(seam)
-            elif x == 1 or y == 1:
-                pixels.append(base_light)
-            elif x == w - 2 or y == h - 2 or y == 7:
-                pixels.append(base_shadow)
-            elif (x + y) % 4 == 0:
-                pixels.append((155, 165, 178, 255))
+            # Subtle top/bottom edge shading for 3D depth
+            if y == 0:
+                pixels.append(edge_highlight)
+            elif y == h - 1:
+                pixels.append(edge_shadow)
+            # Gentle horizontal brushed metal grain (seamless across box junctions)
+            elif y % 4 == 0:
+                pixels.append(alloy_grain1)
+            elif y % 4 == 2:
+                pixels.append(alloy_grain2)
+            elif (x + y) % 5 == 0:
+                pixels.append(alloy_grain1)
             else:
-                pixels.append(base)
+                pixels.append(base_alloy)
     return pixels
 
 
