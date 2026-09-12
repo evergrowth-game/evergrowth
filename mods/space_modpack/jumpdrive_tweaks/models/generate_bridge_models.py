@@ -59,12 +59,12 @@ def generate_obj(filename, parts):
 
                 vi = vertex_index
                 faces_for_mat.extend([
-                    (vi + 0, vi + 1, vi + 2, vi + 3), # North / Front (Z1)
-                    (vi + 5, vi + 4, vi + 7, vi + 6), # South / Back (Z2)
-                    (vi + 4, vi + 0, vi + 3, vi + 7), # West / Left (X1)
-                    (vi + 1, vi + 5, vi + 6, vi + 2), # East / Right (X2)
-                    (vi + 3, vi + 2, vi + 6, vi + 7), # Top (Y2)
-                    (vi + 4, vi + 5, vi + 1, vi + 0), # Bottom (Y1)
+                    (vi + 3, vi + 2, vi + 1, vi + 0), # North / Front (Z1)
+                    (vi + 6, vi + 7, vi + 4, vi + 5), # South / Back (Z2)
+                    (vi + 7, vi + 3, vi + 0, vi + 4), # West / Left (X1)
+                    (vi + 2, vi + 6, vi + 5, vi + 1), # East / Right (X2)
+                    (vi + 7, vi + 6, vi + 2, vi + 3), # Top (Y2)
+                    (vi + 0, vi + 1, vi + 5, vi + 4), # Bottom (Y1)
                 ])
                 vertex_index += 8
             elif len(shape) == 7 and shape[0] == "cyl_x":
@@ -124,23 +124,32 @@ def generate_obj(filename, parts):
 
 MODELS = {
     # 1. BRIDGE NAVIGATION CONSOLE
-    # Material 1: Hull metal casing (jumpdrive_bridge_console_side.png)
-    # Material 2: Screen display (jumpdrive_bridge_console_top.png)
-    # Material 3: Controls, keyboard, dial panels (jumpdrive_bridge_console_front.png)
+    # Seamless starship cockpit navigation terminal
+    # Material 1: Brushed Titanium Alloy Casing (jumpdrive_bridge_console_side.png)
+    # Material 2: High-contrast Radar / Nav Screen (jumpdrive_bridge_console_top.png)
+    # Material 3: Cockpit Control Panel (jumpdrive_bridge_console_front.png)
     "jumpdrive_bridge_console.obj": [
         ("Mat1_Casing", [
-            (-0.45, -0.50, -0.45,  0.45, -0.20,  0.45), # Base pedestal
-            (-0.40, -0.20, -0.40,  0.40,  0.05,  0.40), # Main desk column
-            (-0.48,  0.05, -0.45,  0.48,  0.14,  0.08), # Lower keyboard desk slab
-            (-0.44,  0.08,  0.12,  0.44,  0.48,  0.44), # Back screen housing / bezel
-            (-0.48,  0.08, -0.45, -0.42,  0.20,  0.08), # Left side guard
-            ( 0.42,  0.08, -0.45,  0.48,  0.20,  0.08), # Right side guard
+            # Floor mounting plinth
+            (-0.42, -0.50, -0.42,  0.42, -0.38,  0.42),
+            # Sleek central pedestal column
+            (-0.34, -0.38, -0.32,  0.34,  0.00,  0.32),
+            # Solid main desk chassis spanning entire depth (no gaps)
+            (-0.46,  0.00, -0.44,  0.46,  0.13,  0.42),
+            # Left flush side armor rail
+            (-0.48,  0.02, -0.44, -0.44,  0.15,  0.42),
+            # Right flush side armor rail
+            ( 0.44,  0.02, -0.44,  0.48,  0.15,  0.42),
+            # Angled monitor housing (deep base anchored inside desk slab to eliminate gaps)
+            ("rot_x", (22, 0.05, 0.10, (-0.42, 0.02, 0.10, 0.42, 0.44, 0.22))),
         ]),
         ("Mat2_Screen", [
-            (-0.38,  0.14,  0.09,  0.38,  0.44,  0.13), # Radar & Navigation HUD (proud of back housing)
+            # Angled Radar / Nav display screen inset into front face of monitor housing
+            ("rot_x", (22, 0.05, 0.10, (-0.36, 0.08, 0.088, 0.36, 0.41, 0.108))),
         ]),
         ("Mat3_Controls", [
-            (-0.40,  0.14, -0.42,  0.40,  0.16,  0.05), # Keyboard matrix, throttle sliders, LED strip
+            # Flush flight control keypad & throttle matrix inset on desk surface
+            (-0.40, 0.131, -0.40, 0.40, 0.138, 0.06),
         ]),
     ],
 
@@ -161,7 +170,7 @@ MODELS = {
     ],
 
     # 3. HEAVY INDUSTRIAL JUMP LEVER (ENGAGED / PULLED FORWARD STATE)
-    # Uses exact rigid rotation of -65 degrees around pivot axle (y=0.01, z=0.28)
+    # Uses exact rigid rotation of -85 degrees around pivot axle (y=0.01, z=0.28)
     "jumpdrive_jump_lever_on.obj": [
         ("Mat1_Bracket", [
             (-0.22, -0.32,  0.40,  0.22,  0.32,  0.50), # Backplate mount
@@ -170,8 +179,8 @@ MODELS = {
             ("cyl_x", -0.16, 0.16, 0.01, 0.28, 0.045, 8), # Center pivot pin
         ]),
         ("Mat2_Lever", [
-            ("rot_x", (-65, 0.01, 0.28, (-0.05, -0.04, 0.22, 0.05, 0.36, 0.32))), # Rotated actuator arm
-            ("rot_x", (-65, 0.01, 0.28, (-0.10,  0.34, 0.18, 0.10, 0.45, 0.36))), # Rotated T-handle grip
+            ("rot_x", (-85, 0.01, 0.28, (-0.05, -0.04, 0.22, 0.05, 0.36, 0.32))), # Rotated actuator arm
+            ("rot_x", (-85, 0.01, 0.28, (-0.10,  0.34, 0.18, 0.10, 0.45, 0.36))), # Rotated T-handle grip
         ]),
     ],
 }
