@@ -135,7 +135,7 @@ else
 	})
 end
 
--- 10. Tactile Quick-Jump Lever
+-- 10. Jump Lever
 minetest.register_craft({
 	output = "jumpdrive_tweaks:jump_lever",
 	recipe = {

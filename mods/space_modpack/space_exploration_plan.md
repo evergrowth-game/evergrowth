@@ -103,9 +103,9 @@ mods/space_modpack/
 * **Continuous Altitude Gradients:** Dynamic realm transitions scaling Earth radius from Low Orbit (Y=1000..2500) down to Mid Orbit (Y=2500..4500), High Orbit (Y=4500..6000), and Distant Space (Y>=6000).
 * **Atmospheric Scattering & 3D Shading:** Custom shader-style procedural asset generation with continental noise, weather systems, polar caps, Rayleigh limb brightening, and directional solar illumination.
 
-### 2.11 Starship Bridge Navigation Console & Tactile Quick-Jump Lever (`bridge_console.lua`, `jump_lever.lua`) [DONE]
+### 2.11 Starship Bridge Navigation Console & Jump Lever (`bridge_console.lua`, `jump_lever.lua`) [DONE]
 * **Bridge Navigation Console (`jumpdrive_tweaks:bridge_console`):** Dedicated cockpit terminal desk node (`drawtype = "mesh"`) proxying flight deck navigation, coordinate presets, beacon guidance, and propellant telemetry directly to the remote `jumpdrive:engine` core over the vessel backbone network. Real-time visual diagnostics and infotext synced via throttled node timers.
-* **Tactile Quick-Jump Lever (`jumpdrive_tweaks:jump_lever`):** Wall/console mounted physical switch with automatic engage/reset state cycle for instant non-GUI jump execution of locked coordinates, equipped with preflight verification and abort buzzer alarms.
+* **Jump Lever (`jumpdrive_tweaks:jump_lever`):** Wall/console mounted physical switch with automatic engage/reset state cycle for instant non-GUI jump execution of locked coordinates, equipped with preflight verification and abort buzzer alarms.
 * **Contiguous Engine Resolution (`find_connected_engine`):** 26-connectivity BFS graph traversal across contiguous hull nodes and backbone lines allowing any peripheral bridge control node to locate and bind to the ship's engine core.
 * **Procedural 3D Mesh & Texture Assets:** Geometric Wavefront OBJ models (`jumpdrive_bridge_console.obj`, `jumpdrive_jump_lever_off.obj`, `jumpdrive_jump_lever_on.obj`) and pixel art textures generated via automated Python pipelines.
 

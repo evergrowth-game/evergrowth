@@ -77,7 +77,7 @@ end
 
 -- 1. Disengaged State (Upright handle)
 minetest.register_node("jumpdrive_tweaks:jump_lever", {
-	description = S("Tactile Quick-Jump Lever"),
+	description = S("Jump Lever"),
 	drawtype = "mesh",
 	mesh = "jumpdrive_jump_lever_off.obj",
 	tiles = {
@@ -110,7 +110,7 @@ minetest.register_node("jumpdrive_tweaks:jump_lever", {
 
 -- 2. Engaged State (Pulled forward handle)
 minetest.register_node("jumpdrive_tweaks:jump_lever_on", {
-	description = S("Tactile Quick-Jump Lever (Engaged)"),
+	description = S("Jump Lever (Engaged)"),
 	drawtype = "mesh",
 	mesh = "jumpdrive_jump_lever_on.obj",
 	tiles = {
@@ -136,4 +136,4 @@ minetest.register_node("jumpdrive_tweaks:jump_lever_on", {
 	end,
 })
 
-minetest.log("action", "[jumpdrive_tweaks] Loaded Tactile Quick-Jump Lever.")
+minetest.log("action", "[jumpdrive_tweaks] Loaded Jump Lever.")

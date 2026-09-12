@@ -95,54 +95,53 @@ def generate_obj(filename, parts):
 
 MODELS = {
     # 1. BRIDGE NAVIGATION CONSOLE
-    # Material 1: Hull metal casing (default_steel_block or jumpdrive_bridge_console_side.png)
+    # Material 1: Hull metal casing (jumpdrive_bridge_console_side.png)
     # Material 2: Screen display (jumpdrive_bridge_console_top.png)
     # Material 3: Controls, keyboard, dial panels (jumpdrive_bridge_console_front.png)
     "jumpdrive_bridge_console.obj": [
         ("Mat1_Casing", [
-            (-0.45, -0.50, -0.45,  0.45, -0.25,  0.45), # Base pedestal
-            (-0.40, -0.25, -0.40,  0.40,  0.05,  0.40), # Main desk column
-            (-0.48,  0.05, -0.45,  0.48,  0.15,  0.45), # Table desk slab
-            (-0.44,  0.15,  0.10,  0.44,  0.48,  0.42), # Screen housing / back bezel
-            (-0.48,  0.10, -0.46, -0.42,  0.22,  0.10), # Left armrest/guard
-            ( 0.42,  0.10, -0.46,  0.48,  0.22,  0.10), # Right armrest/guard
+            (-0.45, -0.50, -0.45,  0.45, -0.20,  0.45), # Base pedestal
+            (-0.40, -0.20, -0.40,  0.40,  0.05,  0.40), # Main desk column
+            (-0.48,  0.05, -0.45,  0.48,  0.14,  0.08), # Lower keyboard desk slab
+            (-0.44,  0.08,  0.12,  0.44,  0.48,  0.44), # Back screen housing / bezel
+            (-0.48,  0.08, -0.45, -0.42,  0.20,  0.08), # Left side guard
+            ( 0.42,  0.08, -0.45,  0.48,  0.20,  0.08), # Right side guard
         ]),
         ("Mat2_Screen", [
-            (-0.38,  0.18,  0.15,  0.38,  0.45,  0.38), # Main flight radar & nav HUD display
+            (-0.38,  0.14,  0.09,  0.38,  0.44,  0.13), # Radar & Navigation HUD (proud of back housing)
         ]),
         ("Mat3_Controls", [
-            (-0.40,  0.15, -0.40,  0.40,  0.17, -0.05), # Slanted keyboard & touch matrix
-            (-0.40,  0.15, -0.05,  0.40,  0.19,  0.10), # Telemetry LED bar & throttle deck
+            (-0.40,  0.14, -0.42,  0.40,  0.16,  0.05), # Keyboard matrix, throttle sliders, LED strip
         ]),
     ],
 
-    # 2. TACTILE JUMP LEVER (DISENGAGED / UPRIGHT STATE)
+    # 2. HEAVY INDUSTRIAL JUMP LEVER (DISENGAGED / UPRIGHT STATE)
     # Material 1: Base bracket and hinge axle
-    # Material 2: Lever handle and warning grip
+    # Material 2: Lever handle and hazard grip
     "jumpdrive_jump_lever_off.obj": [
         ("Mat1_Bracket", [
-            (-0.25, -0.35,  0.38,  0.25,  0.35,  0.50), # Backplate mounting surface
-            (-0.16, -0.15,  0.15, -0.08,  0.15,  0.38), # Left hinge bracket
-            ( 0.08, -0.15,  0.15,  0.16,  0.15,  0.38), # Right hinge bracket
-            ("cyl_x", -0.16, 0.16, 0.0, 0.25, 0.04, 8), # Center pivot pin
+            (-0.22, -0.32,  0.40,  0.22,  0.32,  0.50), # Backplate mount
+            (-0.16, -0.12,  0.18, -0.08,  0.14,  0.40), # Left hinge bracket
+            ( 0.08, -0.12,  0.18,  0.16,  0.14,  0.40), # Right hinge bracket
+            ("cyl_x", -0.16, 0.16, 0.01, 0.28, 0.045, 8), # Center pivot pin
         ]),
         ("Mat2_Lever", [
-            (-0.05, -0.05,  0.18,  0.05,  0.38,  0.28), # Upright lever shaft
-            (-0.08,  0.36,  0.14,  0.08,  0.48,  0.32), # Industrial grip head
+            (-0.05, -0.04,  0.22,  0.05,  0.36,  0.32), # Heavy upright actuator arm
+            (-0.10,  0.34,  0.18,  0.10,  0.45,  0.36), # Industrial T-handle hazard grip
         ]),
     ],
 
-    # 3. TACTILE JUMP LEVER (ENGAGED / PULLED FORWARD STATE)
+    # 3. HEAVY INDUSTRIAL JUMP LEVER (ENGAGED / PULLED FORWARD STATE)
     "jumpdrive_jump_lever_on.obj": [
         ("Mat1_Bracket", [
-            (-0.25, -0.35,  0.38,  0.25,  0.35,  0.50), # Backplate mounting surface
-            (-0.16, -0.15,  0.15, -0.08,  0.15,  0.38), # Left hinge bracket
-            ( 0.08, -0.15,  0.15,  0.16,  0.15,  0.38), # Right hinge bracket
-            ("cyl_x", -0.16, 0.16, 0.0, 0.25, 0.04, 8), # Center pivot pin
+            (-0.22, -0.32,  0.40,  0.22,  0.32,  0.50), # Backplate mount
+            (-0.16, -0.12,  0.18, -0.08,  0.14,  0.40), # Left hinge bracket
+            ( 0.08, -0.12,  0.18,  0.16,  0.14,  0.40), # Right hinge bracket
+            ("cyl_x", -0.16, 0.16, 0.01, 0.28, 0.045, 8), # Center pivot pin
         ]),
         ("Mat2_Lever", [
-            (-0.05, -0.12, -0.05,  0.05,  0.06,  0.24), # Forward angled lever shaft
-            (-0.08, -0.22, -0.18,  0.08, -0.06, -0.02), # Pulled forward grip head
+            (-0.05, -0.12, -0.02,  0.05,  0.05,  0.26), # Forward angled actuator arm
+            (-0.10, -0.20, -0.14,  0.10, -0.08,  0.02), # Pulled forward T-handle grip
         ]),
     ],
 }

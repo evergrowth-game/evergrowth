@@ -633,15 +633,15 @@ if minetest.get_modpath("other_worlds") or minetest.get_modpath("vacuum") or min
 					"Entering coordinates in unexplored orbital sectors automatically triggers background sector emergence. Once generation completes, the vessel executes the jump automatically.\n\n" ..
 					"• Bridge Navigation Console & Cockpit Control:\n" ..
 					"The Bridge Navigation Console (jumpdrive_tweaks:bridge_console) decouples cockpit flight controls from the engine bay. Right-clicking the console accesses the full navigation terminal (coordinates, planetary presets, target beacons, and propellant telemetry) proxied directly to the remote Jumpdrive Core over the vessel backbone. Live infotext on the console displays vessel status (Ready, Charging, Fuel Low, or Error) in real time.\n\n" ..
-					"• Tactile Quick-Jump Lever:\n" ..
-					"The Tactile Quick-Jump Lever (jumpdrive_tweaks:jump_lever) is an optional wall/console physical switch for fast non-GUI jump execution. Engaging the lever verifies propellant and clearance before triggering translation, snapping back automatically upon arrival or aborting with an alert tone if preflight checks fail.\n\n" ..
+					"• Jump Lever:\n" ..
+					"The Jump Lever (jumpdrive_tweaks:jump_lever) is a wall/console physical switch for fast non-GUI jump execution. Engaging the lever verifies propellant and clearance before triggering translation, snapping back automatically upon arrival or aborting with an alert tone if preflight checks fail.\n\n" ..
 					"• Optical Rangefinder & Diegetic Navigation:\n" ..
 					"The Optical Rangefinder (jumpdrive_tweaks:rangefinder) allows pilots to lock onto distant asteroids, derelicts, and orbital stations up to 1,500m away. Right-clicking an object calculates a collision-free standoff waypoint based on the vessel's hull dimensions and programs the jump coordinates into the linked engine. Punching the Jumpdrive Core or Bridge Console directly executes the jump.\n\n" ..
 					"• Automatic Docking Decoupling:\n" ..
 					"Station docking lines connected to Starship Fuel Ports decouple automatically during hyperjump without fluid spillage or pipe damage.",
 				images = {
 					{ image = "jumpdrive_tweaks:bridge_console", imagetype = "item", caption = "Bridge Console" },
-					{ image = "jumpdrive_tweaks:jump_lever", imagetype = "item", caption = "Quick-Jump Lever" },
+					{ image = "jumpdrive_tweaks:jump_lever", imagetype = "item", caption = "Jump Lever" },
 					{ image = "jumpdrive:engine", imagetype = "item", caption = "Jumpdrive Core" },
 					{ image = "jumpdrive_tweaks:rangefinder", imagetype = "item", caption = "Optical Rangefinder" },
 					{ image = "jumpdrive_tweaks:fuel_tank", imagetype = "item", caption = "Fuel Tank" },

@@ -38,9 +38,9 @@ local function update_console_infotext(console_pos)
 
 	local info_lines = {
 		S("Bridge Navigation Console"),
-		string.format("Status: %s | Core: (%d,%d,%d)", status_str, engine_pos.x, engine_pos.y, engine_pos.z),
-		string.format("Target: (%d, %d, %d) [Dist: %dm]", tx, ty, tz, math.floor(dist)),
-		string.format("Buffer: %d%% (%d / %d EU)", power_pct, powerstorage, max_powerstorage)
+		string.format("Status: %s", status_str),
+		string.format("Target: (%d, %d, %d) [%dm]", tx, ty, tz, math.floor(dist)),
+		string.format("Buffer: %d%% (%d EU)", power_pct, powerstorage)
 	}
 	meta:set_string("infotext", table.concat(info_lines, "\n"))
 	return true
