@@ -80,7 +80,7 @@ function jumpdrive_tweaks.start_spool_fx(source_pos, distance, ship_scan)
 			if minetest.sound_play then
 				local p_h = minetest.sound_play("jumpdrive_spool", {
 					to_player = pname,
-					gain = 0.70,
+					gain = 0.80,
 				})
 				if p_h then table.insert(fx_handle.sound_handles, p_h) end
 			end
@@ -169,7 +169,7 @@ function jumpdrive_tweaks.on_jump_discontinuity(source_pos, target_pos, ship_sca
 			if pname then
 				minetest.sound_play("jumpdrive_rupture", {
 					to_player = pname,
-					gain = 0.75,
+					gain = 0.85,
 				})
 			end
 		end
