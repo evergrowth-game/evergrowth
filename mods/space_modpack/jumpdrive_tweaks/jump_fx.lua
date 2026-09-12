@@ -6,11 +6,11 @@ jumpdrive_tweaks = rawget(_G, "jumpdrive_tweaks") or {}
 -- Calculate distance-scaled spool duration
 function jumpdrive_tweaks.get_spool_duration(distance)
 	if not distance or distance <= 1000 then
-		return 0.5
-	elseif distance <= 5000 then
 		return 0.8
-	else
+	elseif distance <= 5000 then
 		return 1.2
+	else
+		return 1.5
 	end
 end
 
@@ -45,35 +45,45 @@ function jumpdrive_tweaks.start_spool_fx(source_pos, distance, ship_scan)
 
 	local spool_time = jumpdrive_tweaks.get_spool_duration(distance)
 	local fx_handle = {
-		sound_handle = nil,
+		sound_handles = {},
 		hud_entries = {},
 		spool_time = spool_time,
 		active = true,
 	}
 
-	-- Play rising spool audio
+	-- Play rising spool audio positionally for external observers
 	if minetest.sound_play then
-		fx_handle.sound_handle = minetest.sound_play("jumpdrive_spool", {
+		local ext_h = minetest.sound_play("jumpdrive_spool", {
 			pos = source_pos,
 			max_hear_distance = 60,
-			gain = 0.50,
+			gain = 0.60,
 		})
+		if ext_h then table.insert(fx_handle.sound_handles, ext_h) end
 	end
 
-	-- Apply ambient screen glow HUD to passengers
+	-- Apply ambient screen glow HUD and direct audio to passengers
 	local passengers = jumpdrive_tweaks.get_ship_passengers(ship_scan.min_pos, ship_scan.max_pos)
 	for _, player in ipairs(passengers) do
 		local pname = player:get_player_name()
-		if pname and player.hud_add then
-			local hud_id = player:hud_add({
-				hud_elem_type = "image",
-				position = {x = 0.5, y = 0.5},
-				scale = {x = -100, y = -100},
-				text = "jumpdrive_warp_glow.png",
-				alignment = {x = 0, y = 0},
-				offset = {x = 0, y = 0},
-			})
-			table.insert(fx_handle.hud_entries, {player_name = pname, hud_id = hud_id})
+		if pname then
+			if player.hud_add then
+				local hud_id = player:hud_add({
+					hud_elem_type = "image",
+					position = {x = 0.5, y = 0.5},
+					scale = {x = -100, y = -100},
+					text = "jumpdrive_warp_glow.png",
+					alignment = {x = 0, y = 0},
+					offset = {x = 0, y = 0},
+				})
+				table.insert(fx_handle.hud_entries, {player_name = pname, hud_id = hud_id})
+			end
+			if minetest.sound_play then
+				local p_h = minetest.sound_play("jumpdrive_spool", {
+					to_player = pname,
+					gain = 0.70,
+				})
+				if p_h then table.insert(fx_handle.sound_handles, p_h) end
+			end
 		end
 	end
 
@@ -85,9 +95,11 @@ function jumpdrive_tweaks.abort_spool_fx(fx_handle)
 	if not fx_handle or not fx_handle.active then return end
 	fx_handle.active = false
 
-	if fx_handle.sound_handle and minetest.sound_stop then
-		minetest.sound_stop(fx_handle.sound_handle)
-		fx_handle.sound_handle = nil
+	if minetest.sound_stop and fx_handle.sound_handles then
+		for _, sh in ipairs(fx_handle.sound_handles) do
+			minetest.sound_stop(sh)
+		end
+		fx_handle.sound_handles = {}
 	end
 
 	for _, entry in ipairs(fx_handle.hud_entries) do
@@ -141,21 +153,44 @@ function jumpdrive_tweaks.on_jump_discontinuity(source_pos, target_pos, ship_sca
 		return
 	end
 
-	-- 1. Rupture sound at destination
+	local target_min = vector.add(ship_scan.min_pos, delta_vector)
+	local target_max = vector.add(ship_scan.max_pos, delta_vector)
+	local passengers = jumpdrive_tweaks.get_ship_passengers(target_min, target_max)
+
+	-- 1. Rupture sound at destination (positional and direct to passengers)
 	if minetest.sound_play then
 		minetest.sound_play("jumpdrive_rupture", {
 			pos = target_pos,
 			max_hear_distance = 75,
-			gain = 0.65,
+			gain = 0.70,
 		})
-		-- Soft cooldown spin-down audio
+		for _, player in ipairs(passengers) do
+			local pname = player:get_player_name()
+			if pname then
+				minetest.sound_play("jumpdrive_rupture", {
+					to_player = pname,
+					gain = 0.75,
+				})
+			end
+		end
+
+		-- Soft cooldown spin-down audio (low gain)
 		if minetest.after then
 			minetest.after(0.25, function()
 				minetest.sound_play("jumpdrive_cooldown", {
 					pos = target_pos,
-					max_hear_distance = 50,
-					gain = 0.60,
+					max_hear_distance = 45,
+					gain = 0.20,
 				})
+				for _, player in ipairs(passengers) do
+					local pname = player:get_player_name()
+					if pname then
+						minetest.sound_play("jumpdrive_cooldown", {
+							to_player = pname,
+							gain = 0.20,
+						})
+					end
+				end
 			end)
 		end
 	end

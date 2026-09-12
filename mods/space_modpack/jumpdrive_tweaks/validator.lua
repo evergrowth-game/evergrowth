@@ -215,17 +215,26 @@ if jumpdrive then
 							if jumpdrive_tweaks.start_spool_fx then
 								fx_handle = jumpdrive_tweaks.start_spool_fx(pos, distance, ship_scan)
 							end
-							local ok, res = do_jump_movement(fx_handle)
-							if ok then
-								if player and player:is_player() then
-									local time_millis = math.floor((res or 0) / 1000)
-									minetest.chat_send_player(playername, string.format("Emergence complete: Jump executed in %d ms", time_millis))
+
+							local function exec_deferred()
+								local ok, res = do_jump_movement(fx_handle)
+								if ok then
+									if player and player:is_player() then
+										local time_millis = math.floor((res or 0) / 1000)
+										minetest.chat_send_player(playername, string.format("Emergence complete: Jump executed in %d ms", time_millis))
+									end
+								else
+									minetest.log("warning", "[jumpdrive_tweaks] Deferred jump movement failed: " .. tostring(res))
+									if player and player:is_player() then
+										minetest.chat_send_player(playername, "Jump failed: " .. tostring(res))
+									end
 								end
+							end
+
+							if fx_handle and fx_handle.spool_time and fx_handle.spool_time > 0 and minetest.after then
+								minetest.after(fx_handle.spool_time, exec_deferred)
 							else
-								minetest.log("warning", "[jumpdrive_tweaks] Deferred jump movement failed: " .. tostring(res))
-								if player and player:is_player() then
-									minetest.chat_send_player(playername, "Jump failed: " .. tostring(res))
-								end
+								exec_deferred()
 							end
 						else
 							minetest.log("warning", "[jumpdrive_tweaks] Post-emergence target obstructed: " .. tostring(recheck_msg))
@@ -248,7 +257,18 @@ if jumpdrive then
 			fx_handle = jumpdrive_tweaks.start_spool_fx(pos, distance, ship_scan)
 		end
 
-		return do_jump_movement(fx_handle)
+		if fx_handle and fx_handle.spool_time and fx_handle.spool_time > 0 and minetest.after then
+			local jump_ok, jump_res
+			minetest.after(fx_handle.spool_time, function()
+				jump_ok, jump_res = do_jump_movement(fx_handle)
+			end)
+			if jump_ok ~= nil then
+				return jump_ok, jump_res
+			end
+			return true, fx_handle.spool_time * 1000000
+		else
+			return do_jump_movement(fx_handle)
+		end
 	end
 end
 
