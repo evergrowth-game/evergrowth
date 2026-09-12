@@ -62,25 +62,32 @@ spacesuit_tweaks.PROPELLANTS = {
 	},
 }
 
--- Sound and control throttling
-local last_sound_time = {}
+-- -- Sound and control state tracking
+local player_sound_handles = {} -- pname -> sound_handle
 local last_warn_time = {}
 local prev_player_controls = {} -- pname -> table of keys {jump, sneak, up, down, left, right}
 
-local function play_thruster_sound(playername, pos, force)
-	local now = minetest.get_us_time()
-	local min_interval = force and 150000 or 750000
-	if not last_sound_time[playername] or (now - last_sound_time[playername]) >= min_interval then
-		last_sound_time[playername] = now
-		minetest.sound_play("default_cool_lava", {
-			pos = pos,
+local function start_thruster_sound(player)
+	local pname = player:get_player_name()
+	if not player_sound_handles[pname] then
+		local handle = minetest.sound_play("default_cool_lava", {
+			object = player,
 			gain = 0.35,
 			pitch = 1.6,
+			loop = true,
 			max_hear_distance = 15,
 		})
-		return true
+		player_sound_handles[pname] = handle or true
 	end
-	return false
+end
+
+local function stop_thruster_sound(playername)
+	if player_sound_handles[playername] then
+		if type(player_sound_handles[playername]) ~= "boolean" then
+			minetest.sound_stop(player_sound_handles[playername])
+		end
+		player_sound_handles[playername] = nil
+	end
 end
 
 local function play_refuel_sound(pos)
@@ -222,7 +229,12 @@ minetest.register_tool("spacesuit_tweaks:eva_thruster", {
 		local boost_vel = vector.multiply(look_dir, 14.0)
 		user:add_velocity(boost_vel)
 
-		play_thruster_sound(pname, ppos, true)
+		minetest.sound_play("default_cool_lava", {
+			pos = ppos,
+			gain = 0.45,
+			pitch = 1.8,
+			max_hear_distance = 15,
+		})
 		spawn_rcs_particles(ppos, look_dir)
 		return itemstack
 	end,
@@ -255,6 +267,7 @@ local player_speed_active = {}
 
 local function cleanup_player(player)
 	local pname = player:get_player_name()
+	stop_thruster_sound(pname)
 	if prev_player_controls[pname] then
 		prev_player_controls[pname] = nil
 	end
@@ -345,6 +358,8 @@ minetest.register_globalstep(function(dtime)
 
 					-- Audio, particles, and propellant consumption
 					if is_moving then
+						start_thruster_sound(player)
+
 						local should_trigger = new_press or step_effects
 						if should_trigger then
 							local particle_dir = {x = 0, y = 0, z = 0}
@@ -373,7 +388,6 @@ minetest.register_globalstep(function(dtime)
 								particle_dir.z = particle_dir.z + math.sin(yaw)
 							end
 
-							play_thruster_sound(pname, ppos, new_press)
 							if vector.length(particle_dir) > 0 then
 								spawn_rcs_particles(ppos, vector.normalize(particle_dir))
 							end
@@ -382,6 +396,8 @@ minetest.register_globalstep(function(dtime)
 								player:set_wielded_item(wielded)
 							end
 						end
+					else
+						stop_thruster_sound(pname)
 					end
 
 					-- Save current control state for transition detection
@@ -421,6 +437,5 @@ end
 minetest.register_on_leaveplayer(function(player)
 	local pname = player:get_player_name()
 	cleanup_player(player)
-	last_sound_time[pname] = nil
 	last_warn_time[pname] = nil
 end)

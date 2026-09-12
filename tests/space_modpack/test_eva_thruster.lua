@@ -45,6 +45,7 @@ minetest = {
 	end,
 	get_us_time = function() return 1000000 end,
 	sound_play = function() return 1 end,
+	sound_stop = function(handle) end,
 	chat_send_player = function(name, msg) end,
 	add_particlespawner = function() return 1 end,
 	add_item = function(pos, item) end,
@@ -280,19 +281,23 @@ assert_true(found_vacuum_craft, "Found shapeless refuel craft with vacuum:air_bo
 assert_true(found_airtank_craft, "Found shapeless refuel craft with airtanks:steel_tank")
 assert_true(not found_invalid_fuel_craft, "No hydrogen or biofuel refuel craft recipes exist")
 
-print("[TEST 9] Testing Reactive Keypress Transition Triggering in Globalstep...")
+print("[TEST 9] Testing Continuous Looping Sound Lifecycle in Globalstep...")
 -- Mock sound and particle tracking
 local sounds_played = {}
+local sounds_stopped = {}
 local particles_spawned = {}
-local current_sim_time = 10000000
+local handle_counter = 100
 
-minetest.get_us_time = function() return current_sim_time end
 minetest.sound_play = function(sname, spec)
-	table.insert(sounds_played, {name = sname, spec = spec, time = current_sim_time})
-	return 1
+	handle_counter = handle_counter + 1
+	table.insert(sounds_played, {name = sname, spec = spec, handle = handle_counter})
+	return handle_counter
+end
+minetest.sound_stop = function(handle)
+	table.insert(sounds_stopped, handle)
 end
 minetest.add_particlespawner = function(def)
-	table.insert(particles_spawned, {def = def, time = current_sim_time})
+	table.insert(particles_spawned, {def = def})
 	return 1
 end
 
@@ -307,32 +312,40 @@ player5:get_wielded_item():set_wear(0)
 player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = false, right = false})
 globalstep_fn(0.05)
 assert_eq(#sounds_played, 0, "No sound played while idle")
+assert_eq(#sounds_stopped, 0, "No sound stopped while idle")
 assert_eq(#particles_spawned, 0, "No particles while idle")
 
--- Step 2: Immediate key tap (up = true) on small dtime (0.02s, step_effects = false)
-current_sim_time = current_sim_time + 20000
+-- Step 2: Key pressed (up = true) -> starts looping sound attached to player
 player5:set_player_control({jump = false, sneak = false, up = true, down = false, left = false, right = false})
 globalstep_fn(0.02)
-assert_eq(#sounds_played, 1, "Sound triggered immediately on key-down transition")
-assert_eq(#particles_spawned, 1, "Particles spawned immediately on key-down transition")
+assert_eq(#sounds_played, 1, "Looping sound started immediately when movement key pressed")
 assert_eq(sounds_played[1].name, "default_cool_lava", "Thruster sound played")
+assert_eq(sounds_played[1].spec.loop, true, "Sound requested with loop = true")
+assert_eq(sounds_played[1].spec.object, player5, "Sound attached to player object")
+assert_eq(#sounds_stopped, 0, "No sound stopped while moving")
+assert_eq(#particles_spawned, 1, "Particles spawned immediately on key-down transition")
 
--- Step 3: Holding 'up' continuously during short dtimes (< 0.75s) should NOT spam sound
-current_sim_time = current_sim_time + 50000 -- +50ms
-globalstep_fn(0.05) -- triggers step_effects
-assert_eq(#sounds_played, 1, "Sound throttled during continuous hold (only 1 play)")
-assert_eq(#particles_spawned, 2, "Particles spawn on periodic step_effects")
-
--- Step 4: Sustained hold past 750ms interval triggers next burn sound
-current_sim_time = current_sim_time + 800000 -- +800ms
+-- Step 3: Holding 'up' continuously -> sound continues looping, no redundant sound_play calls
+globalstep_fn(0.05)
 globalstep_fn(0.1)
-assert_eq(#sounds_played, 2, "Sustained burn sound triggered after 750ms interval")
+assert_eq(#sounds_played, 1, "Continuous hold retains single looping sound handle without restarts")
+assert_eq(#sounds_stopped, 0, "Sound not stopped while continuous movement is maintained")
+assert_eq(#particles_spawned, 3, "Particles spawn on periodic step_effects")
 
--- Step 5: Transition to strafe 'left' (direction change) triggers immediate burst
-current_sim_time = current_sim_time + 200000 -- +200ms (> 150ms force interval)
+-- Step 4: Releasing all movement keys -> immediately stops looping sound
+player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = false, right = false})
+globalstep_fn(0.02)
+assert_eq(#sounds_stopped, 1, "Sound stopped immediately when keys released")
+assert_eq(sounds_stopped[1], 101, "Stopped handle matches the started looping sound handle")
+
+-- Step 5: Tapping left strafe then releasing
 player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = true, right = false})
 globalstep_fn(0.02)
-assert_eq(#sounds_played, 3, "Immediate burst sound triggered on direction change to strafe left")
+assert_eq(#sounds_played, 2, "New looping sound started on strafe key press")
+player5:set_player_control({jump = false, sneak = false, up = false, down = false, left = false, right = false})
+globalstep_fn(0.02)
+assert_eq(#sounds_stopped, 2, "Strafe sound stopped when strafe key released")
 
 print("ALL EVA THRUSTER TESTS PASSED SUCCESSFULLY!")
+
 
