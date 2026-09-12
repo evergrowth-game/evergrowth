@@ -119,21 +119,18 @@ if jumpdrive then
 		local is_empty, empty_msg = jumpdrive_tweaks.is_ship_target_empty(ship_scan, delta_vector)
 
 		-- Helper function to perform the actual jump displacement
-		local function do_jump_movement()
+		local function do_jump_movement(fx_handle)
 			-- Final Protection Re-Verification
 			if jumpdrive_tweaks.is_ship_target_protected(ship_scan, delta_vector, playername) then
+				if jumpdrive_tweaks.abort_spool_fx then
+					jumpdrive_tweaks.abort_spool_fx(fx_handle)
+				end
 				return false, "Destination is protected!"
 			end
 
 			-- Consume power
 			local current_power = meta:get_int("powerstorage")
 			meta:set_int("powerstorage", math.max(0, current_power - power_req))
-
-			minetest.sound_play("jumpdrive_engine", {
-				pos = pos,
-				max_hear_distance = 50,
-				gain = 0.7,
-			})
 
 			local t0 = minetest.get_us_time()
 
@@ -149,33 +146,14 @@ if jumpdrive then
 			jumpdrive_tweaks.active_ship_nodes = nil
 
 			if not ok then
+				if jumpdrive_tweaks.abort_spool_fx then
+					jumpdrive_tweaks.abort_spool_fx(fx_handle)
+				end
 				return false, "Jump movement error: " .. tostring(err)
 			end
 
 			local t1 = minetest.get_us_time()
 			local time_micros = t1 - t0
-
-			-- Animation at destination
-			minetest.add_particlespawner({
-				amount = 200,
-				time = 2,
-				minpos = target_pos1,
-				maxpos = target_pos2,
-				minvel = vector.new(-2, -2, -2),
-				maxvel = vector.new(2, 2, 2),
-				minacc = vector.new(-3, -3, -3),
-				maxacc = vector.new(3, 3, 3),
-				minexptime = 0.1,
-				maxexptime = 5,
-				minsize = 0.5,
-				maxsize = 2,
-				texture = "bubble.png",
-			})
-
-			-- Telemetry logging
-			local speed_c = (time_micros > 0) and ((distance / (time_micros / 1000000)) / 299792458) or 0
-			minetest.log("action", string.format("[jumpdrive_tweaks] Jump completed: %d nodes, %d backbone, %.1fm distance, %d µs (effective %.2fc)",
-				ship_scan.node_count, ship_scan.backbone_count, distance, time_micros, speed_c))
 
 			-- Update engine location metadata to new coordinate
 			local new_engine_pos = vector.add(pos, delta_vector)
@@ -185,6 +163,16 @@ if jumpdrive then
 			new_meta:set_int("z", new_engine_pos.z)
 			jumpdrive.update_infotext(new_meta, new_engine_pos)
 
+			-- Trigger heavy hyperjump discontinuity rupture, external shockwave ring, and cooling decay
+			if jumpdrive_tweaks.on_jump_discontinuity then
+				jumpdrive_tweaks.on_jump_discontinuity(pos, new_engine_pos, ship_scan, delta_vector, fx_handle)
+			end
+
+			-- Telemetry logging
+			local speed_c = (time_micros > 0) and ((distance / (time_micros / 1000000)) / 299792458) or 0
+			minetest.log("action", string.format("[jumpdrive_tweaks] Jump completed: %d nodes, %d backbone, %.1fm distance, %d µs (effective %.2fc)",
+				ship_scan.node_count, ship_scan.backbone_count, distance, time_micros, speed_c))
+
 			-- Reconnect TechAge networks and restart active machine loops
 			if jumpdrive_tweaks.reconnect_techage_networks then
 				jumpdrive_tweaks.reconnect_techage_networks(ship_scan, delta_vector)
@@ -192,7 +180,7 @@ if jumpdrive then
 
 			-- Migrate beacon positions with vessel jump
 			if jumpdrive_tweaks.on_ship_jump then
-				jumpdrive_tweaks.on_ship_jump(pos, new_engine_pos, r, ship_scan)
+				jumpdrive_tweaks.on_ship_jump(pos, new_engine_pos, ship_scan.effective_radius, ship_scan)
 			end
 
 			-- Trigger callbacks
@@ -223,7 +211,11 @@ if jumpdrive then
 
 						local recheck, recheck_msg = jumpdrive_tweaks.is_ship_target_empty(ship_scan, delta_vector)
 						if recheck then
-							local ok, res = do_jump_movement()
+							local fx_handle = nil
+							if jumpdrive_tweaks.start_spool_fx then
+								fx_handle = jumpdrive_tweaks.start_spool_fx(pos, distance, ship_scan)
+							end
+							local ok, res = do_jump_movement(fx_handle)
 							if ok then
 								if player and player:is_player() then
 									local time_millis = math.floor((res or 0) / 1000)
@@ -251,7 +243,12 @@ if jumpdrive then
 			return false, "Destination hazard: " .. tostring(empty_msg)
 		end
 
-		return do_jump_movement()
+		local fx_handle = nil
+		if jumpdrive_tweaks.start_spool_fx then
+			fx_handle = jumpdrive_tweaks.start_spool_fx(pos, distance, ship_scan)
+		end
+
+		return do_jump_movement(fx_handle)
 	end
 end
 

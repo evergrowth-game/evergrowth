@@ -9,6 +9,7 @@ dofile(modpath .. "/techage_pipe.lua")
 dofile(modpath .. "/ship_tracker.lua")
 dofile(modpath .. "/techage_compat.lua")
 dofile(modpath .. "/terrain_filter.lua")
+dofile(modpath .. "/jump_fx.lua")
 dofile(modpath .. "/validator.lua")
 dofile(modpath .. "/decouple.lua")
 dofile(modpath .. "/beacon.lua")
@@ -19,6 +20,6 @@ dofile(modpath .. "/formspec.lua")
 dofile(modpath .. "/bridge_console.lua")
 dofile(modpath .. "/jump_lever.lua")
 
-minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, thermal ice melter, validator, terrain filter, rangefinder, crafts, decoupling hooks, ship beacon/tether, bridge navigation console, and quick-jump lever.")
+minetest.log("action", "[jumpdrive_tweaks] Loaded Techage fuel tanks, ports, thermal ice melter, validator, terrain filter, rangefinder, crafts, decoupling hooks, ship beacon/tether, bridge navigation console, quick-jump lever, and hyperjump FX.")
 
 

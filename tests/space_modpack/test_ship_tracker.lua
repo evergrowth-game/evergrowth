@@ -348,6 +348,11 @@ minetest.get_mod_storage = function()
 	}
 end
 minetest.serialize = function(t) return "" end
+minetest.after = function(delay, cb) if cb then cb() end end
+minetest.sound_play = function() return 1 end
+minetest.sound_stop = function() end
+minetest.add_particlespawner = function() end
+minetest.add_particle = function() end
 minetest.register_node = function(name, def)
 	registered_nodes[name] = def
 end
@@ -363,6 +368,7 @@ default = {node_sound_metal_defaults = function() return {} end}
 dofile("mods/space_modpack/jumpdrive_tweaks/ship_tracker.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/techage_compat.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/jump_fx.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/beacon.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/validator.lua")
 
@@ -1273,6 +1279,78 @@ run_test("Bridge Controls: Console and lever scanned and migrated during hyperju
 	assert_eq(minetest.get_node({x = 13, y = 6500, z = 10}).name, "jumpdrive_tweaks:jump_lever", "Jump lever translated to destination")
 	assert_eq(minetest.get_node({x = 12, y = 5000, z = 10}).name, "air", "Origin bridge console cleared to air")
 	assert_eq(minetest.get_node({x = 13, y = 5000, z = 10}).name, "air", "Origin jump lever cleared to air")
+end)
+
+-- Test 30: Hyperjump Sensory Feedback & FX Lifecycle
+run_test("Hyperjump Feedback: Spool scaling, ambient HUD glow lifecycle, exterior shockwave ring, and clean abort", function()
+	-- 1. Spool duration scaling
+	assert_eq(jumpdrive_tweaks.get_spool_duration(100), 0.5, "Short jump (< 1km) is 0.5s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(1000), 0.5, "1km jump is 0.5s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(3000), 0.8, "3km jump is 0.8s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(5000), 0.8, "5km jump is 0.8s")
+	assert_eq(jumpdrive_tweaks.get_spool_duration(12000), 1.2, "Long jump (> 5km) is 1.2s")
+
+	-- 2. Mock player with HUD
+	local hud_added = {}
+	local hud_removed = {}
+	local mock_player = {
+		is_player = function() return true end,
+		get_player_name = function() return "Astronaut" end,
+		get_pos = function() return {x = 10, y = 1000, z = 10} end,
+		hud_add = function(self, def)
+			local id = #hud_added + 1
+			table.insert(hud_added, def)
+			return id
+		end,
+		hud_remove = function(self, id)
+			table.insert(hud_removed, id)
+		end,
+	}
+
+	minetest.get_connected_players = function() return {mock_player} end
+	minetest.get_player_by_name = function(name)
+		if name == "Astronaut" then return mock_player end
+		return nil
+	end
+
+	local passengers = jumpdrive_tweaks.get_ship_passengers({x = 9, y = 999, z = 9}, {x = 11, y = 1001, z = 11})
+	assert_eq(#passengers, 1, "Passenger inside ship bounding box detected")
+
+	-- 3. Spool FX start
+	local ship_scan = {
+		min_pos = {x = 9, y = 999, z = 9},
+		max_pos = {x = 11, y = 1001, z = 11},
+	}
+	local fx_handle = jumpdrive_tweaks.start_spool_fx({x = 10, y = 1000, z = 10}, 8000, ship_scan)
+	assert_true(fx_handle ~= nil, "FX handle created")
+	assert_eq(fx_handle.spool_time, 1.2, "Spool time matches 1.2s")
+	assert_eq(#hud_added, 1, "Ambient glow HUD added to passenger")
+	assert_eq(hud_added[1].text, "jumpdrive_warp_glow.png", "Ambient glow texture used")
+
+	-- 4. Abort cleanup
+	jumpdrive_tweaks.abort_spool_fx(fx_handle)
+	assert_eq(#hud_removed, 1, "HUD removed on abort")
+	assert_false(fx_handle.active, "FX handle deactivated")
+
+	-- 5. Shockwave perimeter calculation (strictly outside ship hull)
+	local spawned_particles = {}
+	minetest.add_particle = function(def)
+		table.insert(spawned_particles, def)
+	end
+
+	local center = {x = 100, y = 2000, z = 100}
+	jumpdrive_tweaks.spawn_external_shockwave(center, {x = 90, y = 1995, z = 90}, {x = 110, y = 2005, z = 110})
+	assert_true(#spawned_particles >= 48, "48 shockwave particles spawned")
+
+	-- 6. Nil-safety resilience
+	assert_eq(jumpdrive_tweaks.start_spool_fx({x=0,y=0,z=0}, 500, nil), nil, "Nil ship_scan returns nil safely")
+	assert_eq(jumpdrive_tweaks.start_spool_fx({x=0,y=0,z=0}, 500, {}), nil, "Empty ship_scan returns nil safely")
+	assert_eq(#jumpdrive_tweaks.get_ship_passengers({}, {}), 0, "Empty min_pos/max_pos tables return 0 passengers")
+	jumpdrive_tweaks.abort_spool_fx(nil)
+	jumpdrive_tweaks.spawn_external_shockwave({}, {}, {})
+	jumpdrive_tweaks.on_jump_discontinuity({x=0,y=0,z=0}, {x=10,y=0,z=0}, nil, nil, nil)
+	jumpdrive_tweaks.on_jump_discontinuity({x=0,y=0,z=0}, {x=10,y=0,z=0}, {min_pos = {x=0,y=0,z=0}}, nil, nil)
+	jumpdrive_tweaks.on_jump_discontinuity({}, {}, {min_pos = {}, max_pos = {}}, {}, nil)
 end)
 
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
