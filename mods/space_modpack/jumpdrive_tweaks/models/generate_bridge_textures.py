@@ -210,32 +210,35 @@ def make_console_side(w=16, h=16):
 
 
 def make_lever_base(w=16, h=16):
-    # Steel wall mounting bracket with center circular pivot housing
+    # Industrial brushed steel wall bracket with corner mounting bolts
     pixels = []
-    steel = (135, 145, 158, 255)
-    dark_steel = (80, 90, 102, 255)
-    light_steel = (180, 190, 205, 255)
-    bolt = (230, 240, 252, 255)
-    pivot = (45, 52, 62, 255)
+    base_steel = (142, 150, 162, 255)
+    steel_grain1 = (150, 158, 170, 255)
+    steel_grain2 = (134, 142, 154, 255)
+    bolt_head = (225, 235, 248, 255)
+    bolt_shadow = (75, 82, 92, 255)
+    edge_top = (168, 176, 188, 255)
+    edge_bottom = (115, 122, 134, 255)
 
     for y in range(h):
         for x in range(w):
-            # Corner mounting bolts
+            # Corner mounting bolts (on backplate)
             if (x in (2, 13) and y in (2, 13)):
-                pixels.append(bolt)
-            # Outer border
-            elif x == 0 or y == 0:
-                pixels.append(light_steel)
-            elif x == w - 1 or y == h - 1:
-                pixels.append(dark_steel)
-            # Center pivot circle
-            elif (x - 7.5) ** 2 + (y - 7.5) ** 2 <= 9:
-                if (x - 7.5) ** 2 + (y - 7.5) ** 2 <= 3:
-                    pixels.append((200, 210, 225, 255))
-                else:
-                    pixels.append(pivot)
+                pixels.append(bolt_head)
+            elif (x in (3, 14) and y in (3, 14)):
+                pixels.append(bolt_shadow)
+            # Edge bevels
+            elif y == 0:
+                pixels.append(edge_top)
+            elif y == h - 1:
+                pixels.append(edge_bottom)
+            # Subtle brushed steel texture
+            elif y % 4 == 0:
+                pixels.append(steel_grain1)
+            elif y % 4 == 2:
+                pixels.append(steel_grain2)
             else:
-                pixels.append(steel)
+                pixels.append(base_steel)
     return pixels
 
 

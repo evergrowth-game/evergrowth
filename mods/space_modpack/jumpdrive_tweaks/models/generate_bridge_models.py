@@ -161,7 +161,7 @@ MODELS = {
             (-0.22, -0.32,  0.40,  0.22,  0.32,  0.50), # Backplate mount
             (-0.16, -0.12,  0.18, -0.08,  0.14,  0.40), # Left hinge bracket
             ( 0.08, -0.12,  0.18,  0.16,  0.14,  0.40), # Right hinge bracket
-            ("cyl_x", -0.16, 0.16, 0.01, 0.28, 0.045, 8), # Center pivot pin
+            ("cyl_x", -0.08, 0.08, 0.01, 0.28, 0.045, 8), # Center pivot axle (inner span between brackets)
         ]),
         ("Mat2_Lever", [
             (-0.05, -0.04,  0.22,  0.05,  0.36,  0.32), # Heavy upright actuator arm
@@ -176,7 +176,7 @@ MODELS = {
             (-0.22, -0.32,  0.40,  0.22,  0.32,  0.50), # Backplate mount
             (-0.16, -0.12,  0.18, -0.08,  0.14,  0.40), # Left hinge bracket
             ( 0.08, -0.12,  0.18,  0.16,  0.14,  0.40), # Right hinge bracket
-            ("cyl_x", -0.16, 0.16, 0.01, 0.28, 0.045, 8), # Center pivot pin
+            ("cyl_x", -0.08, 0.08, 0.01, 0.28, 0.045, 8), # Center pivot axle (inner span between brackets)
         ]),
         ("Mat2_Lever", [
             ("rot_x", (-85, 0.01, 0.28, (-0.05, -0.04, 0.22, 0.05, 0.36, 0.32))), # Rotated actuator arm
