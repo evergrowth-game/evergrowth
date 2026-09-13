@@ -1554,6 +1554,60 @@ run_test("Passenger Physics: Cancels passenger inertia and applies zero-gravity 
 	assert_eq(current_pos.z, 60, "Passenger Z displaced correctly")
 end)
 
+-- Test 34: Navigation Beacon Registry Persistence in Unloaded Chunks
+run_test("Beacon Registry: Preserves beacons in unloaded chunks (ignore/nil) and prunes destroyed nodes", function()
+	world_nodes = {}
+	local active_beacons = jumpdrive_tweaks.get_active_beacons()
+	for k in pairs(active_beacons) do active_beacons[k] = nil end
+
+	-- 1. Register 3 beacons:
+	-- Beacon A: Loaded active beacon
+	active_beacons["100,5000,100"] = {
+		pos = {x = 100, y = 5000, z = 100},
+		name = "Loaded Station",
+		owner = "Player1",
+	}
+	minetest.set_node({x = 100, y = 5000, z = 100}, {name = "jumpdrive_tweaks:beacon"})
+
+	-- Beacon B: Unloaded chunk (get_node_or_nil returns ignore)
+	active_beacons["500,8900,500"] = {
+		pos = {x = 500, y = 8900, z = 500},
+		name = "Derelict Distress Signal [DISTRESS]",
+		owner = "",
+	}
+	minetest.set_node({x = 500, y = 8900, z = 500}, {name = "ignore"})
+
+	-- Beacon C: Destroyed / broken beacon (get_node_or_nil returns air)
+	active_beacons["200,5000,200"] = {
+		pos = {x = 200, y = 5000, z = 200},
+		name = "Destroyed Beacon",
+		owner = "Player2",
+	}
+	minetest.set_node({x = 200, y = 5000, z = 200}, {name = "air"})
+
+	local valid = jumpdrive_tweaks.get_valid_sorted_beacons()
+	assert_eq(#valid, 2, "2 valid beacons returned (loaded beacon + unloaded ignore beacon)")
+
+	-- Check labels
+	local has_loaded = false
+	local has_unloaded = false
+	local has_destroyed = false
+	for _, entry in ipairs(valid) do
+		if entry.binfo.name == "Loaded Station" then has_loaded = true end
+		if entry.binfo.name == "Derelict Distress Signal [DISTRESS]" then has_unloaded = true end
+		if entry.binfo.name == "Destroyed Beacon" then has_destroyed = true end
+	end
+
+	assert_true(has_loaded, "Loaded beacon retained in dropdown list")
+	assert_true(has_unloaded, "Unloaded chunk distress beacon retained in dropdown list")
+	assert_false(has_destroyed, "Destroyed air node beacon pruned from list")
+
+	-- Verify registry pruned only destroyed beacon
+	assert_true(active_beacons["100,5000,100"] ~= nil, "Loaded beacon kept in storage")
+	assert_true(active_beacons["500,8900,500"] ~= nil, "Unloaded beacon kept in storage")
+	assert_true(active_beacons["200,5000,200"] == nil, "Destroyed beacon removed from storage")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then

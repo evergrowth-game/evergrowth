@@ -34,7 +34,7 @@ jumpdrive_tweaks.get_valid_sorted_beacons = function()
 
 	for key, binfo in pairs(active_beacons) do
 		local bnode = minetest.get_node_or_nil(binfo.pos)
-		if not bnode or bnode.name == "jumpdrive_tweaks:beacon" then
+		if not bnode or bnode.name == "ignore" or bnode.name == "jumpdrive_tweaks:beacon" then
 			local label = string.format("%s @ (%d, %d, %d)", binfo.name or "Beacon", math.floor(binfo.pos.x), math.floor(binfo.pos.y), math.floor(binfo.pos.z))
 			table.insert(valid_list, {
 				key = key,
