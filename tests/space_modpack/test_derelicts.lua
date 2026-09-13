@@ -476,7 +476,7 @@ print("  ✓ Sector spatial hashing guarantees anti-clustering isolation")
 print("[TEST 10] Testing Derelict Heavy Capital Freighter Schematic Structure...")
 local freighter_schem = derelicts.get_freighter_schematic()
 assert_eq(freighter_schem.name, "freighter", "Freighter schematic name")
-assert_true(freighter_schem.radius >= 10, "Freighter radius >= 10")
+assert_eq(freighter_schem.radius, 20, "Freighter radius 20")
 local freighter_chests = 0
 local freighter_has_beacon = false
 for _, n in ipairs(freighter_schem.nodes) do
@@ -487,7 +487,7 @@ for _, n in ipairs(freighter_schem.nodes) do
 		end
 	end
 end
-assert_true(freighter_chests >= 5, "Freighter has multiple storage chests across bays (found " .. freighter_chests .. ")")
+assert_true(freighter_chests >= 6, "Freighter has multiple storage chests across bays (found " .. freighter_chests .. ")")
 assert_true(freighter_has_beacon, "Freighter contains active distress beacon atop command spire")
 print("  ✓ Derelict Capital Freighter schematic geometry and multi-container layout confirmed")
 
@@ -586,16 +586,19 @@ local res_ground = scanner_def.on_place(stack_ground, mock_player_ground, {})
 assert_eq(res_ground:get_count(), 5, "Scanner stack preserved when scan fails on planetary ground")
 print("  ✓ Scanner item on_use, on_place, and on_secondary_use interaction and stack consumption confirmed")
 
-print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, Corvette, Cryo-Barge, Bio-Dome)...")
+print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, Corvette, Cryo-Barge, Bio-Dome, Lab)...")
 -- Power Satellite
 local ps_schem = derelicts.get_power_satellite_schematic()
 assert_eq(ps_schem.name, "power_satellite", "Power satellite schematic name")
-assert_eq(ps_schem.radius, 14, "Power satellite radius 14")
+assert_eq(ps_schem.radius, 15, "Power satellite radius 15")
 local ps_has_beacon = false
+local ps_has_solar_mod = false
 for _, n in ipairs(ps_schem.nodes) do
 	if n.tier == "power_satellite_beacon" then ps_has_beacon = true end
+	if n.cid == minetest.get_content_id("techage:ta4_solar_module") then ps_has_solar_mod = true end
 end
 assert_true(ps_has_beacon, "Power satellite contains power_satellite_beacon")
+assert_true(ps_has_solar_mod, "Power satellite contains solar modules")
 
 -- Mining Rig
 local mr_schem = derelicts.get_mining_rig_schematic()
@@ -614,6 +617,10 @@ assert_eq(cv_schem.radius, 9, "Corvette radius 9")
 local cv_has_beacon = false
 for _, n in ipairs(cv_schem.nodes) do
 	if n.tier == "corvette_beacon" then cv_has_beacon = true end
+	-- Verify unobstructed walking path in center aisle (X=0, Y=1 and Y=2 for Z in [-5, 4])
+	if n.dx == 0 and (n.dy == 1 or n.dy == 2) and n.dz >= -5 and n.dz <= 4 then
+		error(string.format("Corvette aisle obstructed at (%d,%d,%d) with content ID %d", n.dx, n.dy, n.dz, n.cid))
+	end
 end
 assert_true(cv_has_beacon, "Corvette contains corvette_beacon")
 
@@ -641,7 +648,20 @@ for _, n in ipairs(bd_schem.nodes) do
 end
 assert_true(bd_has_beacon, "Bio-Dome contains biodome_beacon")
 assert_true(bd_has_soil, "Bio-Dome contains soil and grass planter nodes")
-print("  ✓ All 5 new derelict schematics (including Bio-Dome with soil planters) validated")
+
+-- Lab (Research Station)
+local lab_schem = derelicts.get_lab_schematic()
+assert_eq(lab_schem.name, "lab", "Lab schematic name")
+assert_eq(lab_schem.radius, 10, "Lab radius 10")
+local lab_has_solar_mod = false
+local lab_has_solar_carrier = false
+for _, n in ipairs(lab_schem.nodes) do
+	if n.cid == minetest.get_content_id("techage:ta4_solar_module") then lab_has_solar_mod = true end
+	if n.cid == minetest.get_content_id("techage:ta4_solar_carrier") then lab_has_solar_carrier = true end
+end
+assert_true(lab_has_solar_mod, "Research Station contains techage:ta4_solar_module panels")
+assert_true(lab_has_solar_carrier, "Research Station contains techage:ta4_solar_carrier mounts")
+print("  ✓ All 6 derelict schematics (Freighter, Power Satellite, Mining Rig, Corvette with clear aisle, Bio-Dome, Lab with solar wings) validated")
 
 print("[TEST 15] Testing Randomized Subspace Scanner Variety across Multiple Activations...")
 local observed_titles = {}

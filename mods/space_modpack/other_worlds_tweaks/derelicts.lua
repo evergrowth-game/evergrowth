@@ -103,6 +103,7 @@ local function get_probe_schematic()
 		nodes = nodes
 	}
 end
+derelicts.get_probe_schematic = get_probe_schematic
 
 local function get_shuttle_schematic()
 	if not c_air then init_content_ids() end
@@ -162,168 +163,242 @@ local function get_shuttle_schematic()
 		nodes = nodes
 	}
 end
+derelicts.get_shuttle_schematic = get_shuttle_schematic
 
 local function get_lab_schematic()
 	if not c_air then init_content_ids() end
-	-- Wrecked Orbital Research Module (~7x5x9)
+	-- Wrecked Orbital Research Station & Laboratory (~17x8x17, radius 10)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- Main Module Floor (-2 to 2 X, -3 to 3 Z)
-	for x = -2, 2 do
+	-- 1. Octagonal Main Research Module (X in [-3, 3], Z in [-3, 3], Y in [0, 4])
+	for x = -3, 3 do
 		for z = -3, 3 do
-			add(x, 0, z, c_steelblock)
-		end
-	end
+			local is_corner = (math.abs(x) == 3 and math.abs(z) == 3)
+			if not is_corner then
+				-- Floor deck (Y = 0) and Roof (Y = 4)
+				add(x, 0, z, c_steelblock)
+				if math.abs(x) <= 1 and math.abs(z) <= 1 then
+					add(x, 4, z, c_obsidian_glass) -- Observation cupola
+				else
+					add(x, 4, z, c_steelblock)
+				end
 
-	-- Outer Walls with breaches and windows
-	for z = -3, 3 do
-		-- Left wall
-		add(-2, 1, z, c_steelblock)
-		add(-2, 2, z, (z == 0 or z == 1) and c_obsidian_glass or c_steelblock)
-		add(-2, 3, z, c_steelblock)
-
-		-- Right wall
-		add(2, 1, z, c_steelblock)
-		add(2, 2, z, (z == -1 or z == 0) and c_obsidian_glass or c_steelblock)
-		add(2, 3, z, c_steelblock)
-	end
-
-	-- Front and Aft Endcaps
-	for x = -1, 1 do
-		add(x, 1, 4, c_bronzeblock)
-		add(x, 2, 4, c_obsidian_glass)
-		add(x, 3, 4, c_bronzeblock)
-
-		-- Rear bulkhead (with breach at x = 0)
-		if x ~= 0 then
-			add(x, 1, -4, c_steelblock)
-		end
-		add(x, 2, -4, c_steelblock)
-		add(x, 3, -4, c_steelblock)
-	end
-
-	-- Roof & Observation Cupola
-	for x = -2, 2 do
-		for z = -3, 3 do
-			if math.abs(x) <= 1 and math.abs(z) <= 1 then
-				add(x, 4, z, c_obsidian_glass) -- Skyward viewing cupola
-			else
-				add(x, 4, z, c_steelblock)
+				-- Perimeter walls (Y = 1 to 3)
+				local is_edge = (math.abs(x) == 3 or math.abs(z) == 3 or (math.abs(x) == 2 and math.abs(z) == 2))
+				if is_edge then
+					for y = 1, 3 do
+						if (z == 3 and math.abs(x) <= 1) then
+							-- Forward airlock portal
+							if y == 3 then add(x, y, z, c_bronzeblock) end
+						elseif (x == 0 or z == 0) and (y == 2) then
+							add(x, y, z, c_obsidian_glass) -- Viewport window
+						else
+							add(x, y, z, (y == 2) and c_bronzeblock or c_steelblock)
+						end
+					end
+				end
 			end
 		end
 	end
 
-	-- Machinery Installations (Electrolyzer & Solar Wings)
-	add(-3, 2, 0, c_solar_carrier)
-	add(3, 2, 0, c_solar_carrier)
-	add(1, 1, 2, c_electrolyzer)
-	add(-1, 1, 2, c_fuel_tank)
+	-- 2. Interior Research Equipment & Consoles (Y = 1 to 2, X in [-2, 2], Z in [-2, 2])
+	add(0, 1, 0, c_electrolyzer) -- Central life support & sample analyzer
+	add(0, 2, 0, c_copperblock)
+	add(-2, 1, 0, c_fuel_tank)
+	add(-2, 2, 0, c_fuel_tank)
+	add(2, 1, 0, c_copperblock) -- Data server rack
+	add(2, 2, 0, c_copperblock)
+	add(0, 1, -2, c_copperblock)
 
-	-- High-Tier Secure Storage
-	add(1, 1, -1, c_chest_ta4, 0, true, "lab")
-	add(-1, 1, -1, c_chest_ta4, 0, true, "lab")
+	-- Salvage Research Storage Lockers
+	add(-2, 1, -2, c_chest_ta4, 0, true, "lab")
+	add(2, 1, -2, c_chest_ta4, 0, true, "lab")
+	add(2, 1, 2, c_chest_ta3, 0, true, "shuttle")
 
-	-- Distress Beacon
-	add(0, 5, 0, c_beacon, 0, true, "lab_beacon")
+	-- 3. Twin Extended East-West Solar Wings (X = +/- 4 to +/- 8, Y = 2)
+	-- East (+X) Wing: Carrier beam at Z=0 (p2=1), Solar modules at Z=+1 (p2=0) and Z=-1 (p2=2)
+	for x = 4, 8 do
+		add(x, 2, 0, c_solar_carrier, 1) -- Rotated 90 deg along X-axis
+		add(x, 2, 1, c_solar_module, 0)  -- Flat 1x2 panel extending +Z
+		add(x, 2, -1, c_solar_module, 2) -- Flat 1x2 panel extending -Z
+	end
+	-- West (-X) Wing: Carrier beam at Z=0 (p2=1), Solar modules at Z=+1 (p2=0) and Z=-1 (p2=2)
+	for x = -8, -4 do
+		add(x, 2, 0, c_solar_carrier, 1) -- Rotated 90 deg along X-axis
+		add(x, 2, 1, c_solar_module, 0)  -- Flat 1x2 panel extending +Z
+		add(x, 2, -1, c_solar_module, 2) -- Flat 1x2 panel extending -Z
+	end
+
+	-- 4. Communication Mast & Active Beacon (Y = 5 to 6)
+	add(0, 5, 0, c_copperblock)
+	add(0, 6, 0, c_beacon, 0, true, "lab_beacon")
 
 	return {
 		name = "lab",
-		size = {x = 7, y = 6, z = 9},
-		radius = 5,
+		size = {x = 17, y = 8, z = 17},
+		radius = 10,
 		nodes = nodes
 	}
 end
+derelicts.get_lab_schematic = get_lab_schematic
 
 local function get_freighter_schematic()
 	if not c_air then init_content_ids() end
-	-- Derelict Heavy Capital Freighter (~15x9x25, radius 13)
+	-- Heavy Capital Container Freighter (~21x13x39, radius 20)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- 1. Main Deck Floor and Upper Ceiling (-4 to 4 X, -10 to 10 Z)
-	for z = -10, 10 do
-		local width = (z >= 8) and 2 or ((z <= -8) and 3 or 4)
+	-- 1. Main Keel Spine & Lower Hull Floor (Y = 0, X in [-8, 8], Z = -16 to 16)
+	for z = -16, 16 do
+		local width = (z >= 12) and 3 or ((z >= 10) and 5 or ((z <= -12) and 6 or 8))
 		for x = -width, width do
 			add(x, 0, z, c_steelblock)
-			add(x, 4, z, (math.abs(x) == width or z == 10 or z == -10) and c_steelblock or c_obsidian_glass)
 		end
 	end
 
-	-- 2. Outer Hull Walls & Armor Plating
-	for z = -10, 10 do
-		local width = (z >= 8) and 2 or ((z <= -8) and 3 or 4)
+	-- 2. Armored Heavy Bow & Forward Docking Prow (Z = 11 to 18)
+	for z = 11, 18 do
+		local span = (z >= 17) and 1 or ((z >= 15) and 2 or ((z >= 13) and 3 or 4))
+		for x = -span, span do
+			for y = 1, 3 do
+				if z == 18 and x == 0 and (y == 1 or y == 2) then
+					-- Forward docking airlock
+				elseif z == 18 or math.abs(x) == span then
+					add(x, y, z, (z >= 16 and y == 2) and c_obsidian_glass or c_bronzeblock)
+				end
+			end
+			add(x, 4, z, (z >= 15) and c_obsidian_glass or c_steelblock)
+		end
+	end
+	add(0, 1, 14, c_electrolyzer) -- Forward life support
+
+	-- 3. Central Keel Gantry Catwalk (X in [-1, 1], Z = -8 to 11)
+	for z = -8, 11 do
+		add(0, 1, z, c_steelblock)
+		add(-1, 1, z, c_steelblock)
+		add(1, 1, z, c_steelblock)
+		-- Catwalk roof / Crane rails at Y = 4
+		add(-1, 4, z, c_steelblock)
+		add(1, 4, z, c_steelblock)
+		add(0, 4, z, c_obsidian_glass)
+	end
+
+	-- 4. Four Massive Industrial Container Cargo Bays (Port/Starboard, Fore/Aft)
+	-- Cargo Bay Stack Helper
+	local function place_cargo_stack(x_min, x_max, z_min, z_max, container_cid)
+		for z = z_min, z_max do
+			for x = x_min, x_max do
+				for y = 1, 3 do
+					if x == x_min or x == x_max or z == z_min or z == z_max or y == 3 then
+						add(x, y, z, container_cid)
+					end
+				end
+			end
+		end
+	end
+
+	-- Forward Port Bay (Z = 3 to 9, X = -7 to -3): Bronze Heavy Freight Containers
+	place_cargo_stack(-7, -3, 3, 9, c_bronzeblock)
+	add(-5, 1, 6, c_chest_ta4, 0, true, "lab")
+	add(-4, 1, 4, c_chest_ta3, 0, true, "shuttle")
+	add(-6, 1, 4, c_fuel_tank)
+	add(-6, 2, 4, c_fuel_tank)
+
+	-- Forward Starboard Bay (Z = 3 to 9, X = 3 to 7): Copper Refined Materials Containers
+	place_cargo_stack(3, 7, 3, 9, c_copperblock)
+	add(5, 1, 6, c_chest_ta4, 0, true, "lab")
+	add(4, 1, 4, c_chest_ta3, 0, true, "shuttle")
+	add(6, 1, 4, c_fuel_tank)
+	add(6, 2, 4, c_fuel_tank)
+
+	-- Mid Port Bay (Z = -5 to 1, X = -7 to -3): Steel Machinery Containers
+	place_cargo_stack(-7, -3, -5, 1, c_steelblock)
+	add(-5, 1, -2, c_chest_ta4, 0, true, "lab")
+	add(-4, 1, 0, c_chest_ta3, 0, true, "shuttle")
+
+	-- Mid Starboard Bay (Z = -5 to 1, X = 3 to 7): Hazardous Fuel Cell Racks
+	place_cargo_stack(3, 7, -5, 1, c_steelblock)
+	add(5, 1, -2, c_chest_ta4, 0, true, "lab")
+	add(4, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(5, 1, 0, c_fuel_tank)
+	add(5, 2, 0, c_fuel_tank)
+
+	-- 5. Elevated 3-Story Bridge Superstructure (Z = -5 to -1, Y = 5 to 12)
+	for z = -5, -1 do
+		for x = -3, 3 do
+			for y = 5, 8 do
+				if y == 5 or y == 8 or math.abs(x) == 3 or z == -5 or z == -1 then
+					if y == 7 and (z == -1 or math.abs(x) == 3) then
+						add(x, y, z, c_obsidian_glass) -- Panoramic bridge viewport
+					else
+						add(x, y, z, c_steelblock)
+					end
+				end
+			end
+		end
+	end
+	-- Bridge interior console
+	add(0, 6, -3, c_copperblock)
+	add(0, 6, -2, c_electrolyzer)
+	add(1, 6, -3, c_chest_ta4, 0, true, "lab")
+
+	-- Armored Communications Spire & Active Distress Beacon (Y = 9 to 12)
+	for y = 9, 11 do
+		add(0, y, -3, c_copperblock)
+	end
+	add(0, 9, -2, c_bronzeblock)
+	add(0, 9, -4, c_bronzeblock)
+	add(1, 9, -3, c_bronzeblock)
+	add(-1, 9, -3, c_bronzeblock)
+	add(0, 12, -3, c_beacon, 0, true, "freighter_beacon")
+
+	-- 6. Quad Heavy Fusion Propulsion Block (Z = -6 to -18)
+	-- Main Engine Housing (Z = -6 to -16, X in [-7, 7], Y in [0, 4])
+	for z = -16, -6 do
+		for x = -7, 7 do
+			for y = 1, 4 do
+				if math.abs(x) == 7 or y == 4 or z == -16 then
+					add(x, y, z, c_steelblock)
+				end
+			end
+		end
+	end
+
+	-- Central Heavy Fusion Reactor Core inside engine bay (Z = -9 to -13)
+	for z = -13, -9 do
+		add(0, 1, z, c_electrolyzer)
+		add(0, 2, z, c_copperblock)
+		add(-1, 1, z, c_fuel_tank)
+		add(1, 1, z, c_fuel_tank)
+		add(-1, 2, z, c_fuel_tank)
+		add(1, 2, z, c_fuel_tank)
+	end
+
+	-- Quad Heavy Thruster Exhaust Bells at Z = -17 and -18
+	local thruster_positions = {-6, -2, 2, 6}
+	for _, tx in ipairs(thruster_positions) do
 		for y = 1, 3 do
-			-- Hull breaches on flank (z == 2 or z == -4)
-			if not ((z == 2 or z == -4) and y >= 2) then
-				add(-width, y, z, c_steelblock)
-				add(width, y, z, c_steelblock)
+			for x = tx - 1, tx + 1 do
+				if x == tx and y == 2 then
+					add(x, y, -17, c_copperblock) -- Exhaust core
+					add(x, y, -18, c_copperblock)
+				else
+					add(x, y, -17, c_bronzeblock) -- Engine cowling rim
+					add(x, y, -18, c_bronzeblock)
+				end
 			end
 		end
 	end
-
-	-- 3. Command Bridge (Z = 8 to 11, X = -2 to 2)
-	for x = -1, 1 do
-		add(x, 1, 11, c_bronzeblock)
-		add(x, 2, 11, c_obsidian_glass)
-		add(x, 3, 11, c_obsidian_glass)
-	end
-	add(0, 1, 9, c_solar_carrier)
-	add(1, 1, 8, c_chest_ta4, 0, true, "lab")
-
-	-- 4. Cargo Holds & Storage Bays (Z = 0 to 7)
-	-- Left Bay
-	add(-2, 1, 4, c_chest_ta3, 0, true, "shuttle")
-	add(-2, 1, 5, c_chest_ta4, 0, true, "lab")
-	add(-3, 1, 3, c_fuel_tank)
-	add(-3, 2, 3, c_fuel_tank)
-
-	-- Right Bay
-	add(2, 1, 4, c_chest_ta3, 0, true, "shuttle")
-	add(2, 1, 5, c_chest_ta4, 0, true, "shuttle")
-	add(3, 1, 3, c_fuel_tank)
-	add(3, 2, 3, c_fuel_tank)
-
-	-- 5. Engineering & Reactor Core (Z = -2 to -7)
-	for x = -2, 2 do
-		for y = 1, 3 do
-			if math.abs(x) == 2 then
-				add(x, y, -2, c_steelblock)
-				add(x, y, -7, c_steelblock)
-			end
-		end
-	end
-	add(0, 1, -5, c_electrolyzer)
-	add(0, 2, -5, c_copperblock)
-	add(1, 1, -5, c_fuel_tank)
-	add(-1, 1, -5, c_fuel_tank)
-	add(0, 1, -4, c_chest_ta4, 0, true, "lab")
-	add(0, 1, -6, c_chest_ta4, 0, true, "lab")
-
-	-- 6. Rear Twin Thruster Nacelles (X = -5 and +5, Z = -8 to -12)
-	for _, sx in ipairs({-5, 5}) do
-		for z = -12, -8 do
-			for y = 0, 2 do
-				add(sx, y, z, c_steelblock)
-			end
-		end
-		add(sx, 1, -13, c_copperblock)
-		add(sx, 1, -14, c_bronzeblock)
-		add(sx, 1, -8, c_fuel_tank)
-	end
-
-	-- 7. Command Spire & Active Distress Beacon (0, 6, 0)
-	add(0, 5, 0, c_copperblock)
-	add(0, 6, 0, c_beacon, 0, true, "freighter_beacon")
 
 	return {
 		name = "freighter",
-		size = {x = 15, y = 9, z = 25},
-		radius = 13,
+		size = {x = 21, y = 13, z = 39},
+		radius = 20,
 		nodes = nodes
 	}
 end
@@ -331,7 +406,7 @@ derelicts.get_freighter_schematic = get_freighter_schematic
 
 local function get_power_satellite_schematic()
 	if not c_air then init_content_ids() end
-	-- Heavy Orbital Power Station & Solar Array (~27x8x17, radius 14)
+	-- Heavy Orbital Power Station & Solar Array (~29x8x29, radius 15)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
@@ -340,18 +415,14 @@ local function get_power_satellite_schematic()
 	-- 1. Octagonal Core Station Hub (X in [-3, 3], Z in [-3, 3], Y in [0, 3])
 	for x = -3, 3 do
 		for z = -3, 3 do
-			-- Exclude extreme 4 corners to form clean octagon
 			local is_corner = (math.abs(x) == 3 and math.abs(z) == 3)
 			if not is_corner then
-				-- Bottom deck floor (Y = 0) and top ceiling (Y = 3)
 				add(x, 0, z, c_steelblock)
 				add(x, 3, z, (math.abs(x) <= 1 and math.abs(z) <= 1) and c_copperblock or c_steelblock)
 
-				-- Perimeter walls (Y = 1 and 2)
 				local is_edge = (math.abs(x) == 3 or math.abs(z) == 3 or (math.abs(x) == 2 and math.abs(z) == 2))
 				if is_edge then
 					for y = 1, 2 do
-						-- Panoramic observation ports on cardinal faces
 						if (x == 0 or z == 0) then
 							add(x, y, z, c_obsidian_glass)
 						else
@@ -375,53 +446,56 @@ local function get_power_satellite_schematic()
 	add(0, 2, 1, c_copperblock)
 	add(0, 2, -1, c_copperblock)
 
-	-- 2. Single-Plane Truss-Mounted Solar Wings (Extending along +/- X from 4 to 13)
-	for _, sx_sign in ipairs({-1, 1}) do
-		for i = 4, 13 do
-			local x = sx_sign * i
-			-- Under-wing structural support truss at Y = 1
-			add(x, 1, 0, c_solar_carrier)
-			if i % 3 == 1 or i == 13 then
-				-- Transverse structural rib beams
-				for z = -2, 2 do
-					if z ~= 0 then
-						add(x, 1, z, (math.abs(z) == 2 or i == 13) and c_bronzeblock or c_steelblock)
-					end
-				end
-			end
-
-			-- Single-plane Photovoltaic surface at Y = 2 facing space
-			add(x, 2, 0, c_solar_carrier)
-			for z = -2, 2 do
-				if math.abs(z) == 2 or i == 13 then
-					add(x, 2, z, c_bronzeblock) -- Protective perimeter frame
-				elseif z ~= 0 then
-					add(x, 2, z, c_solar_module) -- Photovoltaic cell
-				end
-			end
-		end
+	-- 2. Four Expansive Photovoltaic Array Wings (East, West, North, South extending to 14)
+	-- East (+X) Wing: Dual carrier lines at Z = -2 and Z = +2 (p2=1)
+	for x = 4, 14 do
+		-- North spar of East wing (Z = 2)
+		add(x, 2, 2, c_solar_carrier, 1)
+		add(x, 2, 3, c_solar_module, 0) -- Extends +Z
+		add(x, 2, 1, c_solar_module, 2) -- Extends -Z
+		-- South spar of East wing (Z = -2)
+		add(x, 2, -2, c_solar_carrier, 1)
+		add(x, 2, -1, c_solar_module, 0) -- Extends +Z
+		add(x, 2, -3, c_solar_module, 2) -- Extends -Z
 	end
 
-	-- 3. Perpendicular Thermal Radiator Fins (Extending along +/- Z from 4 to 8)
-	for _, sz_sign in ipairs({-1, 1}) do
-		for i = 4, 8 do
-			local z = sz_sign * i
-			-- Central coolant spine
-			add(0, 0, z, c_steelblock)
-			add(0, 1, z, c_copperblock)
-			add(0, 2, z, c_copperblock)
-			add(0, 3, z, c_steelblock)
-
-			-- Radiator heat dispersion vanes
-			for _, x in ipairs({-1, 1}) do
-				add(x, 1, z, c_obsidian_glass)
-				add(x, 2, z, c_obsidian_glass)
-				add(x, 3, z, c_bronzeblock)
-			end
-		end
+	-- West (-X) Wing: Dual carrier lines at Z = -2 and Z = +2 (p2=1)
+	for x = -14, -4 do
+		-- North spar of West wing (Z = 2)
+		add(x, 2, 2, c_solar_carrier, 1)
+		add(x, 2, 3, c_solar_module, 0) -- Extends +Z
+		add(x, 2, 1, c_solar_module, 2) -- Extends -Z
+		-- South spar of West wing (Z = -2)
+		add(x, 2, -2, c_solar_carrier, 1)
+		add(x, 2, -1, c_solar_module, 0) -- Extends +Z
+		add(x, 2, -3, c_solar_module, 2) -- Extends -Z
 	end
 
-	-- 4. High-Gain Transmission Spire & Active Beacon (Y = 4 to 7)
+	-- North (+Z) Wing: Dual carrier lines at X = -2 and X = +2 (p2=0)
+	for z = 4, 14 do
+		-- East spar of North wing (X = 2)
+		add(2, 2, z, c_solar_carrier, 0)
+		add(3, 2, z, c_solar_module, 3) -- Extends +X
+		add(1, 2, z, c_solar_module, 1) -- Extends -X
+		-- West spar of North wing (X = -2)
+		add(-2, 2, z, c_solar_carrier, 0)
+		add(-1, 2, z, c_solar_module, 3) -- Extends +X
+		add(-3, 2, z, c_solar_module, 1) -- Extends -X
+	end
+
+	-- South (-Z) Wing: Dual carrier lines at X = -2 and X = +2 (p2=0)
+	for z = -14, -4 do
+		-- East spar of South wing (X = 2)
+		add(2, 2, z, c_solar_carrier, 0)
+		add(3, 2, z, c_solar_module, 3) -- Extends +X
+		add(1, 2, z, c_solar_module, 1) -- Extends -X
+		-- West spar of South wing (X = -2)
+		add(-2, 2, z, c_solar_carrier, 0)
+		add(-1, 2, z, c_solar_module, 3) -- Extends +X
+		add(-3, 2, z, c_solar_module, 1) -- Extends -X
+	end
+
+	-- 3. High-Gain Transmission Spire & Active Beacon (Y = 4 to 7)
 	for y = 4, 6 do
 		add(0, y, 0, (y == 5) and c_bronzeblock or c_copperblock)
 	end
@@ -431,15 +505,15 @@ local function get_power_satellite_schematic()
 	add(0, 4, -1, c_bronzeblock)
 	add(0, 7, 0, c_beacon, 0, true, "power_satellite_beacon")
 
-	-- 5. Salvage Capacitors & High-Tech Storage
+	-- 4. Salvage Capacitors & High-Tech Storage
 	add(1, 1, 1, c_chest_ta4, 0, true, "lab")
 	add(-1, 1, -1, c_chest_ta3, 0, true, "shuttle")
 	add(-1, 1, 1, c_chest_ta4, 0, true, "lab")
 
 	return {
 		name = "power_satellite",
-		size = {x = 27, y = 8, z = 17},
-		radius = 14,
+		size = {x = 29, y = 8, z = 29},
+		radius = 15,
 		nodes = nodes
 	}
 end
@@ -649,21 +723,25 @@ local function get_corvette_schematic()
 	end
 
 	-- 5. Cockpit Enclosure & Armored Obsidian Glass Canopy (Z = 3 to 5)
-	for z = 3, 5 do
+	for z = 3, 4 do
+		add(-2, 1, z, c_bronzeblock)
+		add(2, 1, z, c_bronzeblock)
+		add(-2, 2, z, c_obsidian_glass)
+		add(2, 2, z, c_obsidian_glass)
 		for x = -1, 1 do
-			if z == 5 then
-				add(x, 1, z, (x == 0) and c_obsidian_glass or c_bronzeblock)
-				add(x, 2, z, (x == 0) and c_obsidian_glass or c_bronzeblock)
-			else
-				add(-2, 1, z, c_bronzeblock)
-				add(2, 1, z, c_bronzeblock)
-				add(-2, 2, z, c_obsidian_glass)
-				add(2, 2, z, c_obsidian_glass)
-				add(x, 2, z, c_obsidian_glass)
-				add(x, 3, z, c_obsidian_glass)
-			end
+			add(x, 3, z, c_obsidian_glass)
 		end
 	end
+	-- Forward Windshield & Cockpit Frame (Z = 5)
+	add(0, 1, 5, c_obsidian_glass)
+	add(0, 2, 5, c_obsidian_glass)
+	add(-1, 1, 5, c_bronzeblock)
+	add(1, 1, 5, c_bronzeblock)
+	add(-1, 2, 5, c_bronzeblock)
+	add(1, 2, 5, c_bronzeblock)
+	add(0, 3, 5, c_obsidian_glass)
+	add(-1, 3, 5, c_bronzeblock)
+	add(1, 3, 5, c_bronzeblock)
 
 	-- Reinforced Ramming Prow Nose (Z = 6 to 8)
 	add(0, 1, 6, c_bronzeblock)
@@ -716,19 +794,25 @@ local function get_corvette_schematic()
 	end
 
 	-- 9. Walk-In Interior Cabin & Engineering Core (Y = 1 and 2, X in [-1, 1])
-	add(0, 1, 2, c_electrolyzer) -- Life support
-	add(0, 2, 2, c_obsidian_glass)
-	add(-1, 1, -2, c_fuel_tank) -- Dual fuel cells
-	add(1, 1, -2, c_fuel_tank)
+	-- Central aisle (X = 0, Y in [1, 2]) is completely clear for unobstructed walking from Z = -5 to 4
+	-- Side Equipment in Wall Alcoves at X = -1 and X = 1
+	add(1, 1, 2, c_electrolyzer) -- Life support on starboard wall
+	add(-1, 1, 2, c_copperblock)  -- Avionics on port wall
+	add(-1, 1, -2, c_fuel_tank)  -- Port fuel cell
+	add(1, 1, -2, c_fuel_tank)   -- Starboard fuel cell
 	add(-1, 2, -2, c_fuel_tank)
 	add(1, 2, -2, c_fuel_tank)
-	add(0, 1, -3, c_copperblock) -- Reactor conduit
-	add(0, 2, -3, c_copperblock)
 
-	-- Salvage Containers
+	-- Overhead & Aft Reactor Conduits (leaving walking space open at X = 0, Y in [1, 2])
+	add(0, 3, -3, c_copperblock) -- Overhead power conduit
+	add(0, 0, -3, c_copperblock) -- Under-floor conduit
+	add(0, 1, -6, c_copperblock) -- Aft bulkhead core
+	add(0, 2, -6, c_copperblock)
+
+	-- Accessible Salvage Containers
 	add(-1, 1, 0, c_chest_ta3, 0, true, "shuttle")
 	add(1, 1, 0, c_chest_ta4, 0, true, "lab")
-	add(0, 1, -5, c_chest_ta4, 0, true, "lab")
+	add(-1, 1, -4, c_chest_ta4, 0, true, "lab")
 
 	return {
 		name = "corvette",
