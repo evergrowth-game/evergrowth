@@ -247,14 +247,13 @@ derelicts.get_lab_schematic = get_lab_schematic
 
 local function get_freighter_schematic()
 	if not c_air then init_content_ids() end
-	-- Heavy Capital Container Freighter (~21x13x39, radius 20)
+	-- Heavy Capital Container Freighter (~21x14x39, radius 20)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
 	-- 1. Main Keel Spine & Lower Hull Floor (Y = 0, X in [-8, 8], Z = -16 to 16)
-	-- All main deck walkways rest flush on Y = 0
 	for z = -16, 16 do
 		local width = (z >= 12) and 3 or ((z >= 10) and 5 or ((z <= -12) and 6 or 8))
 		for x = -width, width do
@@ -266,57 +265,55 @@ local function get_freighter_schematic()
 	for z = 11, 18 do
 		local span = (z >= 17) and 1 or ((z >= 15) and 2 or ((z >= 13) and 3 or 4))
 		for x = -span, span do
-			for y = 1, 3 do
+			for y = 1, 4 do
 				if z == 18 and x == 0 and (y == 1 or y == 2) then
 					-- Forward docking airlock opening
 				elseif z == 18 or math.abs(x) == span then
-					add(x, y, z, (z >= 16 and y == 2) and c_obsidian_glass or c_bronzeblock)
+					add(x, y, z, (z >= 16 and (y == 2 or y == 3)) and c_obsidian_glass or c_bronzeblock)
 				end
 			end
-			add(x, 4, z, (z >= 15) and c_obsidian_glass or c_steelblock)
+			add(x, 5, z, (z >= 15) and c_obsidian_glass or c_steelblock)
 		end
 	end
 	add(0, 1, 14, c_electrolyzer) -- Forward life support
 
 	-- 3. Central Keel Gantry Catwalk (X in [-1, 1], Z = -8 to 11)
-	-- Deck is flush at Y = 0; Y = 1 to 3 is open walking space
+	-- Deck is flush at Y = 0; Y = 1 to 4 is open 4-block high vertical walking space
 	for z = -8, 11 do
-		-- Overhead gantry crane rails and observation skylights at Y = 4
-		add(-1, 4, z, c_steelblock)
-		add(1, 4, z, c_steelblock)
-		add(0, 4, z, c_obsidian_glass)
+		-- Overhead gantry crane rails and observation skylights at Y = 5
+		add(-1, 5, z, c_steelblock)
+		add(1, 5, z, c_steelblock)
+		add(0, 5, z, c_obsidian_glass)
 	end
 
 	-- Structural Gantry Archways along the Catwalk (Z = -8, -4, 0, 4, 8, 11)
 	for _, az in ipairs({-8, -4, 0, 4, 8, 11}) do
-		for y = 1, 3 do
+		for y = 1, 4 do
 			add(-2, y, az, c_bronzeblock)
 			add(2, y, az, c_bronzeblock)
 		end
-		add(-1, 3, az, c_bronzeblock)
-		add(1, 3, az, c_bronzeblock)
-		add(0, 3, az, c_copperblock)
+		add(-1, 4, az, c_bronzeblock)
+		add(1, 4, az, c_bronzeblock)
+		add(0, 4, az, c_copperblock)
 	end
 
-	-- 4. Four Massive Industrial Walk-In Cargo Bays with Open Bulkhead Doorways
+	-- 4. Four Massive Industrial Walk-In Cargo Bays with 3-Block High Bulkhead Doorways
 	-- Forward Port Bay (Z = 3 to 9, X = -7 to -3): Bronze Heavy Freight Containers
-	-- Bulkhead doorway into central catwalk is open at X = -2, Y in [1, 2], Z in [5, 6]
+	-- Bulkhead doorway into central catwalk is open at X = -2, Y in [1, 3], Z in [5, 6]
 	for z = 3, 9 do
 		for x = -7, -3 do
-			-- Outer bay walls with open viewing ribs
 			if x == -7 or z == 3 or z == 9 then
-				for y = 1, 3 do
-					if (z == 6 and y == 2) or (x == -7 and (z == 5 or z == 7) and y == 2) then
+				for y = 1, 4 do
+					if (z == 6 and (y == 2 or y == 3)) or (x == -7 and (z == 5 or z == 7) and (y == 2 or y == 3)) then
 						add(x, y, z, c_obsidian_glass)
 					else
 						add(x, y, z, c_bronzeblock)
 					end
 				end
 			end
-			add(x, 4, z, c_steelblock) -- Bay roof
+			add(x, 5, z, c_steelblock) -- Bay roof
 		end
 	end
-	-- Interior cargo pallets & accessible freight storage
 	add(-5, 1, 6, c_chest_ta4, 0, true, "lab")
 	add(-4, 1, 5, c_chest_ta3, 0, true, "shuttle")
 	add(-6, 1, 5, c_bronzeblock)
@@ -325,19 +322,19 @@ local function get_freighter_schematic()
 	add(-6, 2, 7, c_fuel_tank)
 
 	-- Forward Starboard Bay (Z = 3 to 9, X = 3 to 7): Copper Refined Materials Containers
-	-- Bulkhead doorway into central catwalk is open at X = 2, Y in [1, 2], Z in [5, 6]
+	-- Bulkhead doorway into central catwalk is open at X = 2, Y in [1, 3], Z in [5, 6]
 	for z = 3, 9 do
 		for x = 3, 7 do
 			if x == 7 or z == 3 or z == 9 then
-				for y = 1, 3 do
-					if (z == 6 and y == 2) or (x == 7 and (z == 5 or z == 7) and y == 2) then
+				for y = 1, 4 do
+					if (z == 6 and (y == 2 or y == 3)) or (x == 7 and (z == 5 or z == 7) and (y == 2 or y == 3)) then
 						add(x, y, z, c_obsidian_glass)
 					else
 						add(x, y, z, c_copperblock)
 					end
 				end
 			end
-			add(x, 4, z, c_steelblock) -- Bay roof
+			add(x, 5, z, c_steelblock) -- Bay roof
 		end
 	end
 	add(5, 1, 6, c_chest_ta4, 0, true, "lab")
@@ -348,19 +345,19 @@ local function get_freighter_schematic()
 	add(6, 2, 7, c_fuel_tank)
 
 	-- Mid Port Bay (Z = -5 to 1, X = -7 to -3): Steel Machinery Containers
-	-- Bulkhead doorway into central catwalk is open at X = -2, Y in [1, 2], Z in [-3, -2]
+	-- Bulkhead doorway into central catwalk is open at X = -2, Y in [1, 3], Z in [-3, -2]
 	for z = -5, 1 do
 		for x = -7, -3 do
 			if x == -7 or z == -5 or z == 1 then
-				for y = 1, 3 do
-					if (z == -2 and y == 2) or (x == -7 and (z == -3 or z == -1) and y == 2) then
+				for y = 1, 4 do
+					if (z == -2 and (y == 2 or y == 3)) or (x == -7 and (z == -3 or z == -1) and (y == 2 or y == 3)) then
 						add(x, y, z, c_obsidian_glass)
 					else
 						add(x, y, z, c_steelblock)
 					end
 				end
 			end
-			add(x, 4, z, c_steelblock)
+			add(x, 5, z, c_steelblock)
 		end
 	end
 	add(-5, 1, -2, c_chest_ta4, 0, true, "lab")
@@ -369,19 +366,19 @@ local function get_freighter_schematic()
 	add(-6, 2, -3, c_steelblock)
 
 	-- Mid Starboard Bay (Z = -5 to 1, X = 3 to 7): Hazardous Fuel Cell Racks
-	-- Bulkhead doorway into central catwalk is open at X = 2, Y in [1, 2], Z in [-3, -2]
+	-- Bulkhead doorway into central catwalk is open at X = 2, Y in [1, 3], Z in [-3, -2]
 	for z = -5, 1 do
 		for x = 3, 7 do
 			if x == 7 or z == -5 or z == 1 then
-				for y = 1, 3 do
-					if (z == -2 and y == 2) or (x == 7 and (z == -3 or z == -1) and y == 2) then
+				for y = 1, 4 do
+					if (z == -2 and (y == 2 or y == 3)) or (x == 7 and (z == -3 or z == -1) and (y == 2 or y == 3)) then
 						add(x, y, z, c_obsidian_glass)
 					else
 						add(x, y, z, c_steelblock)
 					end
 				end
 			end
-			add(x, 4, z, c_steelblock)
+			add(x, 5, z, c_steelblock)
 		end
 	end
 	add(5, 1, -2, c_chest_ta4, 0, true, "lab")
@@ -391,12 +388,12 @@ local function get_freighter_schematic()
 	add(6, 1, -1, c_fuel_tank)
 	add(6, 2, -1, c_fuel_tank)
 
-	-- 5. Elevated 3-Story Bridge Superstructure (Z = -5 to -1, Y = 5 to 12)
+	-- 5. Elevated 3-Story Bridge Superstructure (Z = -5 to -1, Y = 6 to 13)
 	for z = -5, -1 do
 		for x = -3, 3 do
-			for y = 5, 8 do
-				if y == 5 or y == 8 or math.abs(x) == 3 or z == -5 or z == -1 then
-					if y == 7 and (z == -1 or math.abs(x) == 3) then
+			for y = 6, 9 do
+				if y == 6 or y == 9 or math.abs(x) == 3 or z == -5 or z == -1 then
+					if y == 8 and (z == -1 or math.abs(x) == 3) then
 						add(x, y, z, c_obsidian_glass) -- Panoramic bridge viewport
 					else
 						add(x, y, z, c_steelblock)
@@ -406,26 +403,26 @@ local function get_freighter_schematic()
 		end
 	end
 	-- Bridge interior console
-	add(0, 6, -3, c_copperblock)
-	add(0, 6, -2, c_electrolyzer)
-	add(1, 6, -3, c_chest_ta4, 0, true, "lab")
+	add(0, 7, -3, c_copperblock)
+	add(0, 7, -2, c_electrolyzer)
+	add(1, 7, -3, c_chest_ta4, 0, true, "lab")
 
-	-- Armored Communications Spire & Active Distress Beacon (Y = 9 to 12)
-	for y = 9, 11 do
+	-- Armored Communications Spire & Active Distress Beacon (Y = 10 to 13)
+	for y = 10, 12 do
 		add(0, y, -3, c_copperblock)
 	end
-	add(0, 9, -2, c_bronzeblock)
-	add(0, 9, -4, c_bronzeblock)
-	add(1, 9, -3, c_bronzeblock)
-	add(-1, 9, -3, c_bronzeblock)
-	add(0, 12, -3, c_beacon, 0, true, "freighter_beacon")
+	add(0, 10, -2, c_bronzeblock)
+	add(0, 10, -4, c_bronzeblock)
+	add(1, 10, -3, c_bronzeblock)
+	add(-1, 10, -3, c_bronzeblock)
+	add(0, 13, -3, c_beacon, 0, true, "freighter_beacon")
 
 	-- 6. Quad Heavy Fusion Propulsion Block (Z = -6 to -18)
-	-- Main Engine Housing (Z = -6 to -16, X in [-7, 7], Y in [0, 4])
+	-- Main Engine Housing (Z = -6 to -16, X in [-7, 7], Y in [0, 5])
 	for z = -16, -6 do
 		for x = -7, 7 do
-			for y = 1, 4 do
-				if math.abs(x) == 7 or y == 4 or z == -16 then
+			for y = 1, 5 do
+				if math.abs(x) == 7 or y == 5 or z == -16 then
 					add(x, y, z, c_steelblock)
 				end
 			end
@@ -460,7 +457,7 @@ local function get_freighter_schematic()
 
 	return {
 		name = "freighter",
-		size = {x = 21, y = 13, z = 39},
+		size = {x = 21, y = 14, z = 39},
 		radius = 20,
 		nodes = nodes
 	}
@@ -888,73 +885,84 @@ derelicts.get_corvette_schematic = get_corvette_schematic
 
 local function get_cryo_barge_schematic()
 	if not c_air then init_content_ids() end
-	-- Heavy Stasis Transport / Cryo-Barge (~13x8x33, radius 17)
+	-- Heavy Stasis Transport / Cryo-Barge (~19x9x33, radius 18)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- 1. Main Central Fuselage & Walk-in Spine Corridor (X in [-1, 1], Z = -11 to 11)
+	-- 1. Main Central Fuselage & 3-Block Wide Walk-in Spine Corridor (X in [-2, 2], Z = -11 to 11)
 	for z = -11, 11 do
-		-- Floor deck (Y = 0) and Roof (Y = 3)
-		for x = -1, 1 do
+		-- Floor deck (Y = 0) and Roof (Y = 5)
+		for x = -2, 2 do
 			add(x, 0, z, c_steelblock)
-			add(x, 3, z, (z % 3 == 0) and c_bronzeblock or c_steelblock)
+			add(x, 5, z, (z % 3 == 0) and c_bronzeblock or c_steelblock)
 		end
 
-		-- Corridor walls (Y = 1 and 2, X = -1 and +1)
-		-- Leave open doorways at Z = -7, 0, 7 leading into the 6 stasis pods
-		local is_pod_doorway = (z == -7 or z == 0 or z == 7)
-		if not is_pod_doorway then
-			for y = 1, 2 do
-				add(-1, y, z, c_steelblock)
-				add(1, y, z, c_steelblock)
+		-- Corridor outer walls at X = -2 and X = +2 (Y = 1 to 4)
+		-- Leave wide open 3-block doorways at Z in [pz-1, pz+1] for each of the 6 stasis pods
+		local is_pod_zone = (math.abs(z - (-7)) <= 1 or math.abs(z - 0) <= 1 or math.abs(z - 7) <= 1)
+		if not is_pod_zone then
+			for y = 1, 4 do
+				if (y == 2 or y == 3) and (z % 2 == 0) then
+					add(-2, y, z, c_obsidian_glass)
+					add(2, y, z, c_obsidian_glass)
+				else
+					add(-2, y, z, c_steelblock)
+					add(2, y, z, c_steelblock)
+				end
 			end
 		end
 	end
 
 	-- Structural Bulkhead Arch Ribs along the Corridor (Z = -9, -6, -3, 0, 3, 6, 9)
 	for _, rz in ipairs({-9, -6, -3, 0, 3, 6, 9}) do
-		add(-1, 3, rz, c_bronzeblock)
-		add(1, 3, rz, c_bronzeblock)
-		add(0, 3, rz, c_copperblock)
+		for y = 1, 4 do
+			add(-2, y, rz, c_bronzeblock)
+			add(2, y, rz, c_bronzeblock)
+		end
+		add(-1, 4, rz, c_bronzeblock)
+		add(1, 4, rz, c_bronzeblock)
+		add(0, 4, rz, c_copperblock)
 	end
 
 	-- External Dorsal and Ventral Cryogenic Coolant Conduits
 	for z = -10, 10 do
 		add(0, -1, z, c_copperblock) -- Ventral liquid nitrogen line
-		add(0, 4, z, (z % 2 == 0) and c_copperblock or c_bronzeblock) -- Dorsal distribution manifold
+		add(0, 6, z, (z % 2 == 0) and c_copperblock or c_bronzeblock) -- Dorsal distribution manifold
 	end
 
-	-- 2. 6 Walk-In Stasis Nacelles on Pylon Standoffs (3 Port, 3 Starboard at Z = -7, 0, 7)
+	-- 2. Six Spacious 5x5 Stasis Nacelles on Pylon Standoffs (3 Port, 3 Starboard at Z = -7, 0, 7)
 	for _, pz in ipairs({-7, 0, 7}) do
 		for _, side in ipairs({-1, 1}) do
-			local x_inner = side * 3
-			local x_outer = side * 6
+			local x_inner = side * 4
+			local x_outer = side * 8
 			local x_min = (side == -1) and x_outer or x_inner
 			local x_max = (side == -1) and x_inner or x_outer
 
-			-- Open Pylon Walkway at X = side * 2
-			add(side * 2, 0, pz, c_steelblock)
-			add(side * 2, 3, pz, c_bronzeblock)
-			for y = 1, 2 do
-				add(side * 2, y, pz - 1, c_steelblock)
-				add(side * 2, y, pz + 1, c_steelblock)
+			-- Wide Pylon Walkway at X = side * 3
+			for z = pz - 1, pz + 1 do
+				add(side * 3, 0, z, c_steelblock)
+				add(side * 3, 5, z, c_bronzeblock)
+			end
+			for y = 1, 4 do
+				add(side * 3, y, pz - 2, c_steelblock)
+				add(side * 3, y, pz + 2, c_steelblock)
 			end
 			-- Coolant branch into pylon
-			add(side * 2, 4, pz, c_copperblock)
+			add(side * 3, 6, pz, c_copperblock)
 
-			-- Hexagonal Nacelle Pod Structure (X = side * 3 to side * 6, Z = pz - 1 to pz + 1)
-			for z = pz - 1, pz + 1 do
+			-- Spacious 5x5 Nacelle Pod Chamber (X = side * 4 to side * 8, Z = pz - 2 to pz + 2)
+			for z = pz - 2, pz + 2 do
 				for x = x_min, x_max do
-					local is_corner = (x == x_outer and (z == pz - 1 or z == pz + 1))
+					local is_corner = (x == x_outer and (z == pz - 2 or z == pz + 2))
 					if not is_corner then
 						add(x, 0, z, c_steelblock) -- Pod floor
-						add(x, 3, z, c_steelblock) -- Pod ceiling
-						if x == x_outer or z == pz - 1 or z == pz + 1 then
-							for y = 1, 2 do
-								if x == x_outer or (z == pz and x ~= x_inner) then
-									add(x, y, z, c_obsidian_glass) -- Observation viewports
+						add(x, 5, z, c_steelblock) -- Pod ceiling
+						if x == x_outer or z == pz - 2 or z == pz + 2 then
+							for y = 1, 4 do
+								if (y == 2 or y == 3) and (x == x_outer or (z == pz and x ~= x_inner)) then
+									add(x, y, z, c_obsidian_glass) -- Panoramic viewports
 								else
 									add(x, y, z, c_steelblock)
 								end
@@ -965,56 +973,63 @@ local function get_cryo_barge_schematic()
 			end
 
 			-- Walk-in Cryo-Stasis Chamber Interior
-			local pod_x = side * 4
+			local pod_x = side * 6
 			add(pod_x, 1, pz, c_obsidian_glass) -- Transparent stasis capsule
 			add(pod_x, 2, pz, c_obsidian_glass)
+			add(pod_x, 3, pz, c_obsidian_glass)
 			add(pod_x, 0, pz, c_copperblock)    -- Cryo base pedestal
-			add(pod_x, 3, pz, c_bronzeblock)    -- Stasis cap manifold
+			add(pod_x, 4, pz, c_bronzeblock)    -- Stasis cap manifold
 			add(pod_x + side, 1, pz, c_electrolyzer) -- Life support console
 			add(pod_x + side, 2, pz, c_fuel_tank)
+			add(pod_x + side, 3, pz, c_fuel_tank)
 		end
 	end
 
 	-- 3. Tapered Forward Navigation Bridge (Z = 12 to 16)
 	for z = 12, 13 do
-		for x = -2, 2 do
+		for x = -3, 3 do
 			add(x, 0, z, c_steelblock)
-			add(x, 3, z, c_steelblock)
-			if math.abs(x) == 2 then
-				for y = 1, 2 do add(x, y, z, c_obsidian_glass) end
+			add(x, 5, z, c_steelblock)
+			if math.abs(x) == 3 then
+				for y = 1, 4 do add(x, y, z, (y == 2 or y == 3) and c_obsidian_glass or c_steelblock) end
 			end
 		end
 	end
-	for x = -1, 1 do
+	for x = -2, 2 do
 		add(x, 0, 14, c_steelblock)
-		add(x, 3, 14, c_bronzeblock)
-		for y = 1, 2 do add(x, y, 14, c_obsidian_glass) end
+		add(x, 5, 14, c_bronzeblock)
+		for y = 1, 4 do add(x, y, 14, (y == 2 or y == 3) and c_obsidian_glass or c_steelblock) end
 	end
-	add(0, 0, 15, c_steelblock)
-	add(0, 1, 15, c_obsidian_glass)
-	add(0, 2, 15, c_obsidian_glass)
+	for x = -1, 1 do
+		add(x, 0, 15, c_steelblock)
+		add(x, 4, 15, c_bronzeblock)
+		for y = 1, 3 do add(x, y, 15, c_obsidian_glass) end
+	end
 	add(0, 1, 16, c_copperblock) -- Forward sensor needle
 	add(0, 1, 11, c_electrolyzer) -- Forward life support
 
-	-- 4. Twin Heavy Sub-Light Propulsion Nacelles (X = -5..-3 and 3..5, Z = -12 to -16)
+	-- 4. Twin Heavy Sub-Light Propulsion Nacelles (X = -6..-3 and 3..6, Z = -12 to -16)
 	for _, side in ipairs({-1, 1}) do
-		local x_min = (side == -1) and -5 or 3
-		local x_max = (side == -1) and -3 or 5
+		local x_min = (side == -1) and -6 or 3
+		local x_max = (side == -1) and -3 or 6
 		for z = -15, -12 do
 			for x = x_min, x_max do
-				for y = 0, 3 do
+				for y = 0, 4 do
 					add(x, y, z, c_steelblock)
 				end
 			end
 		end
 		-- Dual recessed thruster bells at Z = -16
-		for y = 1, 2 do
+		for y = 1, 3 do
 			add(side * 4, y, -16, c_copperblock)
+			add(side * 5, y, -16, c_copperblock)
 			add(side * 3, y, -16, c_bronzeblock)
-			add(side * 5, y, -16, c_bronzeblock)
+			add(side * 6, y, -16, c_bronzeblock)
 		end
 		add(side * 4, 0, -16, c_bronzeblock)
-		add(side * 4, 3, -16, c_bronzeblock)
+		add(side * 5, 0, -16, c_bronzeblock)
+		add(side * 4, 4, -16, c_bronzeblock)
+		add(side * 5, 4, -16, c_bronzeblock)
 	end
 	-- Aft fuel reservoirs inside spine
 	add(-1, 1, -9, c_fuel_tank)
@@ -1023,21 +1038,21 @@ local function get_cryo_barge_schematic()
 	add(1, 2, -9, c_fuel_tank)
 
 	-- 5. Salvage Containers in Stasis Nacelles & Bridge
-	add(-5, 1, 7, c_chest_ta4, 0, true, "lab")
-	add(5, 1, 7, c_chest_ta4, 0, true, "lab")
-	add(-5, 1, 0, c_chest_ta3, 0, true, "shuttle")
-	add(5, 1, 0, c_chest_ta3, 0, true, "shuttle")
-	add(-5, 1, -7, c_chest_ta4, 0, true, "lab")
-	add(5, 1, -7, c_chest_ta4, 0, true, "lab")
+	add(-7, 1, 7, c_chest_ta4, 0, true, "lab")
+	add(7, 1, 7, c_chest_ta4, 0, true, "lab")
+	add(-7, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(7, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(-7, 1, -7, c_chest_ta4, 0, true, "lab")
+	add(7, 1, -7, c_chest_ta4, 0, true, "lab")
 
-	-- 6. Dorsal Mast & Active Navigation Beacon (Y = 5 to 6)
-	add(0, 5, 0, c_copperblock)
-	add(0, 6, 0, c_beacon, 0, true, "cryo_barge_beacon")
+	-- 6. Dorsal Mast & Active Navigation Beacon (Y = 6 to 7)
+	add(0, 6, 0, c_copperblock)
+	add(0, 7, 0, c_beacon, 0, true, "cryo_barge_beacon")
 
 	return {
 		name = "cryo_barge",
-		size = {x = 13, y = 8, z = 33},
-		radius = 17,
+		size = {x = 19, y = 9, z = 33},
+		radius = 18,
 		nodes = nodes
 	}
 end

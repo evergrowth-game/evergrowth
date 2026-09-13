@@ -627,7 +627,7 @@ assert_true(cv_has_beacon, "Corvette contains corvette_beacon")
 -- Cryo-Barge
 local cb_schem = derelicts.get_cryo_barge_schematic()
 assert_eq(cb_schem.name, "cryo_barge", "Cryo-barge schematic name")
-assert_eq(cb_schem.radius, 17, "Cryo-barge radius 17")
+assert_eq(cb_schem.radius, 18, "Cryo-barge radius 18")
 local cb_has_beacon = false
 for _, n in ipairs(cb_schem.nodes) do
 	if n.tier == "cryo_barge_beacon" then cb_has_beacon = true end
