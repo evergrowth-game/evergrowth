@@ -1223,36 +1223,33 @@ function derelicts.scan_and_spawn_distress(player)
 				return
 			end
 			if calls_remaining == 0 then
-				local vm = minetest.get_voxel_manip(p1, p2)
-				local emin, emax = vm:get_emerged_area()
-				local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
-				local data = vm:get_data()
-				local param2_data = vm:get_param2_data()
-
 				local rot = random(0, 3)
-				local chests = derelicts.place_schematic(target_pos, schematic, rot, data, param2_data, area)
-
-				vm:set_data(data)
-				vm:set_param2_data(param2_data)
-				vm:write_to_map()
-				vm:update_map()
-
 				local beacon_label = "Derelict Vessel [DISTRESS]"
 				local beacon_registered = false
-				for _, c in ipairs(chests) do
-					if c.tier and (c.tier:find("_beacon") or derelicts.beacon_titles[c.tier]) then
-						local title = derelicts.beacon_titles[c.tier] or "Derelict Spacecraft [DISTRESS]"
-						beacon_label = title
-						local bmeta = minetest.get_meta(c.pos)
-						bmeta:set_string("ship_name", title)
-						bmeta:set_string("owner", "")
-						bmeta:set_string("infotext", "Navigation Beacon: [" .. title .. "]")
-						if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
-							jumpdrive_tweaks.register_external_beacon(c.pos, title, "")
+
+				for _, n in ipairs(schematic.nodes) do
+					local rx, ry, rz = rotate_offset(n.dx, n.dy, n.dz, rot)
+					local wpos = {x = target_pos.x + rx, y = target_pos.y + ry, z = target_pos.z + rz}
+					local nodename = minetest.get_name_from_content_id(n.cid)
+					local p2 = rotate_param2(n.param2 or 0, rot)
+					if nodename and nodename ~= "air" and nodename ~= "ignore" then
+						minetest.set_node(wpos, {name = nodename, param2 = p2})
+						if n.is_chest then
+							if n.tier and (n.tier:find("_beacon") or derelicts.beacon_titles[n.tier]) then
+								local title = derelicts.beacon_titles[n.tier] or "Derelict Spacecraft [DISTRESS]"
+								beacon_label = title
+								local bmeta = minetest.get_meta(wpos)
+								bmeta:set_string("ship_name", title)
+								bmeta:set_string("owner", "")
+								bmeta:set_string("infotext", "Navigation Beacon: [" .. title .. "]")
+								if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
+									jumpdrive_tweaks.register_external_beacon(wpos, title, "")
+								end
+								beacon_registered = true
+							else
+								derelicts.populate_chest(wpos, n.tier)
+							end
 						end
-						beacon_registered = true
-					else
-						derelicts.populate_chest(c.pos, c.tier)
 					end
 				end
 

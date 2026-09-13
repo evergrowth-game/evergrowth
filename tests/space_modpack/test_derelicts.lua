@@ -145,6 +145,7 @@ jumpdrive_tweaks = {
 	end
 }
 
+local placed_world_nodes = {}
 local chat_messages = {}
 
 minetest = {
@@ -188,14 +189,15 @@ minetest = {
 	emerge_area = function(p1, p2, cb)
 		if cb then cb(nil, nil, 0, nil) end
 	end,
-	get_voxel_manip = function(p1, p2)
-		local em_area = VoxelArea:new{MinEdge = p1, MaxEdge = p2}
-		local t_size = (p2.x - p1.x + 1) * (p2.y - p1.y + 1) * (p2.z - p1.z + 1)
+	get_voxel_manip = function()
 		local em_data = {}
 		local em_p2 = {}
-		for i = 1, t_size do em_data[i] = 13; em_p2[i] = 0 end
 		return {
-			get_emerged_area = function(self) return p1, p2 end,
+			read_from_map = function(self, p1, p2)
+				local t_size = (p2.x - p1.x + 1) * (p2.y - p1.y + 1) * (p2.z - p1.z + 1)
+				for i = 1, t_size do em_data[i] = 13; em_p2[i] = 0 end
+				return p1, p2
+			end,
 			get_data = function(self) return em_data end,
 			get_param2_data = function(self) return em_p2 end,
 			set_data = function(self, d) em_data = d end,
@@ -203,6 +205,17 @@ minetest = {
 			write_to_map = function(self) end,
 			update_map = function(self) end,
 		}
+	end,
+	get_name_from_content_id = function(id)
+		for name, cid in pairs(content_ids) do
+			if cid == id then return name end
+		end
+		return "unknown"
+	end,
+	set_node = function(pos, node)
+		local key = string.format("%d,%d,%d", pos.x, pos.y, pos.z)
+		placed_world_nodes[key] = node
+		node_metas[key] = node_metas[key] or create_mock_meta()
 	end,
 	registered_craftitems = {},
 	register_craftitem = function(name, def)
@@ -514,18 +527,26 @@ local mock_player_space = {
 	get_player_name = function(self) return "Astronaut" end,
 	is_player = function(self) return true end,
 }
-chat_messages = {}
+placed_world_nodes = {}
 jumpdrive_tweaks.active_beacons = {}
 local s_ok, target_pos = derelicts.scan_and_spawn_distress(mock_player_space)
 assert_true(s_ok, "Scanner succeeded in orbital space (Y >= 1000)")
 assert_true(target_pos.y >= 8000, "Distress target coordinates spawned in Deep Space (Y >= 8000)")
+
+local placed_count = 0
+for _, _ in pairs(placed_world_nodes) do
+	placed_count = placed_count + 1
+end
+assert_true(placed_count >= 20, string.format("Full derelict spacecraft placed in world (%d nodes)", placed_count))
+
 local beacon_count = 0
 for _, b in pairs(jumpdrive_tweaks.active_beacons) do
 	beacon_count = beacon_count + 1
 	assert_true(b.name:find("DISTRESS") ~= nil, "Registered beacon name contains DISTRESS tag: " .. tostring(b.name))
+	assert_true(b.name ~= "Derelict Vessel [DISTRESS]", "Registered specific archetype title instead of fallback: " .. tostring(b.name))
 end
-assert_true(beacon_count > 0, "Active distress beacon registered to navigation HUD")
-print("  ✓ Subspace Distress Scanner emergence and distress beacon registration verified")
+assert_eq(beacon_count, 1, "Active distress beacon registered to navigation HUD")
+print("  ✓ Subspace Distress Scanner emergence, multi-node ship construction, and distress beacon registration verified")
 
 print("[TEST 13] Testing Subspace Distress Scanner Craftitem In-Game Interaction...")
 -- Test craftitem registration logic
