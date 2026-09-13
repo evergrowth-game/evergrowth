@@ -114,20 +114,31 @@ mods/space_modpack/
 ## 3. Upcoming Gameplay Roadmap
 
 ### 3.1 Tier 1: Next Immediate Feasibility
-1. **Bridge Audio Telemetry & Annunciators:**
-   - **Mechanism:** Subtle bridge ambient sounds, jump charging hums, and audio alerts for low propellant or incoming collision hazards.
-
+1. **Solar Radiation & Cosmic Ray Storms:**
+   - **Concept:** Periodic high-altitude space weather hazards at orbital altitudes ($Y \ge 1000\text{m}$) that test vessel design and astronaut preparedness.
+   - **Lifecycle & Warning:** Storms cycle through an advance warning phase (diegetic Geiger counter audio clicks, ambient ionization particle shimmer, and HUD alert) before entering a peak radiation window lasting 60–90 seconds.
+   - **Shelter & Occlusion:** Uses upward raycast/occlusion checking to determine player exposure. Enclosed ship cabins with solid overhead blocks (steel, stonebrick, glass, composite hull) provide 100% radiation shielding.
+   - **Exposure Penalties:** Unsheltered players outside take direct radiation damage. Wearing a full spacesuit reduces damage and absorbs radiation at the cost of suit armor degradation.
+   - **Gameplay Objective:** Provides a concrete survival incentive to construct fully enclosed starship cabins and airlocks rather than operating on bare, open platforms in vacuum.
 
 ### 3.2 Tier 2: Medium-Priority Additions (Moderate Complexity)
-1. **Solar Radiation & Cosmic Ray Storms:**
-   - **Mechanism:** Periodic high-altitude space weather events that inflict radiation damage unless players are sheltered within sealed, reinforced hull compartments (verified via `vacuum` seal checks).
-2. **Ship-Mounted Mining Lasers / Drills:**
+1. **Ship-Mounted Mining Lasers / Drills:**
    - **Mechanism:** Hull-mounted excavation heads allowing pilots to bore through asteroid rock and harvest mineral veins directly from the vessel cockpit.
+2. **Orbital Station Docking Clamps & Public Navigation Beacons:**
+   - **Details:** See dedicated task specification in [orbital_docking_and_beacons_plan.md](file:///Users/Aresh/Desktop/Projects/evergrowth/mods/space_modpack/orbital_docking_and_beacons_plan.md).
+   - **Docking Clamps (`jumpdrive_tweaks:docking_clamp`):** Structural airlock clamps with scanner insulation boundaries, enabling walk-through gangways between ships and stations without merging structures during hyperjump.
+   - **Public Beacons:** Visibility toggle allowing orbital stations and trading depots to broadcast jump coordinates to all Bridge Navigation Consoles without in-world HUD clutter.
+   - **Security & Vending:** Centralized access policy management and commercial fuel/power metering.
 
 ### 3.3 Tier 3: Stretch Goals
 1. **Dynamic Ship-to-Ship Docking Clamps:**
-   - **Concept:** Structural docking blocks allowing two independent jumpable vessels to lock together into a single jump entity.
-   - **Consideration:** Requires handling coordinate offsets and bounding-box merges across independent `jumpdrive` controllers.
-2. **Gas Giant & Planetary Ring Siphons:**
-   - **Concept:** Orbital harvesting platforms designed to collect exotic gases (Helium-3, volatile plasmas) from outer planetary boundaries.
+   - **Concept:** Structural docking blocks allowing two independent jumpable vessels to lock together into a single joint jump entity (e.g., tugboats towing barges or carriers transporting parasite craft).
+   - **Consideration:** Requires handling coordinate offsets and bounding-box merges across independent `jumpdrive` controllers during joint jump execution.
+2. **Atmospheric Exosphere Scoop & Comet Vapor Collector:**
+   - **Concept:** Hull-mounted intake condenser modules designed for automated orbital fluid harvesting without manual digging.
+   - **Mechanism:** When positioned in specific celestial layers, collects trace fluids into connected TechAge liquid/gas pipe networks over time:
+     - **Low Orbit ($Y = 1000–2000\text{m}$):** Condenses trace upper atmosphere to refill compressed air containers.
+     - **Mars / Redsky Orbit ($Y = 4000–6000\text{m}$):** Siphons thin atmospheric gases (`asteroid:atmos`) for synthetic processing.
+     - **Comet Ice Clusters ($Y = 2000–4000\text{m}$):** Thermally sublimates nearby comet ice into pure water tanks.
+   - **Gameplay Utility:** Enables self-sufficient orbital refueling outposts and automated fuel gathering for long-range deep space expeditions.
 

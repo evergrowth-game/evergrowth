@@ -287,7 +287,41 @@ local function generate_asteroid_chunk(minp, maxp, seed, layer_type, ymin, ymax)
 	end
 end
 
+-- Generator for Low Orbit Space Layer (Y = 1000 to 4999) - Procedural Derelicts & Orbital Salvage in Open Vacuum
+local function generate_low_orbit_chunk(minp, maxp, seed)
+	local ymin = 1000
+	local ymax = 4999
+	if minp.x < XMIN or maxp.x > XMAX
+	or minp.y < ymin or maxp.y > ymax
+	or minp.z < ZMIN or maxp.z > ZMAX then
+		return
+	end
 
+	if not other_worlds_tweaks_derelicts or not other_worlds_tweaks_derelicts.generate_in_chunk then
+		return
+	end
+
+	local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
+	local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
+	local data = vm:get_data()
+
+	local derelict_chests = other_worlds_tweaks_derelicts.generate_in_chunk(minp, maxp, data, vm, area, "space")
+	if derelict_chests and #derelict_chests > 0 then
+		vm:set_data(data)
+		vm:write_to_map()
+
+		if other_worlds_tweaks_derelicts.populate_chest then
+			for _, cinfo in ipairs(derelict_chests) do
+				other_worlds_tweaks_derelicts.populate_chest(cinfo.pos, cinfo.tier)
+			end
+		end
+	end
+end
+
+-- Register Low Orbit Space generator (Y = 1000 to 4999)
+minetest.register_on_generated(function(minp, maxp, seed)
+	generate_low_orbit_chunk(minp, maxp, seed)
+end)
 
 -- Register Space Asteroid generator (Y = 5000 to 5999)
 minetest.register_on_generated(function(minp, maxp, seed)
@@ -310,4 +344,4 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	generate_asteroid_chunk(minp, maxp, seed, "blackness", ymin, ymax)
 end)
 
-minetest.log("action", "[other_worlds_tweaks] Registered overhauled high-yield space, mars, and deep space asteroid & comet mapgen.")
+minetest.log("action", "[other_worlds_tweaks] Registered overhauled high-yield space, mars, and deep space asteroid, comet, and low-orbit derelict mapgen.")
