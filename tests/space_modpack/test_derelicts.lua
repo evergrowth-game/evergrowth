@@ -590,7 +590,7 @@ print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, C
 -- Power Satellite
 local ps_schem = derelicts.get_power_satellite_schematic()
 assert_eq(ps_schem.name, "power_satellite", "Power satellite schematic name")
-assert_eq(ps_schem.radius, 11, "Power satellite radius 11")
+assert_eq(ps_schem.radius, 14, "Power satellite radius 14")
 local ps_has_beacon = false
 for _, n in ipairs(ps_schem.nodes) do
 	if n.tier == "power_satellite_beacon" then ps_has_beacon = true end
@@ -600,7 +600,7 @@ assert_true(ps_has_beacon, "Power satellite contains power_satellite_beacon")
 -- Mining Rig
 local mr_schem = derelicts.get_mining_rig_schematic()
 assert_eq(mr_schem.name, "mining_rig", "Mining rig schematic name")
-assert_eq(mr_schem.radius, 13, "Mining rig radius 13")
+assert_eq(mr_schem.radius, 17, "Mining rig radius 17")
 local mr_has_beacon = false
 for _, n in ipairs(mr_schem.nodes) do
 	if n.tier == "mining_rig_beacon" then mr_has_beacon = true end
@@ -620,7 +620,7 @@ assert_true(cv_has_beacon, "Corvette contains corvette_beacon")
 -- Cryo-Barge
 local cb_schem = derelicts.get_cryo_barge_schematic()
 assert_eq(cb_schem.name, "cryo_barge", "Cryo-barge schematic name")
-assert_eq(cb_schem.radius, 14, "Cryo-barge radius 14")
+assert_eq(cb_schem.radius, 17, "Cryo-barge radius 17")
 local cb_has_beacon = false
 for _, n in ipairs(cb_schem.nodes) do
 	if n.tier == "cryo_barge_beacon" then cb_has_beacon = true end
