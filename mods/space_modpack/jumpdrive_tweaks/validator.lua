@@ -78,9 +78,23 @@ if jumpdrive then
 	end
 end
 
+-- Spooling State Lock per Engine Coordinate
+jumpdrive_tweaks.active_spools = rawget(jumpdrive_tweaks, "active_spools") or {}
+
+function jumpdrive_tweaks.is_engine_spooling(pos)
+	if not pos then return false end
+	local phash = minetest.hash_node_position(pos)
+	return jumpdrive_tweaks.active_spools[phash] == true
+end
+
 -- Backbone-Guided Spacecraft Jump Execution
 if jumpdrive then
 	jumpdrive.execute_jump = function(pos, player)
+		local phash = minetest.hash_node_position(pos)
+		if jumpdrive_tweaks.active_spools[phash] then
+			return false, "Jump drive is already spooling!"
+		end
+
 		local playername = (player and player:is_player()) and player:get_player_name() or ""
 		local meta = minetest.get_meta(pos)
 		local targetPos = jumpdrive.get_meta_pos(pos)
@@ -122,6 +136,17 @@ if jumpdrive then
 
 		-- Helper function to perform the actual jump displacement
 		local function do_jump_movement(fx_handle)
+			jumpdrive_tweaks.active_spools[phash] = nil
+
+			-- Verify origin engine node is still intact before executing movement
+			local current_node = minetest.get_node(pos)
+			if not current_node or current_node.name ~= "jumpdrive:engine" then
+				if jumpdrive_tweaks.abort_spool_fx then
+					jumpdrive_tweaks.abort_spool_fx(fx_handle)
+				end
+				return false, "Origin engine node modified or removed!"
+			end
+
 			-- Final Protection Re-Verification
 			if jumpdrive_tweaks.is_ship_target_protected(ship_scan, delta_vector, playername) then
 				if jumpdrive_tweaks.abort_spool_fx then
@@ -196,6 +221,7 @@ if jumpdrive then
 		-- If target is uncharted, attempt map emergence first
 		if not is_empty and empty_msg == "uncharted" then
 			if minetest.emerge_area then
+				jumpdrive_tweaks.active_spools[phash] = true
 				minetest.log("action", string.format("[jumpdrive_tweaks] Destination chunk uncharted at [%d,%d,%d] - [%d,%d,%d]. Emerging area...",
 					target_pos1.x, target_pos1.y, target_pos1.z, target_pos2.x, target_pos2.y, target_pos2.z))
 
@@ -204,6 +230,7 @@ if jumpdrive then
 						-- Verify engine node is intact before executing deferred movement
 						local current_node = minetest.get_node(pos)
 						if not current_node or current_node.name ~= "jumpdrive:engine" then
+							jumpdrive_tweaks.active_spools[phash] = nil
 							minetest.log("warning", "[jumpdrive_tweaks] Deferred jump aborted: Origin engine node modified or removed during emergence.")
 							if player and player:is_player() then
 								minetest.chat_send_player(playername, "Jump aborted: Origin engine node modified or removed!")
@@ -239,6 +266,7 @@ if jumpdrive then
 								exec_deferred()
 							end
 						else
+							jumpdrive_tweaks.active_spools[phash] = nil
 							minetest.log("warning", "[jumpdrive_tweaks] Post-emergence target obstructed: " .. tostring(recheck_msg))
 							if player and player:is_player() then
 								minetest.chat_send_player(playername, "Jump failed: Destination area obstructed after emergence!")
@@ -253,6 +281,8 @@ if jumpdrive then
 		if not is_empty then
 			return false, "Destination hazard: " .. tostring(empty_msg)
 		end
+
+		jumpdrive_tweaks.active_spools[phash] = true
 
 		local fx_handle = nil
 		if jumpdrive_tweaks.start_spool_fx then

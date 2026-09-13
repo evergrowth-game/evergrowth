@@ -34,6 +34,11 @@ local function trigger_jump_lever(pos, player)
 		return
 	end
 
+	-- Ignore trigger if drive is already in active spooling sequence
+	if jumpdrive_tweaks.is_engine_spooling and jumpdrive_tweaks.is_engine_spooling(engine_pos) then
+		return
+	end
+
 	local node = minetest.get_node(pos)
 	-- Engage the lever physically
 	minetest.swap_node(pos, {name = "jumpdrive_tweaks:jump_lever_on", param2 = node.param2})

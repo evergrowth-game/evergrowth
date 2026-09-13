@@ -378,6 +378,7 @@ dofile("mods/space_modpack/jumpdrive_tweaks/techage_compat.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/terrain_filter.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/jump_fx.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/beacon.lua")
+dofile("mods/space_modpack/jumpdrive_tweaks/jump_lever.lua")
 dofile("mods/space_modpack/jumpdrive_tweaks/validator.lua")
 
 --------------------------------------------------------------------------------
@@ -1442,6 +1443,67 @@ run_test("Overlapping Short Jumps: 5-node diagonal and 1-node axial jumps preser
 
 	local scan_1node = jumpdrive_tweaks.scan_spacecraft({x = 56, y = 5000, z = 55}, 15)
 	assert_eq(scan_1node.node_count, total_ship_nodes, "100% of ship nodes preserved after 1-node jump")
+end)
+
+-- Test 32: Spooling Lock and Concurrent Jump Rejection
+run_test("Spooling Lock: Blocks concurrent jumps and lever triggers during active spooling", function()
+	world_nodes = {}
+	node_metadata_store = {}
+	node_timers = {}
+	jumpdrive_tweaks.active_spools = {}
+
+	local engine_pos = {x = 100, y = 5000, z = 100}
+	local lever_pos = {x = 101, y = 5000, z = 100}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node(lever_pos, {name = "jumpdrive_tweaks:jump_lever", param2 = 0})
+
+	local emeta = minetest.get_meta(engine_pos)
+	emeta:set_int("x", 200)
+	emeta:set_int("y", 5000)
+	emeta:set_int("z", 200)
+	emeta:set_int("radius", 5)
+	emeta:set_int("powerstorage", 1000000)
+
+	local orig_after = minetest.after
+	local pending_afters = {}
+	minetest.after = function(delay, cb)
+		table.insert(pending_afters, cb)
+	end
+
+	-- 1. Initiate primary jump
+	local ok, res = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "Primary jump initiated: " .. tostring(res))
+	assert_true(jumpdrive_tweaks.is_engine_spooling(engine_pos), "Engine is locked in spooling state")
+
+	-- 2. Attempt secondary jump on same engine during spooling
+	local ok2, err2 = jumpdrive.execute_jump(engine_pos, nil)
+	assert_false(ok2, "Secondary jump rejected during spooling")
+	assert_eq(err2, "Jump drive is already spooling!", "Expected spooling rejection error message")
+
+	-- 3. Attempt lever pull during spooling
+	local mock_player = {
+		is_player = function() return true end,
+		get_player_name = function() return "Astronaut" end,
+		get_wielded_item = function() return { is_empty = function() return true end } end,
+	}
+	local lever_def = minetest.registered_nodes["jumpdrive_tweaks:jump_lever"]
+	assert_true(lever_def ~= nil, "jump_lever node registered")
+	lever_def.on_rightclick(lever_pos, minetest.get_node(lever_pos), mock_player)
+
+	-- Lever should remain in upright off position because engine is spooling
+	assert_eq(minetest.get_node(lever_pos).name, "jumpdrive_tweaks:jump_lever", "Lever remained unengaged during active spooling")
+
+	-- 4. Complete the primary spool timer
+	assert_eq(#pending_afters, 1, "Exactly one deferred jump movement queued")
+	pending_afters[1]()
+
+	-- 5. Verify successful arrival and lock release
+	assert_false(jumpdrive_tweaks.is_engine_spooling(engine_pos), "Engine spooling lock cleared upon jump completion")
+	assert_eq(minetest.get_node({x = 200, y = 5000, z = 200}).name, "jumpdrive:engine", "Engine arrived at destination")
+	assert_eq(minetest.get_node({x = 201, y = 5000, z = 200}).name, "jumpdrive_tweaks:jump_lever", "Lever arrived at destination")
+
+	-- 6. Restore minetest.after
+	minetest.after = orig_after
 end)
 
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
