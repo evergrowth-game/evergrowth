@@ -542,8 +542,9 @@ assert_true(placed_count >= 20, string.format("Full derelict spacecraft placed i
 local beacon_count = 0
 for _, b in pairs(jumpdrive_tweaks.active_beacons) do
 	beacon_count = beacon_count + 1
-	assert_true(b.name:find("DISTRESS") ~= nil, "Registered beacon name contains DISTRESS tag: " .. tostring(b.name))
-	assert_true(b.name ~= "Derelict Vessel [DISTRESS]", "Registered specific archetype title instead of fallback: " .. tostring(b.name))
+	assert_true(b.name:find("^Derelict ") ~= nil, "Registered beacon name starts with Derelict: " .. tostring(b.name))
+	assert_true(b.name:find("DISTRESS") == nil, "Registered beacon name does not contain DISTRESS tag: " .. tostring(b.name))
+	assert_true(b.name ~= "Derelict Spacecraft", "Registered specific archetype title instead of fallback: " .. tostring(b.name))
 end
 assert_eq(beacon_count, 1, "Active distress beacon registered to navigation HUD")
 print("  ✓ Subspace Distress Scanner emergence, multi-node ship construction, and distress beacon registration verified")
@@ -585,11 +586,11 @@ local res_ground = scanner_def.on_place(stack_ground, mock_player_ground, {})
 assert_eq(res_ground:get_count(), 5, "Scanner stack preserved when scan fails on planetary ground")
 print("  ✓ Scanner item on_use, on_place, and on_secondary_use interaction and stack consumption confirmed")
 
-print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, Corvette, Cryo-Barge)...")
+print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, Corvette, Cryo-Barge, Bio-Dome)...")
 -- Power Satellite
 local ps_schem = derelicts.get_power_satellite_schematic()
 assert_eq(ps_schem.name, "power_satellite", "Power satellite schematic name")
-assert_eq(ps_schem.radius, 9, "Power satellite radius 9")
+assert_eq(ps_schem.radius, 11, "Power satellite radius 11")
 local ps_has_beacon = false
 for _, n in ipairs(ps_schem.nodes) do
 	if n.tier == "power_satellite_beacon" then ps_has_beacon = true end
@@ -599,7 +600,7 @@ assert_true(ps_has_beacon, "Power satellite contains power_satellite_beacon")
 -- Mining Rig
 local mr_schem = derelicts.get_mining_rig_schematic()
 assert_eq(mr_schem.name, "mining_rig", "Mining rig schematic name")
-assert_eq(mr_schem.radius, 10, "Mining rig radius 10")
+assert_eq(mr_schem.radius, 13, "Mining rig radius 13")
 local mr_has_beacon = false
 for _, n in ipairs(mr_schem.nodes) do
 	if n.tier == "mining_rig_beacon" then mr_has_beacon = true end
@@ -619,7 +620,7 @@ assert_true(cv_has_beacon, "Corvette contains corvette_beacon")
 -- Cryo-Barge
 local cb_schem = derelicts.get_cryo_barge_schematic()
 assert_eq(cb_schem.name, "cryo_barge", "Cryo-barge schematic name")
-assert_eq(cb_schem.radius, 11, "Cryo-barge radius 11")
+assert_eq(cb_schem.radius, 14, "Cryo-barge radius 14")
 local cb_has_beacon = false
 for _, n in ipairs(cb_schem.nodes) do
 	if n.tier == "cryo_barge_beacon" then cb_has_beacon = true end
@@ -629,7 +630,7 @@ assert_true(cb_has_beacon, "Cryo-barge contains cryo_barge_beacon")
 -- Bio-Dome
 local bd_schem = derelicts.get_biodome_schematic()
 assert_eq(bd_schem.name, "biodome", "Bio-Dome schematic name")
-assert_eq(bd_schem.radius, 8, "Bio-Dome radius 8")
+assert_eq(bd_schem.radius, 9, "Bio-Dome radius 9")
 local bd_has_beacon = false
 local bd_has_soil = false
 for _, n in ipairs(bd_schem.nodes) do

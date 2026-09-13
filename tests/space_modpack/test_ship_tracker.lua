@@ -1201,7 +1201,7 @@ run_test("Unowned Beacon Migration Immunity: Derelict distress beacons never mig
 	-- Unowned derelict beacon also in mask (adjacent to ship)
 	active_beacons["12,5000,10"] = {
 		pos = {x = 12, y = 5000, z = 10},
-		name = "Derelict Heavy Freighter [DISTRESS]",
+		name = "Derelict Heavy Freighter",
 		owner = "",
 	}
 
@@ -1215,7 +1215,7 @@ run_test("Unowned Beacon Migration Immunity: Derelict distress beacons never mig
 
 	-- Derelict beacon stays at original position
 	assert_true(active_beacons["12,5000,10"] ~= nil, "Derelict beacon remains at original position")
-	assert_eq(active_beacons["12,5000,10"].name, "Derelict Heavy Freighter [DISTRESS]", "Derelict beacon name unchanged")
+	assert_eq(active_beacons["12,5000,10"].name, "Derelict Heavy Freighter", "Derelict beacon name unchanged")
 	assert_true(active_beacons["12,6200,10"] == nil, "Derelict beacon was NOT migrated to destination")
 end)
 
@@ -1572,7 +1572,7 @@ run_test("Beacon Registry: Preserves beacons in unloaded chunks (ignore/nil) and
 	-- Beacon B: Unloaded chunk (get_node_or_nil returns ignore)
 	active_beacons["500,8900,500"] = {
 		pos = {x = 500, y = 8900, z = 500},
-		name = "Derelict Distress Signal [DISTRESS]",
+		name = "Derelict Distress Signal",
 		owner = "",
 	}
 	minetest.set_node({x = 500, y = 8900, z = 500}, {name = "ignore"})
@@ -1594,7 +1594,7 @@ run_test("Beacon Registry: Preserves beacons in unloaded chunks (ignore/nil) and
 	local has_destroyed = false
 	for _, entry in ipairs(valid) do
 		if entry.binfo.name == "Loaded Station" then has_loaded = true end
-		if entry.binfo.name == "Derelict Distress Signal [DISTRESS]" then has_unloaded = true end
+		if entry.binfo.name == "Derelict Distress Signal" then has_unloaded = true end
 		if entry.binfo.name == "Destroyed Beacon" then has_destroyed = true end
 	end
 

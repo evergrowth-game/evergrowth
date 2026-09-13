@@ -331,62 +331,74 @@ derelicts.get_freighter_schematic = get_freighter_schematic
 
 local function get_power_satellite_schematic()
 	if not c_air then init_content_ids() end
-	-- Cruciform Solar Power Satellite (~17x5x17, radius 9)
+	-- Heavy Orbital Power Station & Solar Array (~21x7x21, radius 11)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- Central Relay Hub & Core
-	for x = -1, 1 do
-		for z = -1, 1 do
+	-- 1. Central 2-Story Power Core Hub (X in [-2, 2], Z in [-2, 2], Y in [0, 3])
+	for x = -2, 2 do
+		for z = -2, 2 do
 			add(x, 0, z, c_steelblock)
-			add(x, 2, z, c_steelblock)
+			add(x, 3, z, c_steelblock)
+			if math.abs(x) == 2 or math.abs(z) == 2 then
+				add(x, 1, z, (x == 0 or z == 0) and c_obsidian_glass or c_steelblock)
+				add(x, 2, z, (x == 0 or z == 0) and c_obsidian_glass or c_bronzeblock)
+			end
 		end
 	end
+
+	-- Interior Power Core Systems (Y = 1 and 2, X in [-1, 1], Z in [-1, 1])
 	add(0, 1, 0, c_electrolyzer)
-	add(1, 1, 0, c_copperblock)
-	add(-1, 1, 0, c_copperblock)
-	add(0, 1, 1, c_bronzeblock)
-	add(0, 1, -1, c_bronzeblock)
+	add(0, 2, 0, c_copperblock)
+	add(1, 1, 0, c_fuel_tank)
+	add(-1, 1, 0, c_fuel_tank)
+	add(1, 2, 0, c_fuel_tank)
+	add(-1, 2, 0, c_fuel_tank)
+	add(0, 1, 1, c_copperblock)
+	add(0, 1, -1, c_copperblock)
 
-	-- Central Antenna Spire & Distress Beacon
-	add(0, 3, 0, c_copperblock)
-	add(0, 4, 0, c_beacon, 0, true, "power_satellite_beacon")
-
-	-- 4-Quadrant Large Photovoltaic Wings (extending 7 nodes out in +/- X and +/- Z)
-	for i = 2, 7 do
+	-- 2. Four Massive Articulated Dual-Plane Solar Wings (extending to +/- 10 in X and Z)
+	for i = 3, 10 do
 		-- +X and -X Solar Arrays
-		add(i, 1, 0, c_solar_carrier)
-		add(i, 1, 1, c_solar_module)
-		add(i, 1, -1, c_solar_module)
-
-		add(-i, 1, 0, c_solar_carrier)
-		add(-i, 1, 1, c_solar_module)
-		add(-i, 1, -1, c_solar_module)
+		for _, sx in ipairs({-i, i}) do
+			add(sx, 1, 0, c_solar_carrier)
+			add(sx, 2, 0, c_solar_carrier)
+			for z = -2, 2 do
+				if z ~= 0 then
+					add(sx, 1, z, c_solar_module)
+					add(sx, 2, z, (math.abs(z) == 2 or i == 10) and c_bronzeblock or c_solar_module)
+				end
+			end
+		end
 
 		-- +Z and -Z Solar Arrays
-		add(0, 1, i, c_solar_carrier)
-		add(1, 1, i, c_solar_module)
-		add(-1, 1, i, c_solar_module)
-
-		add(0, 1, -i, c_solar_carrier)
-		add(1, 1, -i, c_solar_module)
-		add(-1, 1, -i, c_solar_module)
+		for _, sz in ipairs({-i, i}) do
+			add(0, 1, sz, c_solar_carrier)
+			add(0, 2, sz, c_solar_carrier)
+			for x = -2, 2 do
+				if x ~= 0 then
+					add(x, 1, sz, c_solar_module)
+					add(x, 2, sz, (math.abs(x) == 2 or i == 10) and c_bronzeblock or c_solar_module)
+				end
+			end
+		end
 	end
 
-	-- Secondary Battery / Capacitor Pods
-	add(1, 0, 1, c_fuel_tank)
-	add(-1, 0, -1, c_fuel_tank)
+	-- 3. High-Gain Subspace Transmission Spire & Active Beacon (Y = 4 to 6)
+	add(0, 4, 0, c_copperblock)
+	add(0, 5, 0, c_bronzeblock)
+	add(0, 6, 0, c_beacon, 0, true, "power_satellite_beacon")
 
-	-- Salvage Chests
+	-- 4. Salvage Capacitors & High-Tech Storage
 	add(0, 1, 1, c_chest_ta3, 0, true, "shuttle")
 	add(0, 1, -1, c_chest_ta4, 0, true, "lab")
 
 	return {
 		name = "power_satellite",
-		size = {x = 17, y = 5, z = 17},
-		radius = 9,
+		size = {x = 21, y = 7, z = 21},
+		radius = 11,
 		nodes = nodes
 	}
 end
@@ -394,67 +406,111 @@ derelicts.get_power_satellite_schematic = get_power_satellite_schematic
 
 local function get_mining_rig_schematic()
 	if not c_air then init_content_ids() end
-	-- Asteroid Mining Rig & Extraction Platform (~11x9x19, radius 10)
+	-- Heavy Industrial Asteroid Mining Platform (~17x11x25, radius 13)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- 1. Open Gantry Spine & Walkways (Z = -6 to 6)
-	for z = -6, 6 do
-		add(0, 0, z, c_steelblock)
-		add(0, 3, z, c_steelblock)
-		if z % 3 == 0 then
-			for x = -2, 2 do
-				add(x, 0, z, c_steelblock)
-				add(x, 3, z, c_steelblock)
+	-- 1. Double-Deck Industrial Gantry Spine (Z = -8 to 8)
+	for z = -8, 8 do
+		-- Lower deck floor (Y = 0)
+		for x = -2, 2 do
+			add(x, 0, z, c_steelblock)
+		end
+		-- Upper catwalk deck (Y = 4)
+		for x = -2, 2 do
+			if math.abs(x) == 2 or z % 4 == 0 then
+				add(x, 4, z, c_steelblock)
+			else
+				add(x, 4, z, c_obsidian_glass)
 			end
-			for y = 1, 2 do
-				add(-2, y, z, c_steelblock)
-				add(2, y, z, c_steelblock)
+		end
+		-- Structural Gantry Columns at Z = -8, -4, 0, 4, 8
+		if z % 4 == 0 then
+			for y = 1, 3 do
+				add(-2, y, z, c_bronzeblock)
+				add(2, y, z, c_bronzeblock)
 			end
 		end
 	end
 
-	-- 2. Heavy Extraction Drill Boom (Z = 7 to 9)
-	for z = 7, 9 do
-		add(0, 1, z, c_bronzeblock)
-		add(0, 2, z, c_copperblock)
-		add(1, 1, z, c_steelblock)
-		add(-1, 1, z, c_steelblock)
+	-- 2. Flanking Ore Refinery & Slurry Processing Chambers (X = -6..-3 and 3..6, Z = -6 to 3)
+	for _, side in ipairs({-1, 1}) do
+		local x1 = (side == -1) and -6 or 3
+		local x2 = (side == -1) and -3 or 6
+		for z = -6, 3 do
+			for x = x1, x2 do
+				add(x, 0, z, c_steelblock)
+				add(x, 3, z, c_steelblock)
+				if x == x1 or x == x2 or z == -6 or z == 3 then
+					for y = 1, 2 do
+						add(x, y, z, (z == -2 or z == 0) and c_obsidian_glass or c_steelblock)
+					end
+				end
+			end
+		end
+		-- Slurry & Fuel Tanks inside refinery modules
+		add(side * 4, 1, -4, c_fuel_tank)
+		add(side * 4, 2, -4, c_fuel_tank)
+		add(side * 5, 1, -4, c_fuel_tank)
+		add(side * 5, 2, -4, c_fuel_tank)
+		add(side * 4, 1, 0, c_electrolyzer)
+		add(side * 5, 1, 0, c_copperblock)
 	end
-	add(0, 1, 10, c_obsidian_glass)
 
-	-- 3. Ore Bins & Smelting Processors (Z = 1 to 4)
-	add(-1, 1, 2, c_steelblock)
-	add(-1, 2, 2, c_copperblock)
-	add(1, 1, 2, c_steelblock)
-	add(1, 2, 2, c_bronzeblock)
-	add(0, 1, 4, c_electrolyzer)
+	-- 3. Heavy Hydraulic Extraction Drill Assembly (Z = 8 to 12)
+	for z = 8, 12 do
+		for x = -1, 1 do
+			add(x, 1, z, c_bronzeblock)
+			add(x, 2, z, c_steelblock)
+		end
+		add(0, 3, z, c_copperblock)
+	end
+	-- Reinforced Drill Head Teeth & Induction Cutters (Z = 12)
+	add(0, 1, 12, c_copperblock)
+	add(0, 2, 12, c_copperblock)
+	add(-1, 1, 12, c_bronzeblock)
+	add(1, 1, 12, c_bronzeblock)
+	add(0, 0, 12, c_bronzeblock)
 
-	-- 4. Fuel & Water/Slurry Tanks (Z = -2 to -4)
-	add(-2, 1, -2, c_fuel_tank)
-	add(-2, 2, -2, c_fuel_tank)
-	add(2, 1, -2, c_fuel_tank)
-	add(2, 2, -2, c_fuel_tank)
+	-- 4. Aft Power Plant & Reaction Thrusters (Z = -9 to -12)
+	for z = -12, -9 do
+		for x = -2, 2 do
+			for y = 0, 2 do
+				if z == -12 and math.abs(x) == 1 and y == 1 then
+					add(x, y, z, c_copperblock) -- Thruster nozzle
+				else
+					add(x, y, z, c_steelblock)
+				end
+			end
+		end
+	end
 
-	-- 5. Power & Solar Carriers
-	add(-3, 2, 0, c_solar_carrier)
-	add(3, 2, 0, c_solar_carrier)
+	-- 5. Elevated Gantry Crane Operator Cab & Dorsal Beacon Mast (Y = 5 to 10)
+	for x = -1, 1 do
+		for z = -1, 1 do
+			add(x, 5, z, c_steelblock)
+			add(x, 7, z, c_steelblock)
+			if math.abs(x) == 1 or math.abs(z) == 1 then
+				add(x, 6, z, c_obsidian_glass)
+			end
+		end
+	end
+	-- Beacon Spire
+	add(0, 8, 0, c_copperblock)
+	add(0, 9, 0, c_bronzeblock)
+	add(0, 10, 0, c_beacon, 0, true, "mining_rig_beacon")
 
-	-- 6. Salvage Containers
-	add(1, 1, 0, c_chest_ta3, 0, true, "shuttle")
-	add(-1, 1, 0, c_chest_ta4, 0, true, "lab")
-	add(0, 1, -5, c_chest_ta4, 0, true, "lab")
-
-	-- 7. Distress Beacon atop crane mast
-	add(0, 4, 0, c_copperblock)
-	add(0, 5, 0, c_beacon, 0, true, "mining_rig_beacon")
+	-- 6. Salvage Storage Containers
+	add(-4, 1, 1, c_chest_ta3, 0, true, "shuttle")
+	add(4, 1, 1, c_chest_ta4, 0, true, "lab")
+	add(0, 1, -6, c_chest_ta4, 0, true, "lab")
 
 	return {
 		name = "mining_rig",
-		size = {x = 11, y = 9, z = 19},
-		radius = 10,
+		size = {x = 17, y = 11, z = 25},
+		radius = 13,
 		nodes = nodes
 	}
 end
@@ -601,65 +657,128 @@ derelicts.get_corvette_schematic = get_corvette_schematic
 
 local function get_cryo_barge_schematic()
 	if not c_air then init_content_ids() end
-	-- Cryo-Transport / Sleeper Pod (~9x6x21, radius 11)
+	-- Heavy Stasis Transport / Cryo-Barge (~15x8x27, radius 14)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- Central Spine Corridor (Z = -9 to 9)
-	for z = -9, 9 do
-		for x = -1, 1 do
+	-- 1. Main Central Fuselage & Walk-in Deck Spine (X in [-2, 2], Z = -10 to 10)
+	for z = -10, 10 do
+		-- Floor deck (Y = 0)
+		for x = -2, 2 do
+			add(x, 0, z, c_steelblock)
+		end
+		-- Roof ceiling (Y = 4)
+		for x = -2, 2 do
+			add(x, 4, z, (math.abs(x) == 2 or z % 3 == 0) and c_steelblock or c_bronzeblock)
+		end
+		-- Outer corridor walls (Y = 1 to 3)
+		for y = 1, 3 do
+			-- Leave open portals into stasis chambers at Z = -6, 0, 6
+			local is_chamber_entrance = (z >= -7 and z <= -5) or (z >= -1 and z <= 1) or (z >= 5 and z <= 7)
+			if not (is_chamber_entrance and (y == 1 or y == 2)) then
+				add(-2, y, z, c_steelblock)
+				add(2, y, z, c_steelblock)
+			else
+				add(-2, 3, z, c_bronzeblock) -- Entrance archway header
+				add(2, 3, z, c_bronzeblock)
+			end
+		end
+	end
+
+	-- 2. 6 Large Walk-In Cryo-Stasis Chambers (3 Port, 3 Starboard at Z = -6, 0, 6)
+	for _, pz in ipairs({-6, 0, 6}) do
+		for _, side in ipairs({-1, 1}) do
+			local x_inner = side * 3
+			local x_outer = side * 6
+			local x_min = (side == -1) and x_outer or x_inner
+			local x_max = (side == -1) and x_inner or x_outer
+
+			for z = pz - 2, pz + 2 do
+				for x = x_min, x_max do
+					-- Chamber floor (Y = 0) and roof (Y = 3)
+					add(x, 0, z, c_steelblock)
+					add(x, 3, z, c_steelblock)
+
+					-- Outer walls
+					if x == x_outer or z == pz - 2 or z == pz + 2 then
+						for y = 1, 2 do
+							add(x, y, z, (x == x_outer and z == pz) and c_obsidian_glass or c_steelblock)
+						end
+					end
+				end
+			end
+
+			-- Walk-in Cryo-Stasis Tube & Life Support Tank inside chamber
+			local pod_x = side * 4
+			add(pod_x, 1, pz, c_obsidian_glass)
+			add(pod_x, 2, pz, c_obsidian_glass)
+			add(pod_x, 0, pz, c_copperblock) -- Base plate
+			add(pod_x, 3, pz, c_bronzeblock) -- Stasis cap
+			add(pod_x + side, 1, pz, c_copperblock) -- Cryo manifold
+			add(pod_x + side, 2, pz, c_copperblock)
+		end
+	end
+
+	-- 3. Forward Navigation Bridge & Observation Deck (Z = 11 to 14)
+	for z = 11, 14 do
+		local span = (z == 14) and 1 or 2
+		for x = -span, span do
 			add(x, 0, z, c_steelblock)
 			add(x, 3, z, c_steelblock)
-		end
-		add(-1, 1, z, c_steelblock)
-		add(-1, 2, z, c_steelblock)
-		add(1, 1, z, c_steelblock)
-		add(1, 2, z, c_steelblock)
-	end
-
-	-- 6 Modular Cryo-Pods (3 port, 3 starboard at Z = -5, 0, 5)
-	for _, pz in ipairs({-5, 0, 5}) do
-		-- Port Pod
-		for z = pz - 1, pz + 1 do
-			add(-3, 0, z, c_steelblock)
-			add(-3, 1, z, c_obsidian_glass)
-			add(-3, 2, z, c_steelblock)
-			add(-2, 2, z, c_obsidian_glass)
-		end
-		-- Starboard Pod
-		for z = pz - 1, pz + 1 do
-			add(3, 0, z, c_steelblock)
-			add(3, 1, z, c_obsidian_glass)
-			add(3, 2, z, c_steelblock)
-			add(2, 2, z, c_obsidian_glass)
+			if math.abs(x) == span or z == 14 then
+				for y = 1, 2 do
+					add(x, y, z, (z >= 13 or y == 2) and c_obsidian_glass or c_bronzeblock)
+				end
+			end
 		end
 	end
+	add(0, 1, 10, c_electrolyzer) -- Forward life support
 
-	-- Forward Airlock & Cockpit (Z = 8 to 10)
-	add(0, 1, 10, c_obsidian_glass)
-	add(0, 2, 10, c_obsidian_glass)
-	add(0, 1, 9, c_bronzeblock)
+	-- 4. Aft Heavy Sub-Light Propulsion Nacelles (X = -4..-2 and 2..4, Z = -10 to -13)
+	for _, side in ipairs({-1, 1}) do
+		local x_min = (side == -1) and -4 or 2
+		local x_max = (side == -1) and -2 or 4
+		for z = -13, -10 do
+			for x = x_min, x_max do
+				for y = 0, 3 do
+					if z == -13 then
+						if x == side * 3 and (y == 1 or y == 2) then
+							add(x, y, z, c_copperblock) -- Dual thruster exhausts
+						else
+							add(x, y, z, c_bronzeblock) -- Thruster cowling
+						end
+					else
+						add(x, y, z, c_steelblock)
+					end
+				end
+			end
+		end
+		add(side * 3, 3, -11, c_copperblock)
+	end
+	-- Aft Fuel Tank Reservoirs
+	add(-1, 1, -9, c_fuel_tank)
+	add(1, 1, -9, c_fuel_tank)
+	add(-1, 2, -9, c_fuel_tank)
+	add(1, 2, -9, c_fuel_tank)
 
-	-- Aft Life Support Core (Z = -8 to -9)
-	add(0, 1, -8, c_electrolyzer)
-	add(0, 2, -8, c_fuel_tank)
-	add(0, 1, -9, c_copperblock)
+	-- 5. High-Tech Salvage Containers in Chambers & Corridor
+	add(-5, 1, 6, c_chest_ta4, 0, true, "lab")
+	add(5, 1, 6, c_chest_ta4, 0, true, "lab")
+	add(-5, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(5, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(-5, 1, -6, c_chest_ta4, 0, true, "lab")
+	add(5, 1, -6, c_chest_ta4, 0, true, "lab")
 
-	-- Salvage Containers
-	add(0, 1, 7, c_chest_ta3, 0, true, "shuttle")
-	add(0, 1, 2, c_chest_ta4, 0, true, "lab")
-	add(0, 1, -3, c_chest_ta4, 0, true, "lab")
-
-	-- Distress Beacon
-	add(0, 4, 0, c_copperblock)
-	add(0, 5, 0, c_beacon, 0, true, "cryo_barge_beacon")
+	-- 6. Dorsal Antenna Mast & Active Distress Beacon (Y = 5 to 6)
+	add(0, 5, 0, c_copperblock)
+	add(0, 6, 0, c_beacon, 0, true, "cryo_barge_beacon")
 
 	return {
 		name = "cryo_barge",
-		size = {x = 9, y = 6, z = 21},
-		radius = 11,
+		size = {x = 15, y = 8, z = 27},
+		radius = 14,
 		nodes = nodes
 	}
 end
@@ -667,56 +786,63 @@ derelicts.get_cryo_barge_schematic = get_cryo_barge_schematic
 
 local function get_biodome_schematic()
 	if not c_air then init_content_ids() end
-	-- Orbital Bio-Dome & Greenhouse Module (~13x8x13, radius 8)
+	-- Heavy Orbital Bio-Dome & Greenhouse Station (~17x10x17, radius 9)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- 1. Base Deck Floor (Z = -5 to 5, X = -5 to 5)
-	for x = -5, 5 do
-		for z = -5, 5 do
-			if (x * x + z * z) <= 26 then
+	-- 1. Base Circular Deck Floor (X in [-8, 8], Z in [-8, 8], Y = 0)
+	for x = -8, 8 do
+		for z = -8, 8 do
+			if (x * x + z * z) <= 65 then
 				add(x, 0, z, c_steelblock)
 			end
 		end
 	end
 
-	-- 2. 4 Quadrant Planter Beds with Soil & Grass
-	for _, qx in ipairs({-3, 3}) do
-		for _, qz in ipairs({-3, 3}) do
-			for dx = -1, 1 do
-				for dz = -1, 1 do
+	-- 2. Four Large Terraced Planter Quadrants with Soil & Grass
+	for _, qx in ipairs({-4, 4}) do
+		for _, qz in ipairs({-4, 4}) do
+			for dx = -2, 2 do
+				for dz = -2, 2 do
 					local px = qx + dx
 					local pz = qz + dz
-					if math.abs(dx) == 1 or math.abs(dz) == 1 then
-						add(px, 1, pz, c_steelblock) -- Planter rim
-					else
-						add(px, 1, pz, (qx > 0) and c_dirt_with_grass or c_dirt)
+					if (px * px + pz * pz) <= 55 then
+						if math.abs(dx) == 2 or math.abs(dz) == 2 then
+							add(px, 1, pz, c_steelblock) -- Retaining planter rim
+						else
+							add(px, 1, pz, (qx > 0) and c_dirt_with_grass or c_dirt)
+						end
 					end
 				end
 			end
 		end
 	end
 
-	-- 3. Central Irrigation, Life Support & Aeration Hub
+	-- 3. Central Irrigation, Hydroponic Aeration & Power Tower (X = 0, Z = 0)
 	add(0, 1, 0, c_electrolyzer)
 	add(0, 1, 1, c_fuel_tank)
 	add(0, 1, -1, c_fuel_tank)
-	add(1, 1, 0, c_copperblock)
-	add(-1, 1, 0, c_copperblock)
-	add(0, 2, 0, c_copperblock)
-	add(0, 3, 0, c_copperblock)
+	add(1, 1, 0, c_fuel_tank)
+	add(-1, 1, 0, c_fuel_tank)
+	for y = 2, 5 do
+		add(0, y, 0, c_copperblock)
+		add(1, y, 0, (y == 3) and c_bronzeblock or c_copperblock)
+		add(-1, y, 0, (y == 3) and c_bronzeblock or c_copperblock)
+		add(0, y, 1, (y == 3) and c_bronzeblock or c_copperblock)
+		add(0, y, -1, (y == 3) and c_bronzeblock or c_copperblock)
+	end
 
-	-- 4. Hemispherical Geodesic Obsidian Glass Canopy (Y = 1 to 6)
-	for y = 1, 6 do
-		local r_sq = 26 - (y * y * 0.65)
-		for x = -5, 5 do
-			for z = -5, 5 do
+	-- 4. Hemispherical Geodesic Obsidian Glass Canopy (Y = 1 to 8)
+	for y = 1, 8 do
+		local r_sq = 65 - (y * y * 0.95)
+		for x = -8, 8 do
+			for z = -8, 8 do
 				local dist_sq = x * x + z * z
-				if dist_sq <= r_sq and dist_sq >= (r_sq - 6.5) then
-					if x == 0 or z == 0 then
-						add(x, y, z, c_steelblock) -- Structural ribs
+				if dist_sq <= r_sq and dist_sq >= (r_sq - 9.0) then
+					if x == 0 or z == 0 or math.abs(x) == math.abs(z) then
+						add(x, y, z, c_steelblock) -- Reinforced structural geodesic ribs
 					else
 						add(x, y, z, c_obsidian_glass)
 					end
@@ -725,17 +851,19 @@ local function get_biodome_schematic()
 		end
 	end
 
-	-- 5. Salvage Containers
-	add(1, 1, 0, c_chest_ta4, 0, true, "biodome")
-	add(-1, 1, 0, c_chest_ta3, 0, true, "biodome")
+	-- 5. Mezzanine Storage Lockers & Botanical Caches
+	add(1, 1, 3, c_chest_ta4, 0, true, "biodome")
+	add(-1, 1, 3, c_chest_ta3, 0, true, "biodome")
+	add(1, 1, -3, c_chest_ta4, 0, true, "biodome")
+	add(-1, 1, -3, c_chest_ta3, 0, true, "biodome")
 
-	-- 6. Distress Beacon atop dome apex
-	add(0, 7, 0, c_beacon, 0, true, "biodome_beacon")
+	-- 6. Distress Beacon atop geodesic dome apex
+	add(0, 9, 0, c_beacon, 0, true, "biodome_beacon")
 
 	return {
 		name = "biodome",
-		size = {x = 13, y = 8, z = 13},
-		radius = 8,
+		size = {x = 17, y = 10, z = 17},
+		radius = 9,
 		nodes = nodes
 	}
 end
@@ -753,15 +881,15 @@ derelicts.schematics = {
 	biodome = get_biodome_schematic,
 }
 
--- Beacon titles lookup
+-- Beacon titles lookup (without DISTRESS tag)
 derelicts.beacon_titles = {
-	freighter_beacon = "Derelict Heavy Freighter [DISTRESS]",
-	power_satellite_beacon = "Derelict Solar Array [DISTRESS]",
-	mining_rig_beacon = "Derelict Mining Rig [DISTRESS]",
-	corvette_beacon = "Derelict Corvette [DISTRESS]",
-	cryo_barge_beacon = "Derelict Cryo-Barge [DISTRESS]",
-	lab_beacon = "Derelict Research Station [DISTRESS]",
-	biodome_beacon = "Derelict Bio-Dome [DISTRESS]",
+	freighter_beacon = "Derelict Heavy Freighter",
+	power_satellite_beacon = "Derelict Solar Array",
+	mining_rig_beacon = "Derelict Mining Rig",
+	corvette_beacon = "Derelict Corvette",
+	cryo_barge_beacon = "Derelict Cryo-Barge",
+	lab_beacon = "Derelict Research Station",
+	biodome_beacon = "Derelict Bio-Dome",
 }
 
 -- -------------------------------------------------------------------------
@@ -1224,7 +1352,7 @@ function derelicts.scan_and_spawn_distress(player)
 			end
 			if calls_remaining == 0 then
 				local rot = random(0, 3)
-				local beacon_label = "Derelict Vessel [DISTRESS]"
+				local beacon_label = "Derelict Vessel"
 				local beacon_registered = false
 
 				for _, n in ipairs(schematic.nodes) do
@@ -1236,7 +1364,7 @@ function derelicts.scan_and_spawn_distress(player)
 						minetest.set_node(wpos, {name = nodename, param2 = p2})
 						if n.is_chest then
 							if n.tier and (n.tier:find("_beacon") or derelicts.beacon_titles[n.tier]) then
-								local title = derelicts.beacon_titles[n.tier] or "Derelict Spacecraft [DISTRESS]"
+								local title = derelicts.beacon_titles[n.tier] or "Derelict Spacecraft"
 								beacon_label = title
 								local bmeta = minetest.get_meta(wpos)
 								bmeta:set_string("ship_name", title)
