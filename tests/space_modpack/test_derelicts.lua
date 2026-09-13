@@ -637,7 +637,7 @@ assert_true(cb_has_beacon, "Cryo-barge contains cryo_barge_beacon")
 -- Bio-Dome
 local bd_schem = derelicts.get_biodome_schematic()
 assert_eq(bd_schem.name, "biodome", "Bio-Dome schematic name")
-assert_eq(bd_schem.radius, 9, "Bio-Dome radius 9")
+assert_eq(bd_schem.radius, 10, "Bio-Dome radius 10")
 local bd_has_beacon = false
 local bd_has_soil = false
 for _, n in ipairs(bd_schem.nodes) do
@@ -681,5 +681,42 @@ for title, count in pairs(observed_titles) do
 end
 assert_true(distinct_count >= 4, "Observed at least 4 distinct derelict archetypes across 50 scanner runs (found " .. distinct_count .. ")")
 print("  ✓ Subspace Distress Scanner randomly samples from the expanded derelict pool")
+
+print("[TEST 16] Testing Procedural Battle Damage & Debris Engine...")
+local freighter_orig = derelicts.get_freighter_schematic()
+local damaged = derelicts.apply_damage_and_debris(freighter_orig.nodes, freighter_orig.radius)
+assert_true(#damaged > 0, "Damaged node list is non-empty")
+
+-- Verify 100% preservation of chests, beacons, and main aisle floor
+local orig_chests = 0
+local orig_beacons = 0
+for _, n in ipairs(freighter_orig.nodes) do
+	if n.is_chest then
+		if n.tier == "freighter_beacon" then orig_beacons = orig_beacons + 1
+		else orig_chests = orig_chests + 1 end
+	end
+end
+
+local damaged_chests = 0
+local damaged_beacons = 0
+local damaged_aisle_floor = 0
+local orig_aisle_floor = 0
+
+for _, n in ipairs(freighter_orig.nodes) do
+	if n.dy == 0 and n.dx == 0 then orig_aisle_floor = orig_aisle_floor + 1 end
+end
+
+for _, n in ipairs(damaged) do
+	if n.is_chest then
+		if n.tier == "freighter_beacon" then damaged_beacons = damaged_beacons + 1
+		else damaged_chests = damaged_chests + 1 end
+	end
+	if n.dy == 0 and n.dx == 0 then damaged_aisle_floor = damaged_aisle_floor + 1 end
+end
+
+assert_eq(damaged_chests, orig_chests, "All salvage loot chests 100% immune to battle damage")
+assert_eq(damaged_beacons, orig_beacons, "Distress beacons 100% immune to battle damage")
+assert_eq(damaged_aisle_floor, orig_aisle_floor, "Central walking deck floor 100% immune to battle damage")
+print("  ✓ Procedural battle damage engine preserves all loot chests, navigation beacons, and central walking floor")
 
 print("\nALL DERELICT TESTS PASSED SUCCESSFULLY!")
