@@ -588,7 +588,7 @@ assert_true(mr_has_beacon, "Mining rig contains mining_rig_beacon")
 -- Corvette
 local cv_schem = derelicts.get_corvette_schematic()
 assert_eq(cv_schem.name, "corvette", "Corvette schematic name")
-assert_eq(cv_schem.radius, 8, "Corvette radius 8")
+assert_eq(cv_schem.radius, 9, "Corvette radius 9")
 local cv_has_beacon = false
 for _, n in ipairs(cv_schem.nodes) do
 	if n.tier == "corvette_beacon" then cv_has_beacon = true end

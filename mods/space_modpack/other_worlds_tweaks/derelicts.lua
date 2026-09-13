@@ -226,9 +226,12 @@ local function get_lab_schematic()
 	add(1, 1, -1, c_chest_ta4, 0, true, "lab")
 	add(-1, 1, -1, c_chest_ta4, 0, true, "lab")
 
+	-- Distress Beacon
+	add(0, 5, 0, c_beacon, 0, true, "lab_beacon")
+
 	return {
 		name = "lab",
-		size = {x = 7, y = 5, z = 9},
+		size = {x = 7, y = 6, z = 9},
 		radius = 5,
 		nodes = nodes
 	}
@@ -459,62 +462,138 @@ derelicts.get_mining_rig_schematic = get_mining_rig_schematic
 
 local function get_corvette_schematic()
 	if not c_air then init_content_ids() end
-	-- Escort Corvette / Heavy Interceptor (~13x5x15, radius 8)
+	-- Escort Corvette / Heavy Interceptor (~13x5x17, radius 9)
 	local nodes = {}
 	local function add(dx, dy, dz, cid, p2, is_chest, tier)
 		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
 	end
 
-	-- Delta-wing hull geometry (-5 to +5 Z)
-	for z = -5, 5 do
-		local span = (z >= 4) and 0 or ((z >= 2) and 1 or ((z >= 0) and 2 or ((z >= -3) and 4 or 5)))
-		for x = -span, span do
+	-- 1. Lower Hull / Belly Armor Plating (Y = 0)
+	-- Central fuselage belly (Z = -6 to 5, X = -2 to 2)
+	for z = -6, 5 do
+		for x = -2, 2 do
 			add(x, 0, z, c_steelblock)
-			if math.abs(x) == span or z == -5 then
-				add(x, 1, z, c_bronzeblock)
+		end
+	end
+	-- Tapered nose belly (Z = 6 to 8)
+	add(-1, 0, 6, c_steelblock)
+	add(0, 0, 6, c_steelblock)
+	add(1, 0, 6, c_steelblock)
+	add(0, 0, 7, c_steelblock)
+
+	-- 2. Swept Armored Delta Wings (Y = 0 and Y = 1)
+	for z = -5, 3 do
+		local span = (z >= 3) and 3 or ((z == 2) and 4 or ((z == 1) and 5 or 6))
+		for x = -span, span do
+			if math.abs(x) >= 3 then
+				add(x, 0, z, c_steelblock)
+				add(x, 1, z, (math.abs(x) == span or z == -5) and c_bronzeblock or c_steelblock)
 			end
 		end
 	end
 
-	-- Cockpit & Armored Canopy
-	for z = 1, 3 do
-		add(0, 1, z, c_obsidian_glass)
-		add(0, 2, z, c_obsidian_glass)
-	end
-	add(0, 0, 6, c_steelblock)
-	add(0, 1, 5, c_bronzeblock)
-
-	-- Twin Forward Kinetic Cannons (X = +/- 3, Z = 3 to 6)
-	for _, kx in ipairs({-3, 3}) do
-		for z = 3, 6 do
+	-- 3. Twin Wingtip Kinetic Railgun Cannons (X = +/- 5 and +/- 6, Z = 2 to 6, Y = 1)
+	for _, kx in ipairs({-5, 5}) do
+		for z = 2, 5 do
 			add(kx, 1, z, c_copperblock)
+		end
+		add(kx, 1, 6, c_bronzeblock) -- Muzzle brake
+	end
+
+	-- 4. Fuselage Side Armor Walls (Y = 1 and Y = 2)
+	for z = -6, 2 do
+		for y = 1, 2 do
+			add(-2, y, z, c_steelblock)
+			add(2, y, z, c_steelblock)
 		end
 	end
 
-	-- Twin Aft Thruster Assembly (X = +/- 2, Z = -5 to -7)
-	for _, tx in ipairs({-2, 2}) do
-		add(tx, 0, -6, c_bronzeblock)
-		add(tx, 1, -6, c_copperblock)
-		add(tx, 0, -7, c_copperblock)
-		add(tx, 1, -7, c_copperblock)
+	-- 5. Cockpit Enclosure & Armored Obsidian Glass Canopy (Z = 3 to 5)
+	for z = 3, 5 do
+		for x = -1, 1 do
+			if z == 5 then
+				add(x, 1, z, (x == 0) and c_obsidian_glass or c_bronzeblock)
+				add(x, 2, z, (x == 0) and c_obsidian_glass or c_bronzeblock)
+			else
+				add(-2, 1, z, c_bronzeblock)
+				add(2, 1, z, c_bronzeblock)
+				add(-2, 2, z, c_obsidian_glass)
+				add(2, 2, z, c_obsidian_glass)
+				add(x, 2, z, c_obsidian_glass)
+				add(x, 3, z, c_obsidian_glass)
+			end
+		end
 	end
 
-	-- Fuel and Core Machinery
-	add(0, 1, -1, c_fuel_tank)
-	add(0, 1, -2, c_fuel_tank)
-	add(0, 1, 0, c_electrolyzer)
+	-- Reinforced Ramming Prow Nose (Z = 6 to 8)
+	add(0, 1, 6, c_bronzeblock)
+	add(0, 2, 6, c_bronzeblock)
+	add(-1, 1, 6, c_steelblock)
+	add(1, 1, 6, c_steelblock)
+	add(0, 1, 7, c_bronzeblock)
+	add(0, 2, 7, c_bronzeblock)
+	add(0, 1, 8, c_copperblock)
+
+	-- 6. Upper Fuselage Armored Roof (Y = 3)
+	for z = -6, 2 do
+		for x = -2, 2 do
+			if math.abs(x) == 2 then
+				add(x, 3, z, c_steelblock)
+			elseif x == 0 then
+				add(x, 3, z, c_bronzeblock)
+			else
+				add(x, 3, z, c_steelblock)
+			end
+		end
+	end
+
+	-- 7. Dorsal Ridge & Active Distress Beacon (Y = 4)
+	for z = -4, 0 do
+		add(0, 4, z, c_copperblock)
+	end
+	add(0, 4, -1, c_beacon, 0, true, "corvette_beacon")
+
+	-- 8. Twin Heavy Aft Thruster Nacelles (X = -4..-2 and 2..4, Z = -6 to -8)
+	for _, side in ipairs({-1, 1}) do
+		local x_min = (side == -1) and -4 or 2
+		local x_max = (side == -1) and -2 or 4
+		for z = -8, -6 do
+			for x = x_min, x_max do
+				for y = 0, 2 do
+					if z == -8 then
+						if x == side * 3 and y == 1 then
+							add(x, y, z, c_copperblock) -- Thruster exhaust nozzle
+						else
+							add(x, y, z, c_bronzeblock) -- Engine cowling rim
+						end
+					else
+						add(x, y, z, c_steelblock)
+					end
+				end
+			end
+		end
+		add(side * 3, 2, -7, c_copperblock)
+	end
+
+	-- 9. Walk-In Interior Cabin & Engineering Core (Y = 1 and 2, X in [-1, 1])
+	add(0, 1, 2, c_electrolyzer) -- Life support
+	add(0, 2, 2, c_obsidian_glass)
+	add(-1, 1, -2, c_fuel_tank) -- Dual fuel cells
+	add(1, 1, -2, c_fuel_tank)
+	add(-1, 2, -2, c_fuel_tank)
+	add(1, 2, -2, c_fuel_tank)
+	add(0, 1, -3, c_copperblock) -- Reactor conduit
+	add(0, 2, -3, c_copperblock)
 
 	-- Salvage Containers
-	add(1, 1, 0, c_chest_ta3, 0, true, "shuttle")
-	add(-1, 1, 0, c_chest_ta4, 0, true, "lab")
-
-	-- Distress Beacon
-	add(0, 2, -1, c_beacon, 0, true, "corvette_beacon")
+	add(-1, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(1, 1, 0, c_chest_ta4, 0, true, "lab")
+	add(0, 1, -5, c_chest_ta4, 0, true, "lab")
 
 	return {
 		name = "corvette",
-		size = {x = 13, y = 5, z = 15},
-		radius = 8,
+		size = {x = 13, y = 5, z = 17},
+		radius = 9,
 		nodes = nodes
 	}
 end
@@ -1159,6 +1238,7 @@ function derelicts.scan_and_spawn_distress(player)
 				vm:update_map()
 
 				local beacon_label = "Derelict Vessel [DISTRESS]"
+				local beacon_registered = false
 				for _, c in ipairs(chests) do
 					if c.tier and (c.tier:find("_beacon") or derelicts.beacon_titles[c.tier]) then
 						local title = derelicts.beacon_titles[c.tier] or "Derelict Spacecraft [DISTRESS]"
@@ -1170,8 +1250,21 @@ function derelicts.scan_and_spawn_distress(player)
 						if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
 							jumpdrive_tweaks.register_external_beacon(c.pos, title, "")
 						end
+						beacon_registered = true
 					else
 						derelicts.populate_chest(c.pos, c.tier)
+					end
+				end
+
+				if not beacon_registered then
+					local bpos = {x = target_pos.x, y = target_pos.y + (schematic.radius or 5), z = target_pos.z}
+					minetest.set_node(bpos, {name = "jumpdrive_tweaks:beacon"})
+					local bmeta = minetest.get_meta(bpos)
+					bmeta:set_string("ship_name", beacon_label)
+					bmeta:set_string("owner", "")
+					bmeta:set_string("infotext", "Navigation Beacon: [" .. beacon_label .. "]")
+					if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
+						jumpdrive_tweaks.register_external_beacon(bpos, beacon_label, "")
 					end
 				end
 
