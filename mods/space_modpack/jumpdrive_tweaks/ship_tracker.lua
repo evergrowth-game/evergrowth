@@ -235,7 +235,9 @@ end
 
 -- 3. Backbone-Anchored Contiguous Component Traversal & Ship Spatial Mask
 function jumpdrive_tweaks.scan_spacecraft(engine_pos, capture_radius)
-	capture_radius = capture_radius or 3
+	local r = capture_radius or (jumpdrive and jumpdrive.get_radius and engine_pos and jumpdrive.get_radius(engine_pos))
+	if not r or r <= 0 then r = 5 end
+	capture_radius = r
 
 	local visited_backbone = {}
 	local backbone_nodes = {}

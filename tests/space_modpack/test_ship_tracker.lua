@@ -38,7 +38,15 @@ end
 -- Minetest & Jumpdrive Headless Mock Environment
 --------------------------------------------------------------------------------
 _G.minetest = {}
-_G.jumpdrive = {config = {max_radius = 25}}
+_G.jumpdrive = {
+	config = {max_radius = 25},
+	get_radius = function(pos)
+		local meta = minetest.get_meta(pos)
+		local r = meta:get_int("radius")
+		if not r or r <= 0 then return 5 end
+		return math.min(r, 25)
+	end
+}
 _G.jumpdrive_tweaks = {}
 
 local world_nodes = {}
@@ -1351,6 +1359,89 @@ run_test("Hyperjump Feedback: Spool scaling, ambient HUD glow lifecycle, exterio
 	jumpdrive_tweaks.on_jump_discontinuity({x=0,y=0,z=0}, {x=10,y=0,z=0}, nil, nil, nil)
 	jumpdrive_tweaks.on_jump_discontinuity({x=0,y=0,z=0}, {x=10,y=0,z=0}, {min_pos = {x=0,y=0,z=0}}, nil, nil)
 	jumpdrive_tweaks.on_jump_discontinuity({}, {}, {min_pos = {}, max_pos = {}}, {}, nil)
+end)
+
+-- Test 31: Overlapping Short Jump Atomic Mover & Hull Integrity
+run_test("Overlapping Short Jumps: 5-node diagonal and 1-node axial jumps preserve 100% hull, solar wings, and metadata", function()
+	world_nodes = {}
+	node_metadata_store = {}
+	node_timers = {}
+
+	-- Build a complex spacecraft with spine, long solar wings, cockpit, tank, and timer
+	local engine_pos = {x = 50, y = 5000, z = 50}
+	minetest.set_node(engine_pos, {name = "jumpdrive:engine"})
+	minetest.set_node({x = 51, y = 5000, z = 50}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 52, y = 5000, z = 50}, {name = "jumpdrive:backbone"})
+	minetest.set_node({x = 53, y = 5000, z = 50}, {name = "jumpdrive_tweaks:bridge_console"})
+
+	-- Port & Starboard solar wings spanning X=50..52, Z=40..60 (21 nodes wide along Z)
+	for z = 40, 60 do
+		if z ~= 50 then
+			minetest.set_node({x = 51, y = 5000, z = z}, {name = "techage:ta4_solar_gen"})
+		end
+	end
+
+	-- Cockpit glass canopy & inverter
+	minetest.set_node({x = 53, y = 5001, z = 50}, {name = "default:glass"})
+	minetest.set_node({x = 52, y = 5001, z = 50}, {name = "techage:ta4_solar_inverter"})
+	minetest.get_node_timer({x = 52, y = 5001, z = 50}):start(2.0)
+
+	-- Fuel tank with metadata
+	minetest.set_node({x = 50, y = 5001, z = 50}, {name = "jumpdrive_tweaks:fuel_tank"})
+	local tank_meta = minetest.get_meta({x = 50, y = 5001, z = 50})
+	tank_meta:set_int("fuel", 800)
+
+	local scan = jumpdrive_tweaks.scan_spacecraft(engine_pos, 15)
+	local total_ship_nodes = scan.node_count
+	assert_true(total_ship_nodes >= 25, "Complex craft has >= 25 nodes (found " .. total_ship_nodes .. ")")
+
+	-- Case A: Short Diagonal Jump (+5 X, +5 Z) overlapping origin volume
+	local emeta = minetest.get_meta(engine_pos)
+	emeta:set_int("x", 55)
+	emeta:set_int("y", 5000)
+	emeta:set_int("z", 55)
+	emeta:set_int("radius", 15)
+	emeta:set_int("powerstorage", 1000000)
+
+	local ok, err = jumpdrive.execute_jump(engine_pos, nil)
+	assert_true(ok, "Short diagonal overlapping jump succeeds: " .. tostring(err))
+
+	-- Verify destination engine and ship scan
+	local new_engine_pos = {x = 55, y = 5000, z = 55}
+	local new_scan = jumpdrive_tweaks.scan_spacecraft(new_engine_pos, 15)
+	assert_eq(new_scan.node_count, total_ship_nodes, "100% of ship nodes preserved after short diagonal jump (no tearing)")
+
+	-- Verify solar wing continuity
+	for z = 45, 65 do
+		if z ~= 55 then
+			assert_eq(minetest.get_node({x = 56, y = 5000, z = z}).name, "techage:ta4_solar_gen", "Solar wing node at z=" .. z .. " intact")
+		end
+	end
+
+	-- Verify fuel tank metadata
+	local moved_tank_meta = minetest.get_meta({x = 55, y = 5001, z = 55})
+	assert_eq(moved_tank_meta:get_int("fuel"), 800, "Fuel tank metadata migrated intact")
+
+	-- Verify active timer
+	local moved_timer = minetest.get_node_timer({x = 57, y = 5001, z = 55})
+	assert_true(moved_timer:is_started(), "Inverter node timer running at destination")
+
+	-- Verify trailing nodes outside destination are cleared
+	assert_eq(minetest.get_node({x = 50, y = 5000, z = 40}).name, "air", "Trailing origin solar wing node cleared to air")
+
+	-- Case B: 1-node Axial Jump (+1 X)
+	local emeta2 = minetest.get_meta(new_engine_pos)
+	emeta2:set_int("x", 56)
+	emeta2:set_int("y", 5000)
+	emeta2:set_int("z", 55)
+	emeta2:set_int("radius", 15)
+	emeta2:set_int("powerstorage", 1000000)
+
+	local ok2, err2 = jumpdrive.execute_jump(new_engine_pos, nil)
+	assert_true(ok2, "1-node overlapping axial jump succeeds: " .. tostring(err2))
+
+	local scan_1node = jumpdrive_tweaks.scan_spacecraft({x = 56, y = 5000, z = 55}, 15)
+	assert_eq(scan_1node.node_count, total_ship_nodes, "100% of ship nodes preserved after 1-node jump")
 end)
 
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))

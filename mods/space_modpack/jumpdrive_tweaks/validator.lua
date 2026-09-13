@@ -92,7 +92,9 @@ if jumpdrive then
 		end
 
 		-- Dynamic backbone discovery
-		local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos)
+		local radius = (jumpdrive and jumpdrive.get_radius and jumpdrive.get_radius(pos)) or (meta and meta:get_int("radius"))
+		if not radius or radius <= 0 then radius = 5 end
+		local ship_scan = jumpdrive_tweaks.scan_spacecraft(pos, radius)
 		local power_req = jumpdrive_tweaks.calculate_ship_power(ship_scan, distance)
 
 		local target_pos1 = vector.add(ship_scan.min_pos, delta_vector)
