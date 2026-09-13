@@ -59,6 +59,12 @@ local function init_content_ids()
 
 	c_beacon = (has_jumpdrive and minetest.registered_nodes["jumpdrive_tweaks:beacon"])
 		and minetest.get_content_id("jumpdrive_tweaks:beacon") or c_copperblock
+
+	c_dirt = (minetest.registered_nodes and minetest.registered_nodes["default:dirt"])
+		and minetest.get_content_id("default:dirt") or c_steelblock
+
+	c_dirt_with_grass = (minetest.registered_nodes and minetest.registered_nodes["default:dirt_with_grass"])
+		and minetest.get_content_id("default:dirt_with_grass") or c_dirt
 end
 
 -- -------------------------------------------------------------------------
@@ -320,6 +326,365 @@ local function get_freighter_schematic()
 end
 derelicts.get_freighter_schematic = get_freighter_schematic
 
+local function get_power_satellite_schematic()
+	if not c_air then init_content_ids() end
+	-- Cruciform Solar Power Satellite (~17x5x17, radius 9)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- Central Relay Hub & Core
+	for x = -1, 1 do
+		for z = -1, 1 do
+			add(x, 0, z, c_steelblock)
+			add(x, 2, z, c_steelblock)
+		end
+	end
+	add(0, 1, 0, c_electrolyzer)
+	add(1, 1, 0, c_copperblock)
+	add(-1, 1, 0, c_copperblock)
+	add(0, 1, 1, c_bronzeblock)
+	add(0, 1, -1, c_bronzeblock)
+
+	-- Central Antenna Spire & Distress Beacon
+	add(0, 3, 0, c_copperblock)
+	add(0, 4, 0, c_beacon, 0, true, "power_satellite_beacon")
+
+	-- 4-Quadrant Large Photovoltaic Wings (extending 7 nodes out in +/- X and +/- Z)
+	for i = 2, 7 do
+		-- +X and -X Solar Arrays
+		add(i, 1, 0, c_solar_carrier)
+		add(i, 1, 1, c_solar_module)
+		add(i, 1, -1, c_solar_module)
+
+		add(-i, 1, 0, c_solar_carrier)
+		add(-i, 1, 1, c_solar_module)
+		add(-i, 1, -1, c_solar_module)
+
+		-- +Z and -Z Solar Arrays
+		add(0, 1, i, c_solar_carrier)
+		add(1, 1, i, c_solar_module)
+		add(-1, 1, i, c_solar_module)
+
+		add(0, 1, -i, c_solar_carrier)
+		add(1, 1, -i, c_solar_module)
+		add(-1, 1, -i, c_solar_module)
+	end
+
+	-- Secondary Battery / Capacitor Pods
+	add(1, 0, 1, c_fuel_tank)
+	add(-1, 0, -1, c_fuel_tank)
+
+	-- Salvage Chests
+	add(0, 1, 1, c_chest_ta3, 0, true, "shuttle")
+	add(0, 1, -1, c_chest_ta4, 0, true, "lab")
+
+	return {
+		name = "power_satellite",
+		size = {x = 17, y = 5, z = 17},
+		radius = 9,
+		nodes = nodes
+	}
+end
+derelicts.get_power_satellite_schematic = get_power_satellite_schematic
+
+local function get_mining_rig_schematic()
+	if not c_air then init_content_ids() end
+	-- Asteroid Mining Rig & Extraction Platform (~11x9x19, radius 10)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- 1. Open Gantry Spine & Walkways (Z = -6 to 6)
+	for z = -6, 6 do
+		add(0, 0, z, c_steelblock)
+		add(0, 3, z, c_steelblock)
+		if z % 3 == 0 then
+			for x = -2, 2 do
+				add(x, 0, z, c_steelblock)
+				add(x, 3, z, c_steelblock)
+			end
+			for y = 1, 2 do
+				add(-2, y, z, c_steelblock)
+				add(2, y, z, c_steelblock)
+			end
+		end
+	end
+
+	-- 2. Heavy Extraction Drill Boom (Z = 7 to 9)
+	for z = 7, 9 do
+		add(0, 1, z, c_bronzeblock)
+		add(0, 2, z, c_copperblock)
+		add(1, 1, z, c_steelblock)
+		add(-1, 1, z, c_steelblock)
+	end
+	add(0, 1, 10, c_obsidian_glass)
+
+	-- 3. Ore Bins & Smelting Processors (Z = 1 to 4)
+	add(-1, 1, 2, c_steelblock)
+	add(-1, 2, 2, c_copperblock)
+	add(1, 1, 2, c_steelblock)
+	add(1, 2, 2, c_bronzeblock)
+	add(0, 1, 4, c_electrolyzer)
+
+	-- 4. Fuel & Water/Slurry Tanks (Z = -2 to -4)
+	add(-2, 1, -2, c_fuel_tank)
+	add(-2, 2, -2, c_fuel_tank)
+	add(2, 1, -2, c_fuel_tank)
+	add(2, 2, -2, c_fuel_tank)
+
+	-- 5. Power & Solar Carriers
+	add(-3, 2, 0, c_solar_carrier)
+	add(3, 2, 0, c_solar_carrier)
+
+	-- 6. Salvage Containers
+	add(1, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(-1, 1, 0, c_chest_ta4, 0, true, "lab")
+	add(0, 1, -5, c_chest_ta4, 0, true, "lab")
+
+	-- 7. Distress Beacon atop crane mast
+	add(0, 4, 0, c_copperblock)
+	add(0, 5, 0, c_beacon, 0, true, "mining_rig_beacon")
+
+	return {
+		name = "mining_rig",
+		size = {x = 11, y = 9, z = 19},
+		radius = 10,
+		nodes = nodes
+	}
+end
+derelicts.get_mining_rig_schematic = get_mining_rig_schematic
+
+local function get_corvette_schematic()
+	if not c_air then init_content_ids() end
+	-- Escort Corvette / Heavy Interceptor (~13x5x15, radius 8)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- Delta-wing hull geometry (-5 to +5 Z)
+	for z = -5, 5 do
+		local span = (z >= 4) and 0 or ((z >= 2) and 1 or ((z >= 0) and 2 or ((z >= -3) and 4 or 5)))
+		for x = -span, span do
+			add(x, 0, z, c_steelblock)
+			if math.abs(x) == span or z == -5 then
+				add(x, 1, z, c_bronzeblock)
+			end
+		end
+	end
+
+	-- Cockpit & Armored Canopy
+	for z = 1, 3 do
+		add(0, 1, z, c_obsidian_glass)
+		add(0, 2, z, c_obsidian_glass)
+	end
+	add(0, 0, 6, c_steelblock)
+	add(0, 1, 5, c_bronzeblock)
+
+	-- Twin Forward Kinetic Cannons (X = +/- 3, Z = 3 to 6)
+	for _, kx in ipairs({-3, 3}) do
+		for z = 3, 6 do
+			add(kx, 1, z, c_copperblock)
+		end
+	end
+
+	-- Twin Aft Thruster Assembly (X = +/- 2, Z = -5 to -7)
+	for _, tx in ipairs({-2, 2}) do
+		add(tx, 0, -6, c_bronzeblock)
+		add(tx, 1, -6, c_copperblock)
+		add(tx, 0, -7, c_copperblock)
+		add(tx, 1, -7, c_copperblock)
+	end
+
+	-- Fuel and Core Machinery
+	add(0, 1, -1, c_fuel_tank)
+	add(0, 1, -2, c_fuel_tank)
+	add(0, 1, 0, c_electrolyzer)
+
+	-- Salvage Containers
+	add(1, 1, 0, c_chest_ta3, 0, true, "shuttle")
+	add(-1, 1, 0, c_chest_ta4, 0, true, "lab")
+
+	-- Distress Beacon
+	add(0, 2, -1, c_beacon, 0, true, "corvette_beacon")
+
+	return {
+		name = "corvette",
+		size = {x = 13, y = 5, z = 15},
+		radius = 8,
+		nodes = nodes
+	}
+end
+derelicts.get_corvette_schematic = get_corvette_schematic
+
+local function get_cryo_barge_schematic()
+	if not c_air then init_content_ids() end
+	-- Cryo-Transport / Sleeper Pod (~9x6x21, radius 11)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- Central Spine Corridor (Z = -9 to 9)
+	for z = -9, 9 do
+		for x = -1, 1 do
+			add(x, 0, z, c_steelblock)
+			add(x, 3, z, c_steelblock)
+		end
+		add(-1, 1, z, c_steelblock)
+		add(-1, 2, z, c_steelblock)
+		add(1, 1, z, c_steelblock)
+		add(1, 2, z, c_steelblock)
+	end
+
+	-- 6 Modular Cryo-Pods (3 port, 3 starboard at Z = -5, 0, 5)
+	for _, pz in ipairs({-5, 0, 5}) do
+		-- Port Pod
+		for z = pz - 1, pz + 1 do
+			add(-3, 0, z, c_steelblock)
+			add(-3, 1, z, c_obsidian_glass)
+			add(-3, 2, z, c_steelblock)
+			add(-2, 2, z, c_obsidian_glass)
+		end
+		-- Starboard Pod
+		for z = pz - 1, pz + 1 do
+			add(3, 0, z, c_steelblock)
+			add(3, 1, z, c_obsidian_glass)
+			add(3, 2, z, c_steelblock)
+			add(2, 2, z, c_obsidian_glass)
+		end
+	end
+
+	-- Forward Airlock & Cockpit (Z = 8 to 10)
+	add(0, 1, 10, c_obsidian_glass)
+	add(0, 2, 10, c_obsidian_glass)
+	add(0, 1, 9, c_bronzeblock)
+
+	-- Aft Life Support Core (Z = -8 to -9)
+	add(0, 1, -8, c_electrolyzer)
+	add(0, 2, -8, c_fuel_tank)
+	add(0, 1, -9, c_copperblock)
+
+	-- Salvage Containers
+	add(0, 1, 7, c_chest_ta3, 0, true, "shuttle")
+	add(0, 1, 2, c_chest_ta4, 0, true, "lab")
+	add(0, 1, -3, c_chest_ta4, 0, true, "lab")
+
+	-- Distress Beacon
+	add(0, 4, 0, c_copperblock)
+	add(0, 5, 0, c_beacon, 0, true, "cryo_barge_beacon")
+
+	return {
+		name = "cryo_barge",
+		size = {x = 9, y = 6, z = 21},
+		radius = 11,
+		nodes = nodes
+	}
+end
+derelicts.get_cryo_barge_schematic = get_cryo_barge_schematic
+
+local function get_biodome_schematic()
+	if not c_air then init_content_ids() end
+	-- Orbital Bio-Dome & Greenhouse Module (~13x8x13, radius 8)
+	local nodes = {}
+	local function add(dx, dy, dz, cid, p2, is_chest, tier)
+		table.insert(nodes, {dx = dx, dy = dy, dz = dz, cid = cid, param2 = p2 or 0, is_chest = is_chest, tier = tier})
+	end
+
+	-- 1. Base Deck Floor (Z = -5 to 5, X = -5 to 5)
+	for x = -5, 5 do
+		for z = -5, 5 do
+			if (x * x + z * z) <= 26 then
+				add(x, 0, z, c_steelblock)
+			end
+		end
+	end
+
+	-- 2. 4 Quadrant Planter Beds with Soil & Grass
+	for _, qx in ipairs({-3, 3}) do
+		for _, qz in ipairs({-3, 3}) do
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					local px = qx + dx
+					local pz = qz + dz
+					if math.abs(dx) == 1 or math.abs(dz) == 1 then
+						add(px, 1, pz, c_steelblock) -- Planter rim
+					else
+						add(px, 1, pz, (qx > 0) and c_dirt_with_grass or c_dirt)
+					end
+				end
+			end
+		end
+	end
+
+	-- 3. Central Irrigation, Life Support & Aeration Hub
+	add(0, 1, 0, c_electrolyzer)
+	add(0, 1, 1, c_fuel_tank)
+	add(0, 1, -1, c_fuel_tank)
+	add(1, 1, 0, c_copperblock)
+	add(-1, 1, 0, c_copperblock)
+	add(0, 2, 0, c_copperblock)
+	add(0, 3, 0, c_copperblock)
+
+	-- 4. Hemispherical Geodesic Obsidian Glass Canopy (Y = 1 to 6)
+	for y = 1, 6 do
+		local r_sq = 26 - (y * y * 0.65)
+		for x = -5, 5 do
+			for z = -5, 5 do
+				local dist_sq = x * x + z * z
+				if dist_sq <= r_sq and dist_sq >= (r_sq - 6.5) then
+					if x == 0 or z == 0 then
+						add(x, y, z, c_steelblock) -- Structural ribs
+					else
+						add(x, y, z, c_obsidian_glass)
+					end
+				end
+			end
+		end
+	end
+
+	-- 5. Salvage Containers
+	add(1, 1, 0, c_chest_ta4, 0, true, "biodome")
+	add(-1, 1, 0, c_chest_ta3, 0, true, "biodome")
+
+	-- 6. Distress Beacon atop dome apex
+	add(0, 7, 0, c_beacon, 0, true, "biodome_beacon")
+
+	return {
+		name = "biodome",
+		size = {x = 13, y = 8, z = 13},
+		radius = 8,
+		nodes = nodes
+	}
+end
+derelicts.get_biodome_schematic = get_biodome_schematic
+
+derelicts.schematics = {
+	probe = get_probe_schematic,
+	shuttle = get_shuttle_schematic,
+	lab = get_lab_schematic,
+	freighter = get_freighter_schematic,
+	power_satellite = get_power_satellite_schematic,
+	mining_rig = get_mining_rig_schematic,
+	corvette = get_corvette_schematic,
+	cryo_barge = get_cryo_barge_schematic,
+	biodome = get_biodome_schematic,
+}
+
+-- Beacon titles lookup
+derelicts.beacon_titles = {
+	freighter_beacon = "Derelict Heavy Freighter [DISTRESS]",
+	power_satellite_beacon = "Derelict Solar Array [DISTRESS]",
+	mining_rig_beacon = "Derelict Mining Rig [DISTRESS]",
+	corvette_beacon = "Derelict Corvette [DISTRESS]",
+	cryo_barge_beacon = "Derelict Cryo-Barge [DISTRESS]",
+	lab_beacon = "Derelict Research Station [DISTRESS]",
+	biodome_beacon = "Derelict Bio-Dome [DISTRESS]",
+}
+
 -- -------------------------------------------------------------------------
 -- 2. LOOT POPULATION ENGINE
 -- -------------------------------------------------------------------------
@@ -379,6 +744,14 @@ function derelicts.populate_chest(pos, tier)
 			"list[current_player;main;1,5.3;8,4;]" ..
 			"listring[context;main]" ..
 			"listring[current_player;main]"
+	elseif tier == "biodome" then
+		inv_size = 40
+		infotext = "Derelict Bio-Dome Storage"
+		formspec = "size[10,8]" .. bg .. bg_img .. slots ..
+			"list[context;main;0,0;10,4;]" ..
+			"list[current_player;main;1,4.3;8,4;]" ..
+			"listring[context;main]" ..
+			"listring[current_player;main]"
 	elseif tier == "shuttle" then
 		inv_size = 40
 		infotext = "Derelict Shuttle Cargo"
@@ -399,7 +772,7 @@ function derelicts.populate_chest(pos, tier)
 	end
 
 	inv:set_size("main", inv_size)
-	if tier == "lab" then
+	if tier == "lab" or tier == "biodome" then
 		inv:set_size("conf", 50)
 	end
 	meta:set_string("infotext", infotext)
@@ -434,6 +807,32 @@ function derelicts.populate_chest(pos, tier)
 		end
 
 		local rolls = roll_loot_pool(probe_pool, random(3, 5))
+		for _, it in ipairs(rolls) do table.insert(items, it) end
+
+	elseif tier == "biodome" then
+		-- Guaranteed seeds, soil, and air supply
+		if has_airtanks then
+			table.insert(items, "airtanks:steel_tank")
+		elseif has_vacuum then
+			table.insert(items, "vacuum:air_bottle " .. random(3, 6))
+		end
+		table.insert(items, "default:dirt " .. random(4, 8))
+
+		local biodome_pool = {
+			{item = "farming:seed_wheat", weight = 25, min = 3, max = 8},
+			{item = "farming:seed_cotton", weight = 20, min = 2, max = 6},
+			{item = "default:sapling", weight = 20, min = 1, max = 4},
+			{item = "default:apple", weight = 20, min = 3, max = 8},
+			{item = "default:steel_ingot", weight = 15, min = 2, max = 5},
+			{item = "default:copper_ingot", weight = 15, min = 2, max = 4},
+			{item = "default:gold_ingot", weight = 10, min = 1, max = 3},
+		}
+		if has_techage then
+			table.insert(biodome_pool, {item = "techage:ta4_wlanchip", weight = 15, min = 1, max = 3})
+			table.insert(biodome_pool, {item = "techage:cylinder_small_hydrogen", weight = 15, min = 1, max = 3})
+		end
+
+		local rolls = roll_loot_pool(biodome_pool, random(4, 7))
 		for _, it in ipairs(rolls) do table.insert(items, it) end
 
 	elseif tier == "shuttle" then
@@ -579,20 +978,42 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 	end
 
 	-- Altitude-banded natural spawn rate & archetype weighting
-	-- Low Orbit (space / Y < 5000): base 6 (effective 1-in-24 chunks, ~4.2%). Probes (70%), Shuttles (30%)
-	-- Mars Orbit (redsky / 6000 <= Y < 7000): base 12 (effective 1-in-48 chunks, ~2.1%). Probes (50%), Shuttles (50%)
-	-- Deep Space (blackness / Y >= 7000): base 25 (effective 1-in-100 chunks, ~1.0%). Labs (80%), Shuttles (20%)
+	-- Low Orbit (space / Y < 5000): base 6. Probes (35%), Shuttles (25%), Solar Satellites (20%), Labs (10%), Corvettes (10%)
+	-- Mars Orbit (redsky / 6000 <= Y < 7000): base 12. Mining Rigs (25%), Labs (20%), Shuttles (20%), Solar Satellites (15%), Cryo-Barges (10%), Corvettes (10%)
+	-- Deep Space (blackness / Y >= 7000): base 25. Freighters (25%), Cryo-Barges (25%), Mining Rigs (20%), Corvettes (15%), Labs (15%)
 	local base_divider
 	local archetypes
 	if layer_type == "blackness" then
 		base_divider = 25
-		archetypes = {get_lab_schematic(), get_lab_schematic(), get_lab_schematic(), get_lab_schematic(), get_shuttle_schematic()}
+		archetypes = {
+			get_freighter_schematic, get_freighter_schematic, get_freighter_schematic, get_freighter_schematic,
+			get_cryo_barge_schematic, get_cryo_barge_schematic, get_cryo_barge_schematic, get_cryo_barge_schematic,
+			get_mining_rig_schematic, get_mining_rig_schematic, get_mining_rig_schematic, get_mining_rig_schematic,
+			get_corvette_schematic, get_corvette_schematic, get_corvette_schematic,
+			get_biodome_schematic, get_biodome_schematic, get_biodome_schematic,
+			get_lab_schematic, get_lab_schematic,
+		}
 	elseif layer_type == "redsky" then
 		base_divider = 12
-		archetypes = {get_probe_schematic(), get_shuttle_schematic()}
+		archetypes = {
+			get_mining_rig_schematic, get_mining_rig_schematic, get_mining_rig_schematic, get_mining_rig_schematic,
+			get_biodome_schematic, get_biodome_schematic, get_biodome_schematic,
+			get_lab_schematic, get_lab_schematic, get_lab_schematic,
+			get_shuttle_schematic, get_shuttle_schematic, get_shuttle_schematic,
+			get_power_satellite_schematic, get_power_satellite_schematic, get_power_satellite_schematic,
+			get_cryo_barge_schematic, get_cryo_barge_schematic,
+			get_corvette_schematic, get_corvette_schematic,
+		}
 	else -- space / low orbit
 		base_divider = 6
-		archetypes = {get_probe_schematic(), get_probe_schematic(), get_probe_schematic(), get_shuttle_schematic()}
+		archetypes = {
+			get_probe_schematic, get_probe_schematic, get_probe_schematic, get_probe_schematic, get_probe_schematic, get_probe_schematic,
+			get_shuttle_schematic, get_shuttle_schematic, get_shuttle_schematic, get_shuttle_schematic,
+			get_power_satellite_schematic, get_power_satellite_schematic, get_power_satellite_schematic,
+			get_biodome_schematic, get_biodome_schematic,
+			get_lab_schematic, get_lab_schematic,
+			get_corvette_schematic, get_corvette_schematic,
+		}
 	end
 
 	-- Server setting multiplier override if configured
@@ -608,7 +1029,8 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 		return {}
 	end
 
-	local schematic = archetypes[random(1, #archetypes)]
+	local schematic_fn = archetypes[random(1, #archetypes)]
+	local schematic = schematic_fn()
 	local rot = random(0, 3)
 	local margin = schematic.radius + 2
 
@@ -672,10 +1094,10 @@ function derelicts.generate_in_chunk(minp, maxp, data, vm_or_param2, area, layer
 end
 
 -- -------------------------------------------------------------------------
--- 5. ON-DEMAND SUBSPACE DISTRESS SCANNER & FREIGHTER EMERGENCE
+-- 5. ON-DEMAND SUBSPACE DISTRESS SCANNER & RANDOMIZED DERELICT EMERGENCE
 -- -------------------------------------------------------------------------
 
-function derelicts.scan_and_spawn_freighter(player)
+function derelicts.scan_and_spawn_distress(player)
 	if not player or not player.get_pos then return false end
 	local pos = player:get_pos()
 	local name = player:get_player_name()
@@ -693,13 +1115,27 @@ function derelicts.scan_and_spawn_freighter(player)
 	local ty = random(8000, 9500)
 	local target_pos = {x = tx, y = ty, z = tz}
 
+	-- Pool of summonable capital & deep space derelicts
+	local summon_pool = {
+		get_freighter_schematic,
+		get_cryo_barge_schematic,
+		get_mining_rig_schematic,
+		get_corvette_schematic,
+		get_power_satellite_schematic,
+		get_biodome_schematic,
+		get_lab_schematic,
+	}
+	local selected_fn = summon_pool[random(1, #summon_pool)]
+	local schematic = selected_fn()
+
+	local margin = schematic.radius + 3
+	local p1 = {x = tx - margin, y = ty - margin, z = tz - margin}
+	local p2 = {x = tx + margin, y = ty + margin, z = tz + margin}
+
 	minetest.chat_send_player(name, string.format("[Subspace Scanner] Detected faint emergency distress signal at (%d, %d, %d). Triangulating...", tx, ty, tz))
 	if minetest.sound_play then
 		minetest.sound_play("techage_ping", {to_player = name, gain = 1.0})
 	end
-
-	local p1 = {x = tx - 16, y = ty - 10, z = tz - 16}
-	local p2 = {x = tx + 16, y = ty + 10, z = tz + 16}
 
 	if minetest.emerge_area then
 		minetest.emerge_area(p1, p2, function(blockpos, action, calls_remaining, param)
@@ -714,7 +1150,6 @@ function derelicts.scan_and_spawn_freighter(player)
 				local data = vm:get_data()
 				local param2_data = vm:get_param2_data()
 
-				local schematic = get_freighter_schematic()
 				local rot = random(0, 3)
 				local chests = derelicts.place_schematic(target_pos, schematic, rot, data, param2_data, area)
 
@@ -723,26 +1158,31 @@ function derelicts.scan_and_spawn_freighter(player)
 				vm:write_to_map()
 				vm:update_map()
 
+				local beacon_label = "Derelict Vessel [DISTRESS]"
 				for _, c in ipairs(chests) do
-					if c.tier == "freighter_beacon" then
+					if c.tier and (c.tier:find("_beacon") or derelicts.beacon_titles[c.tier]) then
+						local title = derelicts.beacon_titles[c.tier] or "Derelict Spacecraft [DISTRESS]"
+						beacon_label = title
 						local bmeta = minetest.get_meta(c.pos)
-						bmeta:set_string("ship_name", "Derelict Heavy Freighter [DISTRESS]")
+						bmeta:set_string("ship_name", title)
 						bmeta:set_string("owner", "")
-						bmeta:set_string("infotext", "Navigation Beacon: [Derelict Heavy Freighter [DISTRESS]]")
+						bmeta:set_string("infotext", "Navigation Beacon: [" .. title .. "]")
 						if jumpdrive_tweaks and jumpdrive_tweaks.register_external_beacon then
-							jumpdrive_tweaks.register_external_beacon(c.pos, "Derelict Heavy Freighter [DISTRESS]", "")
+							jumpdrive_tweaks.register_external_beacon(c.pos, title, "")
 						end
 					else
 						derelicts.populate_chest(c.pos, c.tier)
 					end
 				end
 
-				minetest.chat_send_player(name, string.format("[Subspace Scanner] Signal locked! 3D distress waypoint registered at (%d, %d, %d).", tx, ty, tz))
+				minetest.chat_send_player(name, string.format("[Subspace Scanner] Signal locked! 3D distress waypoint registered for %s at (%d, %d, %d).", beacon_label, tx, ty, tz))
 			end
 		end)
 	end
 
 	return true, target_pos
 end
+
+derelicts.scan_and_spawn_freighter = derelicts.scan_and_spawn_distress
 
 return derelicts

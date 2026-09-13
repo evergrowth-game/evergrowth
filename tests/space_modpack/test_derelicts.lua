@@ -129,6 +129,8 @@ local content_ids = {
 	["ignore"] = 14,
 	["techage:ta4_solar_module"] = 15,
 	["jumpdrive_tweaks:beacon"] = 16,
+	["default:dirt"] = 17,
+	["default:dirt_with_grass"] = 18,
 }
 
 local mock_settings = {
@@ -156,6 +158,8 @@ minetest = {
 		return nil
 	end,
 	registered_nodes = {
+		["default:dirt"] = {description = "Dirt"},
+		["default:dirt_with_grass"] = {description = "Dirt with Grass"},
 		["techage:chest_ta3"] = {description = "TA3 Chest"},
 		["techage:chest_ta4"] = {description = "TA4 Chest"},
 		["techage:ta4_solar_minicell"] = {description = "Solar Minicell"},
@@ -502,7 +506,7 @@ local mock_player_ground = {
 	get_player_name = function(self) return "Astronaut" end,
 	is_player = function(self) return true end,
 }
-local g_ok = derelicts.scan_and_spawn_freighter(mock_player_ground)
+local g_ok = derelicts.scan_and_spawn_distress(mock_player_ground)
 assert_eq(g_ok, false, "Scanner rejected on planetary ground (Y < 1000)")
 
 local mock_player_space = {
@@ -512,13 +516,13 @@ local mock_player_space = {
 }
 chat_messages = {}
 jumpdrive_tweaks.active_beacons = {}
-local s_ok, target_pos = derelicts.scan_and_spawn_freighter(mock_player_space)
+local s_ok, target_pos = derelicts.scan_and_spawn_distress(mock_player_space)
 assert_true(s_ok, "Scanner succeeded in orbital space (Y >= 1000)")
-assert_true(target_pos.y >= 8000, "Freighter target coordinates spawned in Deep Space (Y >= 8000)")
+assert_true(target_pos.y >= 8000, "Distress target coordinates spawned in Deep Space (Y >= 8000)")
 local beacon_count = 0
 for _, b in pairs(jumpdrive_tweaks.active_beacons) do
 	beacon_count = beacon_count + 1
-	assert_true(b.name:find("Freighter"), "Registered beacon name contains Freighter: " .. tostring(b.name))
+	assert_true(b.name:find("DISTRESS") ~= nil, "Registered beacon name contains DISTRESS tag: " .. tostring(b.name))
 end
 assert_true(beacon_count > 0, "Active distress beacon registered to navigation HUD")
 print("  ✓ Subspace Distress Scanner emergence and distress beacon registration verified")
@@ -527,8 +531,8 @@ print("[TEST 13] Testing Subspace Distress Scanner Craftitem In-Game Interaction
 -- Test craftitem registration logic
 local function trigger_scanner(itemstack, user, pointed_thing)
 	if not user or (user.is_player and not user:is_player()) then return itemstack end
-	if other_worlds_tweaks_derelicts and other_worlds_tweaks_derelicts.scan_and_spawn_freighter then
-		local success = other_worlds_tweaks_derelicts.scan_and_spawn_freighter(user)
+	if other_worlds_tweaks_derelicts and other_worlds_tweaks_derelicts.scan_and_spawn_distress then
+		local success = other_worlds_tweaks_derelicts.scan_and_spawn_distress(user)
 		if success then
 			itemstack:take_item()
 			return itemstack
@@ -559,5 +563,81 @@ local stack_ground = MockItemStack("other_worlds_tweaks:derelict_scanner 5")
 local res_ground = scanner_def.on_place(stack_ground, mock_player_ground, {})
 assert_eq(res_ground:get_count(), 5, "Scanner stack preserved when scan fails on planetary ground")
 print("  ✓ Scanner item on_use, on_place, and on_secondary_use interaction and stack consumption confirmed")
+
+print("[TEST 14] Testing New Derelict Schematics (Power Satellite, Mining Rig, Corvette, Cryo-Barge)...")
+-- Power Satellite
+local ps_schem = derelicts.get_power_satellite_schematic()
+assert_eq(ps_schem.name, "power_satellite", "Power satellite schematic name")
+assert_eq(ps_schem.radius, 9, "Power satellite radius 9")
+local ps_has_beacon = false
+for _, n in ipairs(ps_schem.nodes) do
+	if n.tier == "power_satellite_beacon" then ps_has_beacon = true end
+end
+assert_true(ps_has_beacon, "Power satellite contains power_satellite_beacon")
+
+-- Mining Rig
+local mr_schem = derelicts.get_mining_rig_schematic()
+assert_eq(mr_schem.name, "mining_rig", "Mining rig schematic name")
+assert_eq(mr_schem.radius, 10, "Mining rig radius 10")
+local mr_has_beacon = false
+for _, n in ipairs(mr_schem.nodes) do
+	if n.tier == "mining_rig_beacon" then mr_has_beacon = true end
+end
+assert_true(mr_has_beacon, "Mining rig contains mining_rig_beacon")
+
+-- Corvette
+local cv_schem = derelicts.get_corvette_schematic()
+assert_eq(cv_schem.name, "corvette", "Corvette schematic name")
+assert_eq(cv_schem.radius, 8, "Corvette radius 8")
+local cv_has_beacon = false
+for _, n in ipairs(cv_schem.nodes) do
+	if n.tier == "corvette_beacon" then cv_has_beacon = true end
+end
+assert_true(cv_has_beacon, "Corvette contains corvette_beacon")
+
+-- Cryo-Barge
+local cb_schem = derelicts.get_cryo_barge_schematic()
+assert_eq(cb_schem.name, "cryo_barge", "Cryo-barge schematic name")
+assert_eq(cb_schem.radius, 11, "Cryo-barge radius 11")
+local cb_has_beacon = false
+for _, n in ipairs(cb_schem.nodes) do
+	if n.tier == "cryo_barge_beacon" then cb_has_beacon = true end
+end
+assert_true(cb_has_beacon, "Cryo-barge contains cryo_barge_beacon")
+
+-- Bio-Dome
+local bd_schem = derelicts.get_biodome_schematic()
+assert_eq(bd_schem.name, "biodome", "Bio-Dome schematic name")
+assert_eq(bd_schem.radius, 8, "Bio-Dome radius 8")
+local bd_has_beacon = false
+local bd_has_soil = false
+for _, n in ipairs(bd_schem.nodes) do
+	if n.tier == "biodome_beacon" then bd_has_beacon = true end
+	if n.cid == minetest.get_content_id("default:dirt") or n.cid == minetest.get_content_id("default:dirt_with_grass") then
+		bd_has_soil = true
+	end
+end
+assert_true(bd_has_beacon, "Bio-Dome contains biodome_beacon")
+assert_true(bd_has_soil, "Bio-Dome contains soil and grass planter nodes")
+print("  ✓ All 5 new derelict schematics (including Bio-Dome with soil planters) validated")
+
+print("[TEST 15] Testing Randomized Subspace Scanner Variety across Multiple Activations...")
+local observed_titles = {}
+for i = 1, 50 do
+	jumpdrive_tweaks.active_beacons = {}
+	local ok, _ = derelicts.scan_and_spawn_distress(mock_player_space)
+	assert_true(ok, "Distress scan " .. i .. " succeeded")
+	for _, b in pairs(jumpdrive_tweaks.active_beacons) do
+		observed_titles[b.name] = (observed_titles[b.name] or 0) + 1
+	end
+end
+
+local distinct_count = 0
+for title, count in pairs(observed_titles) do
+	distinct_count = distinct_count + 1
+	print(string.format("    - Discovered: %-42s (%d times)", title, count))
+end
+assert_true(distinct_count >= 4, "Observed at least 4 distinct derelict archetypes across 50 scanner runs (found " .. distinct_count .. ")")
+print("  ✓ Subspace Distress Scanner randomly samples from the expanded derelict pool")
 
 print("\nALL DERELICT TESTS PASSED SUCCESSFULLY!")
