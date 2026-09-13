@@ -402,4 +402,76 @@ function jumpdrive.move_nodetimers(source_pos1, source_pos2, delta_vector)
 	end
 end
 
-minetest.log("action", "[jumpdrive_tweaks] Loaded selective spatial terrain, timer, and backbone filter with atomic overlap support.")
+-- Override move_players to stabilize passenger physics and prevent micro-fall / floor clipping
+function jumpdrive.move_players(source_pos1, source_pos2, delta_vector)
+	local use_player_monoids = (minetest.global_exists and minetest.global_exists("player_monoids")) or (rawget(_G, "player_monoids") ~= nil)
+	local mask = jumpdrive_tweaks.active_ship_mask
+
+	for _, player in ipairs(minetest.get_connected_players()) do
+		local playerPos = player:get_pos()
+		local player_name = player:get_player_name()
+
+		local in_bounds = false
+		if playerPos then
+			local xMatch = playerPos.x >= (source_pos1.x - 0.5) and playerPos.x <= (source_pos2.x + 0.5)
+			local yMatch = playerPos.y >= (source_pos1.y - 0.5) and playerPos.y <= (source_pos2.y + 0.5)
+			local zMatch = playerPos.z >= (source_pos1.z - 0.5) and playerPos.z <= (source_pos2.z + 0.5)
+
+			if xMatch and yMatch and zMatch then
+				in_bounds = true
+			elseif mask then
+				local foot_pos = vector.round({x = playerPos.x, y = playerPos.y - 0.1, z = playerPos.z})
+				if mask[minetest.hash_node_position(foot_pos)] then
+					in_bounds = true
+				end
+			end
+		end
+
+		if in_bounds and player:is_player() then
+			minetest.log("action", "[jumpdrive_tweaks] moving passenger with physics anchor: " .. player_name)
+
+			-- 1. Zero out any existing momentum (e.g. falling or running)
+			if player.set_velocity then
+				player:set_velocity({x = 0, y = 0, z = 0})
+			end
+
+			-- 2. Freeze gravity to 0 to prevent client predictive micro-falling before node collision meshes load
+			if use_player_monoids and player_monoids.gravity then
+				player_monoids.gravity:add_change(player, 0, "jumpdrive:gravity")
+			elseif player.set_physics_override then
+				player:set_physics_override({gravity = 0})
+			end
+
+			-- 3. Teleport passenger
+			local new_player_pos = vector.add(playerPos, delta_vector)
+			player:set_pos(new_player_pos)
+
+			-- 4. Re-zero velocity at destination to eliminate residual prediction drift
+			if player.set_velocity then
+				player:set_velocity({x = 0, y = 0, z = 0})
+			end
+
+			-- 5. Send mapblocks
+			if player.send_mapblock and type(player.send_mapblock) == "function" and jumpdrive.get_mapblock_from_pos then
+				player:send_mapblock(jumpdrive.get_mapblock_from_pos(playerPos))
+				player:send_mapblock(jumpdrive.get_mapblock_from_pos(new_player_pos))
+			end
+
+			-- 6. Restore normal gravity after 0.5s once client meshes have stabilized
+			if minetest.after then
+				minetest.after(0.5, function()
+					local p = minetest.get_player_by_name(player_name)
+					if p and p:is_player() then
+						if use_player_monoids and player_monoids.gravity then
+							player_monoids.gravity:del_change(p, "jumpdrive:gravity")
+						elseif p.set_physics_override then
+							p:set_physics_override({gravity = 1})
+						end
+					end
+				end)
+			end
+		end
+	end
+end
+
+minetest.log("action", "[jumpdrive_tweaks] Loaded selective spatial terrain, timer, player physics, and backbone filter with atomic overlap support.")

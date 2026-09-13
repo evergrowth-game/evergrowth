@@ -1506,6 +1506,54 @@ run_test("Spooling Lock: Blocks concurrent jumps and lever triggers during activ
 	minetest.after = orig_after
 end)
 
+-- Test 33: Passenger Physics Stabilization and Velocity Cancellation
+run_test("Passenger Physics: Cancels passenger inertia and applies zero-gravity anchor during jump relocation", function()
+	world_nodes = {}
+	node_metadata_store = {}
+	node_timers = {}
+
+	local velocity_calls = {}
+	local physics_overrides = {}
+	local current_pos = {x = 10, y = 2000, z = 10}
+
+	local passenger = {
+		is_player = function() return true end,
+		get_player_name = function() return "Pilot" end,
+		get_pos = function() return current_pos end,
+		set_pos = function(self, p) current_pos = p end,
+		set_velocity = function(self, v)
+			table.insert(velocity_calls, {x = v.x, y = v.y, z = v.z})
+		end,
+		set_physics_override = function(self, overrides)
+			table.insert(physics_overrides, overrides)
+		end,
+		send_mapblock = function() end,
+	}
+
+	minetest.get_connected_players = function() return {passenger} end
+	minetest.get_player_by_name = function(name)
+		if name == "Pilot" then return passenger end
+		return nil
+	end
+
+	local delta = {x = 50, y = 100, z = 50}
+	jumpdrive.move_players({x = 5, y = 1995, z = 5}, {x = 15, y = 2005, z = 15}, delta)
+
+	-- Verify velocity zeroed (both before and after set_pos)
+	assert_true(#velocity_calls >= 2, "Velocity zeroing called before and after teleport")
+	assert_eq(velocity_calls[1].y, 0, "Initial velocity Y zeroed")
+	assert_eq(velocity_calls[2].y, 0, "Destination velocity Y zeroed")
+
+	-- Verify zero gravity physics anchor applied
+	assert_true(#physics_overrides >= 1, "Physics override applied")
+	assert_eq(physics_overrides[1].gravity, 0, "Gravity set to 0 to prevent micro-falling")
+
+	-- Verify player teleported to destination
+	assert_eq(current_pos.x, 60, "Passenger X displaced correctly")
+	assert_eq(current_pos.y, 2100, "Passenger Y displaced correctly")
+	assert_eq(current_pos.z, 60, "Passenger Z displaced correctly")
+end)
+
 print(string.format("\nShip Tracker Test Suite Complete: %d passed, %d failed.\n", tests_passed, tests_failed))
 
 if tests_failed > 0 then
