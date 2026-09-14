@@ -25,17 +25,19 @@ minetest.register_on_mods_loaded(function()
     end
 end)
 
+local modpath = minetest.get_modpath("eg_techage_tweaks")
+
 if minetest.get_modpath("wine") then
-    dofile(minetest.get_modpath("techage_tweaks") .. "/wine.lua")
+    dofile(modpath .. "/wine.lua")
 end
 
 if minetest.get_modpath("autobahn") then
-    dofile(minetest.get_modpath("techage_tweaks") .. "/road_builder.lua")
+    dofile(modpath .. "/road_builder.lua")
 end
 
 -- 6. TA3 Oil Explorer Auto-Scan
 -- We load the modified explore.lua which uses ":" to override the original nodes entirely.
-dofile(minetest.get_modpath("techage_tweaks") .. "/explore.lua")
+dofile(modpath .. "/explore.lua")
 minetest.register_on_mods_loaded(function()
 
     -- 1. Autobahn Priv Reset Removal

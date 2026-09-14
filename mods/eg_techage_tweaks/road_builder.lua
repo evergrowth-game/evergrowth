@@ -1,4 +1,4 @@
-local S = minetest.get_translator("techage_tweaks")
+local S = minetest.get_translator("eg_techage_tweaks")
 
 -- We need a basic texture for the tool. We will just use a colored stick for now, built into default.
 local tool_texture = "default_stick.png^[colorize:#888888:120"
@@ -8,7 +8,7 @@ local max_length = 10
 -- Table to store undo history
 local undo_history = {}
 
-minetest.register_tool("techage_tweaks:road_builder", {
+minetest.register_tool("eg_techage_tweaks:road_builder", {
     description = S("Road Builder Wand") .. "\n" .. S("Left-Click: Change settings") .. "\n" .. S("Right-Click: Build road"),
     inventory_image = tool_texture,
     
@@ -217,10 +217,12 @@ minetest.register_tool("techage_tweaks:road_builder", {
 })
 
 minetest.register_craft({
-    output = "techage_tweaks:road_builder",
+    output = "eg_techage_tweaks:road_builder",
     recipe = {
         {"", "autobahn:node1", ""},
         {"", "default:stick", ""},
         {"", "default:stick", ""}
     }
 })
+
+minetest.register_alias("techage_tweaks:road_builder", "eg_techage_tweaks:road_builder")

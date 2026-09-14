@@ -2,6 +2,7 @@
 -- Integrates player attribution into TNT explosions so settlement and area protection can verify authorized player actions.
 
 tnt_tweaks = {}
+eg_tnt_tweaks = tnt_tweaks
 tnt_tweaks.current_igniter = nil
 
 -- Wrap tnt.boom to capture and propagate the triggering player name

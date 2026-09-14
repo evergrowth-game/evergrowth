@@ -10,7 +10,8 @@ if automobiles_lib and automobiles_lib.fuel then
 end
 
 -- 2. Autobahn Speed Boost & Control
-dofile(minetest.get_modpath("automobiles_tweaks") .. "/control.lua")
+local modpath = minetest.get_modpath("eg_automobiles_tweaks")
+dofile(modpath .. "/control.lua")
 
 -- 3. On-step overrides
-dofile(minetest.get_modpath("automobiles_tweaks") .. "/entities.lua")
+dofile(modpath .. "/entities.lua")

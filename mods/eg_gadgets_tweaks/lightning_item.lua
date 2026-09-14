@@ -326,7 +326,7 @@ local function summon_lightning_strike(pos, user, user_vehicle)
 end
 
 gadgets.register_gadget({
-	name = "gadgets_tweaks:tome_thunder",
+	name = "eg_gadgets_tweaks:tome_thunder",
 	description = "Tome of Thunder",
 	texture = "gadgets_tweaks_tome_thunder.png",
 	mana_per_use = minetest.get_modpath("mana") and 150 or nil,
@@ -409,3 +409,5 @@ gadgets.register_gadget({
 		},
 	},
 })
+
+minetest.register_alias("gadgets_tweaks:tome_thunder", "eg_gadgets_tweaks:tome_thunder")

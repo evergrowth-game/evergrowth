@@ -189,7 +189,7 @@ end)
 
 -- LBM to update existing walls
 minetest.register_lbm({
-	name = "walls_tweaks:update_walls",
+	name = "eg_walls_tweaks:update_walls",
 	nodenames = {"group:wall"},
 	action = function(pos, node)
 		update_wall(pos)
