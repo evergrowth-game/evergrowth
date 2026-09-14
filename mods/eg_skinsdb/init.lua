@@ -37,11 +37,6 @@ if minetest.get_modpath("sfinv") then
 	dofile(skins.modpath.."/sfinv_page.lua")
 end
 
-do
-	local http = minetest.request_http_api()
-	assert(loadfile(skins.modpath.."/skins_updater.lua"))(http)
-end
-
 -- 3d_armor compatibility
 if minetest.global_exists("armor") then
 	skins.armor_loaded = true

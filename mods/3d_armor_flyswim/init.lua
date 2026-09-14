@@ -39,7 +39,7 @@ local crouch_sneak = minetest.settings:get_bool("crouch_sneak" ,true)
 -- Conditional mods
 
 armor_fly_swim.is_3d_armor = minetest.get_modpath("3d_armor")
-armor_fly_swim.is_skinsdb  = minetest.get_modpath("skinsdb")
+armor_fly_swim.is_skinsdb  = minetest.get_modpath("skinsdb") or minetest.get_modpath("eg_skinsdb")
 
 -------------------------------------
 -- Adding new armor item for Capes

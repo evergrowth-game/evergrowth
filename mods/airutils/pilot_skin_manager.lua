@@ -2,7 +2,7 @@ local S = airutils.S
 
 airutils.pilot_textures = {"pilot_clothes1.png","pilot_clothes2.png","pilot_clothes3.png","pilot_clothes4.png",
         "pilot_novaskin_girl.png","pilot_novaskin_girl_steampunk.png","pilot_novaskin_girl_2.png","pilot_novaskin_girl_steampunk_2.png"}
-local skinsdb_mod_path = core.get_modpath("skinsdb")
+local skinsdb_mod_path = core.get_modpath("skinsdb") or core.get_modpath("eg_skinsdb")
 
 core.register_chatcommand("au_uniform", {
     func = function(name, param)
