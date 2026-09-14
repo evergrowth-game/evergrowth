@@ -268,7 +268,7 @@ function gadgets.register_gadget(def)
         return
     end
 
-    if not minetest.get_modpath("technic") and def.requires_technic then
+    if not (minetest.get_modpath("technic") or minetest.get_modpath("eg_technic_dummy")) and def.requires_technic then
         minetest.log("error", "[gadgets_api] Technic modpack is required for technic-powered gadgets!")
         return
     end

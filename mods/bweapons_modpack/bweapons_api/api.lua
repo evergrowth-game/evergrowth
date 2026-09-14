@@ -233,7 +233,7 @@ end
 function bweapons.register_weapon(def)
 
     --Stop registration if mod requirements are not met or not enough definition fields
-    if def.has_durability and not minetest.get_modpath("technic") and def.requires_technic then
+    if def.has_durability and not (minetest.get_modpath("technic") or minetest.get_modpath("eg_technic_dummy")) and def.requires_technic then
         minetest.log("error", "Technic modpack is required for technic-powered weapons!")
         return
     end

@@ -40,7 +40,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `farming` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/farming/) &bull; [Source](https://codeberg.org/tenplus1/farming) |  |
 | `farmtools` | camelia | LGPL-3.0-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/camelia/farmtools/) &bull; [Source](https://codeberg.org/camelia/farmtools) |  |
 | `flowerpot` | sofar | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/sofar/flowerpot/) &bull; [Source](https://github.com/minetest-mods/flowerpot) |  |
-| `gadgets_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/gadgets_modpack/) &bull; [Source](https://github.com/mt-historical/gadgets_modpack) |  |
+| `gadgets_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/gadgets_modpack/) &bull; [Source](https://github.com/mt-historical/gadgets_modpack) | Custom-derived: updated gadgets_api to recognize eg_technic_dummy |
 | `guidebooks` | PolySaken | CC-BY-SA-4.0 | [ContentDB](https://content.luanti.org/packages/PolySaken/guidebooks/) &bull; [Source](https://github.com/mt-historical/guidebooklib) | Physical written books support |
 | `hbarmor` | Wuzzy | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbarmor/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbarmor) |  |
 | `hbhunger` | Wuzzy | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/Wuzzy/hbhunger/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_hbhunger) |  |
