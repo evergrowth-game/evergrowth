@@ -28,9 +28,9 @@ def main():
         ("~/Library/Application Support/minetest/mods/mobf_trader/textures/tomatenhaendler.png", "male_farmer_2.png"),
         ("~/Library/Application Support/minetest/mods/mobf_trader/textures/baeuerin.png", "female_farmer_2.png"),
         
-        # Smith (Male uses Builder ID 390, Female uses Lillyta Guard ID 1319)
+        # Smith (Male uses Builder ID 390, Female uses Female ID 1263)
         ("~/Library/Application Support/minetest/games/evergrowth/research/character_390.png", "male_smith.png"),
-        ("~/Library/Application Support/minetest/games/evergrowth/research/character_1319.png", "female_blacksmith.png"),
+        ("~/Library/Application Support/minetest/games/evergrowth/research/character_1263.png", "female_blacksmith.png"),
         
         # Lumberjack (Male uses Woodcutter ID 732, Female uses Adventer girl ID 369)
         ("~/Library/Application Support/minetest/games/evergrowth/research/character_732.png", "male_lumberjack.png"),

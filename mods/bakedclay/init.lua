@@ -122,40 +122,6 @@ if techcnc_mod then
 	end)
 end
 
--- Terracotta blocks
-
-for _, clay in pairs(clays) do
-
-	if clay[1] ~= "natural" then
-
-		local texture = "baked_clay_terracotta_" .. clay[1] ..".png"
-
-		core.register_node("bakedclay:terracotta_" .. clay[1], {
-			description = clay[2] .. " " .. S("Glazed Terracotta"),
-			tiles = {
-				texture,
-				texture,
-				texture .. "^[transformR180",
-				texture,
-				texture .. "^[transformR270",
-				texture .. "^[transformR90",
-			},
-			paramtype2 = "facedir",
-			groups = {cracky = 3, terracotta = 1},
-			sounds = default.node_sound_stone_defaults(),
-			is_ground_content = false,
-			on_place = core.rotate_node
-		})
-
-		core.register_craft({
-			type = "cooking",
-			output = "bakedclay:terracotta_" .. clay[1],
-			recipe = "bakedclay:" .. clay[1]
-		})
-	end
-end
-
-core.register_alias("bakedclay:terracotta_light_blue", "bakedclay:terracotta_cyan")
 
 -- cook clay block into natural baked clay
 

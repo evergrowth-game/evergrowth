@@ -2,7 +2,6 @@
 -- helpers
 
 local p = "bakedclay:"
-local p2 = "bakedclay:terracotta_"
 
 -- add lucky blocks
 
@@ -44,22 +43,5 @@ lucky_block:add_blocks({
 		{name = p .. "violet", max = 20},
 		{name = p .. "white", max = 20},
 		{name = p .. "yellow", max = 20}
-	}},
-	{"nod", "default:chest", 0, {
-		{name = p2 .. "black", max = 20},
-		{name = p2 .. "blue", max = 20},
-		{name = p2 .. "brown", max = 20},
-		{name = p2 .. "cyan", max = 20},
-		{name = p2 .. "dark_green", max = 20},
-		{name = p2 .. "dark_grey", max = 20},
-		{name = p2 .. "green", max = 20},
-		{name = p2 .. "grey", max = 20},
-		{name = p2 .. "magenta", max = 20},
-		{name = p2 .. "orange", max = 20},
-		{name = p2 .. "pink", max = 20},
-		{name = p2 .. "red", max = 20},
-		{name = p2 .. "violet", max = 20},
-		{name = p2 .. "white", max = 20},
-		{name = p2 .. "yellow", max = 20}
 	}}
 })
