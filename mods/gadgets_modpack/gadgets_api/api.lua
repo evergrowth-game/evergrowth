@@ -101,9 +101,7 @@ local function gadgets_on_use(itemstack, user, pointed_thing, def)
     if not def.consumable and def.has_durability then
         if def.requires_technic then
             meta.charge = meta.charge - def.technic_charge_per_use
-            if technic and technic.set_RE_wear then
-                technic.set_RE_wear(itemstack, meta.charge, def.technic_charge)
-            end
+            technic.set_RE_wear(itemstack, meta.charge, def.technic_charge)
             itemstack:set_metadata(minetest.serialize(meta))
         else
             local wear = itemstack:get_wear()
@@ -270,7 +268,7 @@ function gadgets.register_gadget(def)
         return
     end
 
-    if not (minetest.get_modpath("technic") or minetest.get_modpath("eg_technic_dummy")) and def.requires_technic then
+    if not minetest.get_modpath("technic") and def.requires_technic then
         minetest.log("error", "[gadgets_api] Technic modpack is required for technic-powered gadgets!")
         return
     end
@@ -324,9 +322,7 @@ function gadgets.register_gadget(def)
     local wear_represents = "mechanical_wear"
 
     if def.requires_technic then
-        if technic and technic.refill_RE_charge then
-            on_refill = technic.refill_RE_charge
-        end
+        on_refill = technic.refill_RE_charge
         wear_represents = "technic_RE_charge"
     elseif def.custom_charge then
         wear_represents = "gadgets_custom_charge"
@@ -411,9 +407,7 @@ function gadgets.register_gadget(def)
 
     --Register tool as technic_powered
     if def.requires_technic and not def.consumable then
-        if technic and technic.register_power_tool then
-            technic.register_power_tool(def.name, technic_charge)
-        end
+        technic.register_power_tool(def.name, technic_charge)
     end
 
     if def.repair_with and not def.consumable then

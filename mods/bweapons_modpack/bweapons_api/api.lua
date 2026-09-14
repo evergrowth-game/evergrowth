@@ -233,7 +233,7 @@ end
 function bweapons.register_weapon(def)
 
     --Stop registration if mod requirements are not met or not enough definition fields
-    if def.has_durability and not (minetest.get_modpath("technic") or minetest.get_modpath("eg_technic_dummy")) and def.requires_technic then
+    if def.has_durability and not minetest.get_modpath("technic") and def.requires_technic then
         minetest.log("error", "Technic modpack is required for technic-powered weapons!")
         return
     end
@@ -324,9 +324,7 @@ function bweapons.register_weapon(def)
     local wear_represents = "mechanical_wear"
 
     if def.requires_technic then
-        if technic and technic.refill_RE_charge then
-            on_refill = technic.refill_RE_charge
-        end
+        on_refill = technic.refill_RE_charge
         wear_represents = "technic_RE_charge"
     elseif def.custom_charge then
         wear_represents = "bweapons_custom_charge"
@@ -422,9 +420,7 @@ function bweapons.register_weapon(def)
 
                 if def.requires_technic then
                     meta.charge = meta.charge - technic_charge_per_use
-                    if technic and technic.set_RE_wear then
-                        technic.set_RE_wear(itemstack, meta.charge, technic_charge)
-                    end
+                    technic.set_RE_wear(itemstack, meta.charge, technic_charge)
                     itemstack:set_metadata(minetest.serialize(meta))
                 else
                     local wear = itemstack:get_wear()
@@ -651,9 +647,7 @@ function bweapons.register_weapon(def)
 
     --Register tool as technic_powered
     if def.requires_technic then
-        if technic and technic.register_power_tool then
-            technic.register_power_tool(def.name, technic_charge)
-        end
+        technic.register_power_tool(def.name, technic_charge)
     end
 
         --Register a new craft to repair the tool with it, if defined
