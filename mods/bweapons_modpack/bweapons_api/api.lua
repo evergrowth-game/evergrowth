@@ -324,7 +324,9 @@ function bweapons.register_weapon(def)
     local wear_represents = "mechanical_wear"
 
     if def.requires_technic then
-        on_refill = technic.refill_RE_charge
+        if technic and technic.refill_RE_charge then
+            on_refill = technic.refill_RE_charge
+        end
         wear_represents = "technic_RE_charge"
     elseif def.custom_charge then
         wear_represents = "bweapons_custom_charge"
@@ -420,7 +422,9 @@ function bweapons.register_weapon(def)
 
                 if def.requires_technic then
                     meta.charge = meta.charge - technic_charge_per_use
-                    technic.set_RE_wear(itemstack, meta.charge, technic_charge)
+                    if technic and technic.set_RE_wear then
+                        technic.set_RE_wear(itemstack, meta.charge, technic_charge)
+                    end
                     itemstack:set_metadata(minetest.serialize(meta))
                 else
                     local wear = itemstack:get_wear()
@@ -647,7 +651,9 @@ function bweapons.register_weapon(def)
 
     --Register tool as technic_powered
     if def.requires_technic then
-        technic.register_power_tool(def.name, technic_charge)
+        if technic and technic.register_power_tool then
+            technic.register_power_tool(def.name, technic_charge)
+        end
     end
 
         --Register a new craft to repair the tool with it, if defined
