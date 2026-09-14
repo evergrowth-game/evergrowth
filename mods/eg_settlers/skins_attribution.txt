@@ -129,10 +129,10 @@ This document registers the origin, author, and license information for all NPC 
     License: CC BY-SA 3.0
 
 23. Target Filename: male_guard.png
-   Source: Minetest SkinsDB (ID: 1166)
-   Name: Knight
-   Author: "me" (exact username registered on SkinsDB for ID 1166; not the Evergrowth developer)
-   License: CC BY-SA 3.0
+    Source: Minetest SkinsDB (ID: 2035)
+    Name: character_CTF_blue_knight
+    Author: Sam_0
+    License: CC BY 3.0
    Origin URL: https://skinsdb.terraqueststudios.net/
 
 24. Target Filename: female_guard.png
