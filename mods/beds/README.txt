@@ -28,3 +28,8 @@ You can disable the respawn at beds by setting "enable_bed_respawn = false" in
 minetest.conf.
 You can disable the night skip feature by setting "enable_bed_night_skip = false" in
 minetest.conf or by using the /set command in-game.
+
+Modifications & Provenance in Evergrowth:
+------------------------------------------
+- Sourced from the upstream Minetest Game framework distributed with Luanti, including upstream player_monoids and pova branch physics override support.
+

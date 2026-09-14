@@ -9,8 +9,37 @@ Component Works and Individual Licenses:
 - Base Game Framework (derived from Minetest Game):
   - Source code: LGPL-2.1-only
   - Media: CC-BY-SA-3.0
+  - Upstream Source: https://github.com/minetest/minetest_game
+  - Notes: Bundles the upstream Minetest Game framework as distributed with Luanti (including upstream features such as player_monoids physics override support in `beds` and chatcommand privilege updates in `default`). All custom Evergrowth modifications to base behaviors are strictly separated in `eg_default_tweaks`.
 - Menu Media and Branding Assets (menu/header.png, menu/icon.png, screenshot.png):
   - CC0-1.0 (Public Domain Dedication / No copyright claimed)
+- Original Game Content and Custom Mods (Evergrowth Authors):
+  - Core Systems & Game Logic:
+    - `eg_settlers` (Code: MIT, Media: CC-BY-SA-3.0 / CC0 - see `skins_attribution.txt`)
+    - `eg_companions` (Code: MIT, Media: CC-BY-SA-4.0)
+    - `eg_constructs` (Code: MIT, Media: CC-BY-SA-4.0)
+    - `eg_third_party_docs` (Code: MIT, Text: CC-BY-SA-4.0)
+    - `eg_dungeon_loot_chests` (Code: MIT)
+    - `eg_technic_dummy` (Code: MIT)
+    - `eg_skinsdb` (Forked/offline skin manager, Code: GPL-3.0-or-later, Media: CC-BY-SA-3.0 / CC0)
+  - Game Tweaks and Compatibility Modules:
+    - `eg_aircraft_tweaks` (Code: MIT)
+    - `eg_automobiles_tweaks` (Code: MIT)
+    - `eg_bweapons_tweaks` (Code: MIT)
+    - `eg_cinematic_zoom_tweaks` (Code: MIT)
+    - `eg_climate_tweaks` (Code: MIT)
+    - `eg_default_tweaks` (Code: MIT)
+    - `eg_dungeon_tweaks` (Code: MIT)
+    - `eg_ethereal_tweaks` (Code: MIT)
+    - `eg_farming_tweaks` (Code: MIT)
+    - `eg_gadgets_tweaks` (Code: MIT, Media: CC0)
+    - `eg_mobs_animal_tweaks` (Code: MIT)
+    - `eg_mobs_npc_tweaks` (Code: MIT)
+    - `eg_motorboat_tweaks` (Code: MIT)
+    - `eg_raider_tweaks` (Code: MIT)
+    - `eg_techage_tweaks` (Code: MIT)
+    - `eg_tnt_tweaks` (Code: MIT)
+    - `eg_walls_tweaks` (Code: MIT)
 - Integrated Community Mods:
   - Please refer to `external_mods.md` for a comprehensive list of all included community mods and their respective licenses (which include MIT, LGPL, GPL, AGPL, CC, and others).
   - Further details can be found in the `LICENSE`, `LICENSE.txt`, or `README.md` file within each mod's directory under `mods/`.

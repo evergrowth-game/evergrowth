@@ -405,3 +405,8 @@ TumeniNodes (CC BY-SA 3.0):
 
 random-geek (CC BY-SA 3.0):
   blueberry_bush.mts
+
+Provenance in Evergrowth:
+-------------------------
+Sourced from the upstream Minetest Game framework distributed with Luanti, including upstream chatcommand privilege updates (chat.lua). All custom Evergrowth modifications to default behaviors are strictly separated in the eg_default_tweaks mod.
+

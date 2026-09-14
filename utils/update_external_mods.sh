@@ -67,7 +67,7 @@ with open(sys.argv[1], 'r', encoding='utf-8') as f:
             source_url = re.sub(r'/(src|tree)/[^/]+(/.*)?$', '', source_url)
 
         # Divergence check using word boundary pattern
-        is_diverged = '1' if re.search(r'\b(custom-derived|customized|stripped|diverged)\b', notes, re.IGNORECASE) else '0'
+        is_diverged = '1' if re.search(r'\b(custom-derived|customized|stripped|diverged|forked)\b', notes, re.IGNORECASE) else '0'
 
         print(f'{mod_name}\t{source_url}\t{is_diverged}\t{notes}')
 EOF
