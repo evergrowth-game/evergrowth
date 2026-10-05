@@ -48,7 +48,7 @@ if minetest.get_modpath("moreores") then
     materials.silver_ingot = "moreores:silver_ingot"
 end
 
-if minetest.get_modpath("technic") then
+if minetest.get_modpath("eg_technic_dummy") then
 	materials.lead_ingot = "technic:lead_ingot"
 	materials.carbon_steel_ingot = "technic:carbon_steel_ingot"
 	materials.stainless_steel_ingot = "technic:stainless_steel_ingot"

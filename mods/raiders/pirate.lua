@@ -19,13 +19,6 @@ mobs:register_mob("raiders:pirate", {
 	textures = {
 		{"texturepirate.png"},
 	},
-	sounds = {
-		attack = "raiders_plundererpirate",
-		random = "raiders_plundererpirate2",
-		damage = "raiders_plundererpirate3",
-		death = "raiders_plundererpirate",
-		distance = 15,
-	},
 	makes_footstep_sound = true,
 	walk_velocity = 2,
 	run_velocity = 4,

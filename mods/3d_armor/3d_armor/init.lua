@@ -78,7 +78,7 @@ armor.config.set_elements = string.split(t_set_elements, " ")
 
 -- Mod Compatibility
 
-if minetest.get_modpath("technic") then
+if minetest.get_modpath("eg_technic_dummy") then
 	armor.formspec = armor.formspec..
 		"label[5,2.5;"..F(S("Radiation"))..": armor_group_radiation]"
 	armor:register_armor_group("radiation")

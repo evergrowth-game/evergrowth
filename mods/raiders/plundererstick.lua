@@ -19,12 +19,6 @@ mobs:register_mob("raiders:plundererstick", {
 	textures = {
 		{"textureplundererstick.png"},
 	},
-	sounds = {
-		attack = "raiders_plundererstick3",
-		random = "raiders_plundererstick",
-		damage = "raiders_plundererstick2",
-		distance = 15,
-	},
 	makes_footstep_sound = true,
 	walk_velocity = 2,
 	run_velocity = 4,

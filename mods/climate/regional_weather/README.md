@@ -21,7 +21,6 @@ If you experience __performance issues__, the *Performance* section of Climate A
 The following mods are recommended to be installed alongside Regional Weather:
 - [Climate API](https://github.com/t-affeldt/climate_api) (required): The necessary weather engine that this mod is built upon
 - [Moon Phases](https://github.com/t-affeldt/minetest_moon_phase): Complements weather effects with dynamic sky changes and a full moon cycle
-- [Sailing Kit](https://github.com/t-affeldt/sailing_kit) (Fork): Uses Climate API's new wind system to sail across the sea.
 - [Lightning](https://github.com/minetest-mods/lightning): Adds to heavy rain by enabling additional lightning effects
 - [Farming](https://github.com/minetest/minetest_game/tree/master/mods/farming) (as part of MTG) or [Farming Redo](https://forum.minetest.net/viewtopic.php?t=9019): Add farmland and crops to grow food. Farmland wil turn wet during rain effects.
 - [Fire](https://github.com/minetest/minetest_game/tree/master/mods/fire) (as part of MTG): Adds fires that can be caused by lightning strikes and other effects and will be extinguished during rain effects.

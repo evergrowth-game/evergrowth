@@ -34,13 +34,13 @@ This document registers the origin, author, and license information for all NPC 
 
 5. Target Filename: male_farmer_1.png
    Source: skinsdb (character_farmer_male.png)
-   Author: TenPlus1 / skinsdb contributors
-   License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 6. Target Filename: female_farmer_1.png
    Source: skinsdb (character_farmer_female.png)
-   Author: TenPlus1 / skinsdb contributors
-   License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 7. Target Filename: male_farmer_2.png
    Source: mobf_trader (tomatenhaendler.png)
@@ -75,23 +75,23 @@ This document registers the origin, author, and license information for all NPC 
 
 12. Target Filename: male_miner.png
     Source: skinsdb (character_rogue_male.png)
-    Author: TenPlus1 / skinsdb contributors
-    License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 13. Target Filename: female_miner.png
     Source: skinsdb (character_rogue_female.png)
-    Author: TenPlus1 / skinsdb contributors
-    License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 14. Target Filename: male_merchant.png
     Source: skinsdb (character_prince.png)
-    Author: TenPlus1 / skinsdb contributors
-    License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 15. Target Filename: female_merchant.png
     Source: skinsdb (character_princess.png)
-    Author: TenPlus1 / skinsdb contributors
-    License: CC BY-SA 3.0
+    Author: sirrobzeroone
+    License: CC0/Public Domain
 
 16. Target Filename: male_brewer.png
     Source: mobf_trader (bauer_in_sonntagskleidung.png)

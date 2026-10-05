@@ -120,7 +120,7 @@ if minetest.get_modpath("default") then
     })
 end
 
-if minetest.get_modpath("technic") then
+if minetest.get_modpath("eg_technic_dummy") then
     minetest.register_craft({
         output = "nautilus:boat_carbon_steel",
         recipe = {

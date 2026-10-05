@@ -4,7 +4,7 @@
 local S = airutils.S
 local module_name = "airutils"
 
-if core.get_modpath("technic") then
+if core.get_modpath("eg_technic_dummy") then
     if technic then
 	    technic.register_extractor_recipe({input = {"farming:wheat 33"}, output = "biofuel:biofuel 1"})
 	    technic.register_extractor_recipe({input = {"farming:corn 33"}, output = "biofuel:biofuel 1"})

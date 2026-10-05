@@ -23,7 +23,6 @@ __Important__: Conflicting skybox changes include the ``weather`` mod included i
 The following mods have been created specifically with Climate API in mind:
 - [Regional Weather](https://github.com/t-affeldt/regional_weather): My own weather pack for climate based weather effects
 - [Moon Phases](https://github.com/t-affeldt/minetest_moon_phase): Complements weather effects with dynamic sky changes and a full moon cycle
-- [Sailing Kit](https://github.com/t-affeldt/sailing_kit) (Fork): Uses Climate API's new wind system to sail across the sea.
 
 The following mods complement Climate API particularly well:
 - [Lightning](https://github.com/minetest-mods/lightning): Adds to heavy rain by enabling additional lightning effects

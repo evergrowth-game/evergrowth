@@ -24,14 +24,7 @@ mobs:register_mob("raiders:plundererflask", {
 		{"textureplundererflask.png"},
 	},
 	visual_size = {x=1, y=1},
-	-- sounds
 	makes_footstep_sound = true,
-	sounds = {
-		shoot_attack = "raiders_plundererflask2",
-		random = "raiders_plundererflask",
-		damage = "raiders_plundererflask3",
-		distance = 15,
-},
 	-- speed and jump
 	walk_velocity = 2,
 	run_velocity = 3,

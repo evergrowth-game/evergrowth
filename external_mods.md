@@ -14,7 +14,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `3d_armor_flyswim` | sirrobzeroone | LGPL-2.1-only for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/sirrobzeroone/3d_armor_flyswim/) &bull; [Source](https://github.com/sirrobzeroone/3d_armor_flyswim) |  |
 | `airtanks` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/airtanks/) &bull; [Source](https://github.com/minetest-mods/airtanks) |  |
 | `airutils` | apercy | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/airutils/) &bull; [Source](https://github.com/APercy/airutils) |  |
-| `ambience` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/ambience/) &bull; [Source](https://codeberg.org/tenplus1/ambience) |  |
+| `ambience` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/ambience/) &bull; [Source](https://codeberg.org/tenplus1/ambience) | Removed the non-commercial `seagull_2.ogg` asset and attribution. |
 | `anvil` | FaceDeer | GPL-3.0-only | [ContentDB](https://content.luanti.org/packages/FaceDeer/anvil/) &bull; [Source](https://github.com/minetest-mods/anvil) |  |
 | `automobiles_pck` | apercy | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/apercy/automobiles_pck/) &bull; [Source](https://github.com/APercy/automobiles_pck) |  |
 | `bakedclay` | TenPlus1 | MIT for code, CC0 / CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/bakedclay/) &bull; [Source](https://codeberg.org/tenplus1/bakedclay) | Custom-derived / forked in-game: removed CC BY-NC terracotta blocks and textures |
@@ -37,7 +37,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `dungeonsplus` | EmptyStar | MIT | [ContentDB](https://content.luanti.org/packages/EmptyStar/dungeonsplus/) &bull; [Source](https://github.com/EmptyStar/dungeonsplus) |  |
 | `ethereal` | TenPlus1 | MIT for code, Multiple (CC0, CC-BY-3.0, CC-BY-SA-3.0, CC-BY-SA-4.0) for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/ethereal/) &bull; [Source](https://codeberg.org/tenplus1/ethereal) |  |
 | `fakelib` | OgelGames | MIT | [ContentDB](https://content.luanti.org/packages/OgelGames/fakelib/) &bull; [Source](https://github.com/OgelGames/fakelib) |  |
-| `farming` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/farming/) &bull; [Source](https://codeberg.org/tenplus1/farming) |  |
+| `farming` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/farming/) &bull; [Source](https://codeberg.org/tenplus1/farming) | Removed five non-commercial food textures, items, recipes, and attribution. |
 | `farmtools` | camelia | LGPL-3.0-or-later for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/camelia/farmtools/) &bull; [Source](https://codeberg.org/camelia/farmtools) |  |
 | `flowerpot` | sofar | LGPL-2.1-only | [ContentDB](https://content.luanti.org/packages/sofar/flowerpot/) &bull; [Source](https://github.com/minetest-mods/flowerpot) |  |
 | `gadgets_modpack` | mt-mods | GPL-3.0-only for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/mt-mods/gadgets_modpack/) &bull; [Source](https://github.com/mt-historical/gadgets_modpack) |  |
@@ -58,7 +58,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `mob_horse` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mob_horse/) &bull; [Source](https://codeberg.org/tenplus1/mob_horse) |  |
 | `mobkit` | mt-mods | MIT | [ContentDB](https://content.luanti.org/packages/mt-mods/mobkit/) &bull; [Source](https://github.com/mt-mods/mobkit) |  |
 | `mobs` | TenPlus1 | MIT | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs/) &bull; [Source](https://codeberg.org/tenplus1/mobs_redo) | Also known as `mobs_redo`. |
-| `mobs_animal` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_animal/) &bull; [Source](https://codeberg.org/tenplus1/mobs_animal) |  |
+| `mobs_animal` | TenPlus1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_animal/) &bull; [Source](https://codeberg.org/tenplus1/mobs_animal) | Sheep textures replaced with original CC0/Public Domain Evergrowth textures. |
 | `mobs_monster` | TenPlus1 | MIT for code, CC-BY-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_monster/) &bull; [Source](https://codeberg.org/tenplus1/mobs_monster) |  |
 | `mobs_npc` | TenPlus1 | MIT for code, CC-BY-4.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_npc/) &bull; [Source](https://codeberg.org/tenplus1/mobs_npc) |  |
 | `mobs_water` | TenPlus1 | MIT for code, CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/mobs_water/) &bull; [Source](https://codeberg.org/tenplus1/mobs_water) |  |
@@ -70,7 +70,7 @@ The following 83 integrated community mods are packaged with this game. All link
 | `player_monoids` | Byakuren | Apache-2.0 | [ContentDB](https://content.luanti.org/packages/Byakuren/player_monoids/) &bull; [Source](https://github.com/minetest-mods/player_monoids) |  |
 | `playereffects` | Wuzzy | MIT | [ContentDB](https://content.luanti.org/packages/Wuzzy/playereffects/) &bull; [Source](https://codeberg.org/Wuzzy/minetest_playereffects) |  |
 | `protector` | TenPlus1 | MIT for code, CC0 / CC-BY-SA-3.0 for media | [ContentDB](https://content.luanti.org/packages/TenPlus1/protector/) &bull; [Source](https://codeberg.org/tenplus1/protector) | Area protection blocks and tools |
-| `raiders` | Liil | MIT for code, CC0-1.0 for media | [ContentDB](https://content.luanti.org/packages/Liil/people/) &bull; [Source](https://github.com/Skandarella/people.git) | Custom-derived from Wilhelmine's (Skandarella) original `people` mod. |
+| `raiders` | Liil | MIT for code and media; unverified upstream sounds omitted | [ContentDB](https://content.luanti.org/packages/Liil/people/) &bull; [Source](https://github.com/Skandarella/people.git) | Custom-derived from Wilhelmine's (Skandarella) original `people` mod. |
 | `regrow` | TenPlus1 | MIT | [ContentDB](https://content.luanti.org/packages/TenPlus1/regrow/) &bull; [Source](https://codeberg.org/tenplus1/regrow) |  |
 | `ropes` | FaceDeer | MIT | [ContentDB](https://content.luanti.org/packages/FaceDeer/ropes/) &bull; [Source](https://github.com/minetest-mods/ropes) |  |
 | `ruined_structures` | X-DE1 | MIT for code, CC-BY-SA-4.0 for media | [ContentDB](https://content.luanti.org/packages/X-DE1/ruined_structures/) &bull; [Source](https://github.com/X-DE1/ruined_structures) |  |

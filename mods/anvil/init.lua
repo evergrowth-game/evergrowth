@@ -25,7 +25,7 @@ anvil.make_unrepairable = function(item_name)
 	end
 end
 
-if minetest.get_modpath("technic") then
+if minetest.get_modpath("eg_technic_dummy") then
 	-- make rechargeable technic tools unrepairable
 	anvil.make_unrepairable("technic:water_can")
 	anvil.make_unrepairable("technic:lava_can")

@@ -26,6 +26,6 @@ License for original Code (mobs redo + mobs_animal + mob_horse + mobs_npc): (MIT
 Modified Code by Liil/Wilhelmine/Skandarella (c) 2021
 Textures, Models and Animation by Liil/Wilhelmine/Skandarella under (MIT) License (c) 2021
 
-People Sounds by Liil/Wilhelmine/Skandarella. Animal Sounds + Environment are from freesound.org under Creative Commons License. 
-Thanks to Baidonovan, Timtube, Qubodup, Egomassive, Travisneedham, Mrauralization, Gibarroule, Acclivity, Inspectorj, O-ciz,
-Lydmakeren, Shadeslayer99, Erokia, Filmscore, Anton, 15gpanskabokstefflova-nicola, Vataaa and Robinhood76
+The upstream sound files are omitted because the source repository does not
+provide per-file licenses or direct source URLs for verification. See
+https://github.com/Skandarella/people for the upstream source.

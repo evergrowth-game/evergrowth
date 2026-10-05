@@ -230,7 +230,6 @@ ambience.add_set("beach", {
 		{name = "seagull", length = 4.5, pitch = 1.2, chance = 2, ephemeral = true},
 		--{name = "beach", length = 13},
 		{name = "gull", length = 1, chance = 2, ephemeral = true},
-		{name = "seagull_2", length = 4, chance = 2, ephemeral = true}
 	},
 
 	nodes = {"group:water"},

@@ -12,9 +12,6 @@ Source & Information on [Github](https://github.com/t-affeldt/climate) and the [
 - Moon Phases: Makes your sky dynamic by cycling through eight different phases
 - Lightning by Auke Kok (sofar): Adds random lightning strikes during rainstorms
 
-## Recommended Mods
-- [Sailing Kit](https://github.com/t-affeldt/sailing_kit): A fork of [Termos' sailboat](https://forum.minetest.net/viewtopic.php?t=23520) to support the new wind system.
-
 ## Cloning Instructions
 This modpack uses submodules to always be up-to-date.
 Downloading the repository as a ZIP file leaves the mod folders empty, so you will have to download them manually. If you are using git commands then make sure you set the *recursive* flag instead: ``git clone https://github.com/t-affeldt/climate.git --recursive``. If you forget to set this flag, then the mod folders will be empty. You will also need to run ``git pull`` from within every mod folder in order to update the modpack.

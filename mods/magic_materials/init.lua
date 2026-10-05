@@ -10,6 +10,6 @@ dofile(path .. "/crafts.lua")
 dofile(path .. "/mapgen.lua")
 dofile(path .. "/tools.lua")
 
-if minetest.get_modpath("technic") then
+if minetest.get_modpath("eg_technic_dummy") then
     dofile(path .. "/technic.lua")
 end

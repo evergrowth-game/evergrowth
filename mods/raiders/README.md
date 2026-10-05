@@ -7,7 +7,7 @@ It implements the raider, pirate, and plunderer mechanics from the original mod,
 ## Credits and Attribution
 * **Original Creator:** Liil / Skandarella
 * **Upstream Source:** [https://github.com/Skandarella/people](https://github.com/Skandarella/people)
-* **License:** Code and media assets are distributed under the **MIT License** (with some external sounds under Creative Commons CC-BY-SA-NC). 
+* **License:** The bundled code, textures, models, and animation are distributed under the **MIT License**. The upstream sound files are omitted because their individual licenses could not be verified.
 
 For full license terms and asset credits, please refer to the [license.txt](license.txt) file included in this directory.
 

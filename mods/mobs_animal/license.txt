@@ -92,11 +92,11 @@ Models/Textures by D00Med (CC BY-SA 3.0)
   mobs_penguin.b3d
   mobs_penguin.png
 
-Textures by LithiumSound's Summer Field Texture Pack (CC BY-SA 4.0 NC ShareAlike International)
+Sheep textures created for Evergrowth (CC0/Public Domain)
   mobs_sheep_base.png
   mobs_sheep_horns.png
   mobs_sheep_shaved.png
-  mobs_sheep_wool.png [all edited by sirrobzeroone]
+  mobs_sheep_wool.png
 
 Sounds by Cyberpangolin (WTFPL) https://forum.minetest.net/viewtopic.php?t=10798
   mobs_bee.ogg
