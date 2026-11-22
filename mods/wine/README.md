@@ -4,6 +4,18 @@ by TenPlus1
 
 Depends: Farming Redo
 
+License
+-------
+
+The Wine mod code is licensed under the MIT License; see `license.txt`.
+
+Wine media is covered by the attribution and license statements in
+`license.txt`.  The `wine_barrel.obj` model was sourced from Sokomine's
+Cottages mod and is media licensed under CC-BY-SA-3.0; see
+`models/LICENSE`.
+
+Evergrowth retains these clarification and provenance records locally.
+
 This mod adds a barrel used to ferment grapes into glasses of wine, 9 of which can then be crafted into a bottle of wine.  It can also ferment honey into mead, barley into beer, wheat into weizen (wheat beer), corn into bourbon and apples into cider.
 
 Change log:

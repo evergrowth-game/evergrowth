@@ -20,6 +20,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+Wine mod license summary:
+  Code: MIT
+  Media: licenses and attributions listed below
+  Barrel model: CC-BY-SA-3.0, sourced from Sokomine's Cottages mod
+  See models/LICENSE for barrel model provenance.
+
 Textures by TenPlus1 unless listed below (CC-By-3.0)
 
 Texture based on Thomas-s' vessels_glass_bottle.png (cc by sa 3.0):
